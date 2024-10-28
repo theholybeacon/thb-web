@@ -1,0 +1,39 @@
+/* Light Theme Variables */
+:root {
+  --background: #fbfce7;
+  /* Light Base Color (Beige) */
+  --text: #0f2033;
+  /* Dark Base Color (Oxford Blue) */
+  --primary: #82a6b8;
+  /* Primary Brand Color (Cadet Gray) */
+  --secondary: #bf914d;
+  /* Secondary Brand Color (Lion) */
+  --accent: #f1d5ae;
+  /* Tertiary Brand Color (Sunset) */
+
+  /* Additional Colors */
+  --success: #28a745;
+  --error: #dc3545;
+  --warning: #ffc107;
+  --info: #17a2b8;
+  --neutral: #6c757d;
+}
+
+/* Dark Theme Variables */
+[data-theme='dark'] {
+  --background: #0f2033;
+  /* Dark Base Color (Oxford Blue) */
+  --text: #fbfce7;
+  /* Light Base Color (Beige) */
+  --primary: #82a6b8;
+  /* Keeping the same for consistency */
+  --secondary: #bf914d;
+  --accent: #f1d5ae;
+
+  /* Additional Colors (Optional Adjustments for Dark Theme) */
+  --success: #28a745;
+  --error: #dc3545;
+  --warning: #ffc107;
+  --info: #17a2b8;
+  --neutral: #6c757d;
+}
