@@ -1,8 +1,7 @@
 import { Lora, Roboto } from 'next/font/google';
 
 import "./styles/global.css";
-
-import { ThemeProvider } from 'next-themes';
+import { ThemeProvider } from './context/ThemeContext';
 
 const lora = Lora({
   subsets: ['latin'],
