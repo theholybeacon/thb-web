@@ -1,0 +1,4 @@
+.Box {
+	max-height: calc(100vh - 85px);
+	display: flex;
+}

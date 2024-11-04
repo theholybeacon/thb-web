@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import styles from './Button.module.css';
+import { Button } from '@mantine/core';
 
 export enum AppButtonType {
 	primary = "primary",
@@ -21,15 +21,15 @@ interface AppButtonProps {
 	disabled?: boolean | undefined;
 }
 
-const AppButton: React.FC<AppButtonProps> = ({ children, onClick, className, type, disabled }) => {
+const AppButton: React.FC<AppButtonProps> = ({ children, onClick, disabled }) => {
 	return (
-		<button
-			className={`${styles.AppButton} ${className || ""} ${styles[type]} ${disabled ? styles.disabled : ""}`}
+		<Button
+			color='yellow'
 			disabled={disabled}
 			onClick={onClick}
 		>
 			{children}
-		</button >
+		</Button >
 	);
 };
 
