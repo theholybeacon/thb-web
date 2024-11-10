@@ -26,24 +26,24 @@ export class Book {
 
 	static type = Book.schema._type;
 
-	book_id: string;
-	bible_id: string;
+	bookId: string;
+	bibleId: string;
 	name: string;
-	book_order: number;
+	bookOrder: number;
 	abbreviation?: string;
-	num_chapters?: number;
-	created_at?: Date;
-	updated_at?: Date;
+	numChapters?: number;
+	createdAt?: Date;
+	updatedAt?: Date;
 
 	protected constructor(data: z.infer<typeof Book.schema>) {
-		this.book_id = data.book_id;
-		this.bible_id = data.bible_id;
+		this.bookId = data.book_id;
+		this.bibleId = data.bible_id;
 		this.name = data.name;
-		this.book_order = data.book_order;
+		this.bookOrder = data.book_order;
 		this.abbreviation = data.abbreviation;
-		this.num_chapters = data.num_chapters;
-		this.created_at = data.created_at;
-		this.updated_at = data.updated_at;
+		this.numChapters = data.num_chapters;
+		this.createdAt = data.created_at;
+		this.updatedAt = data.updated_at;
 	}
 
 	static create(data: unknown): Book {

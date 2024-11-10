@@ -24,17 +24,17 @@ export class Verse {
 
 	static type = Verse.schema._type;
 
-	verse_id: string;
-	chapter_id: string;
-	verse_number: number;
+	verseId: string;
+	chapterId: string;
+	verseNumber: number;
 	text: string;
 	created_at?: Date;
 	updated_at?: Date;
 
 	protected constructor(data: z.infer<typeof Verse.schema>) {
-		this.verse_id = data.verse_id;
-		this.chapter_id = data.chapter_id;
-		this.verse_number = data.verse_number;
+		this.verseId = data.verse_id;
+		this.chapterId = data.chapter_id;
+		this.verseNumber = data.verse_number;
 		this.text = data.text;
 		this.created_at = data.created_at;
 		this.updated_at = data.updated_at;

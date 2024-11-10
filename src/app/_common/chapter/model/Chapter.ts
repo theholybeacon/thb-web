@@ -24,20 +24,20 @@ export class Chapter {
 
 	static type = Chapter.schema._type;
 
-	chapter_id: string;
-	book_id: string;
-	chapter_number: number;
-	num_verses?: number;
-	created_at?: Date;
-	updated_at?: Date;
+	chapterId: string;
+	bookId: string;
+	chapterNumber: number;
+	numVerses?: number;
+	createdAt?: Date;
+	updatedAt?: Date;
 
 	protected constructor(data: z.infer<typeof Chapter.schema>) {
-		this.chapter_id = data.chapter_id;
-		this.book_id = data.book_id;
-		this.chapter_number = data.chapter_number;
-		this.num_verses = data.num_verses;
-		this.created_at = data.created_at;
-		this.updated_at = data.updated_at;
+		this.chapterId = data.chapter_id;
+		this.bookId = data.book_id;
+		this.chapterNumber = data.chapter_number;
+		this.numVerses = data.num_verses;
+		this.createdAt = data.created_at;
+		this.updatedAt = data.updated_at;
 	}
 
 	static create(data: unknown): Chapter {

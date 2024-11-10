@@ -3,6 +3,7 @@ import { z } from 'zod';
 export class Bible {
 	static schema = z.object({
 		bible_id: z.string().uuid(),
+		api_id: z.string().max(255),
 		name: z.string().max(100),
 		language: z.string().max(50),
 		version: z.string().max(50).optional(),
@@ -26,24 +27,26 @@ export class Bible {
 
 	static type = Bible.schema._type;
 
-	bible_id: string;
+	bibleId: string;
+	apiId: string;
 	name: string;
 	language: string;
 	version?: string;
 	description?: string;
-	num_books?: number;
-	created_at?: Date;
-	updated_at?: Date;
+	numBooks?: number;
+	createdAt?: Date;
+	updatedAt?: Date;
 
 	protected constructor(data: z.infer<typeof Bible.schema>) {
-		this.bible_id = data.bible_id;
+		this.bibleId = data.bible_id;
+		this.apiId = data.api_id;
 		this.name = data.name;
 		this.language = data.language;
 		this.version = data.version;
 		this.description = data.description;
-		this.num_books = data.num_books;
-		this.created_at = data.created_at;
-		this.updated_at = data.updated_at;
+		this.numBooks = data.num_books;
+		this.createdAt = data.created_at;
+		this.updatedAt = data.updated_at;
 	}
 
 	static create(data: unknown): Bible {
@@ -51,4 +54,3 @@ export class Bible {
 		return new Bible(parsedData);
 	}
 }
-

@@ -13,13 +13,13 @@ CREATE TABLE "User" (
 -- Rollback
 -- DROP TABLE "User";
 
-
 -- Changeset andres:2
 -- Labels: Bible
 -- Context: initial setup
 -- Comment: Create Bible table
 CREATE TABLE "Bible" (
     bible_id UUID PRIMARY KEY NOT NULL,
+    api_id VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
     language VARCHAR(50) NOT NULL,
     version VARCHAR(50),
@@ -222,3 +222,191 @@ CREATE INDEX idx_userstudyprogress_session_id ON "UserStudyProgress"(session_id)
 -- Rollback
 -- DROP INDEX idx_userstudyprogress_session_id;
 
+-- Changeset andres:15
+-- Context: initial setup
+-- Comment: Enable uuid-ossp extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Rollback
+-- DROP EXTENSION IF EXISTS "uuid-ossp";
+
+-- Changeset andres:16 splitStatements:false endDelimiter:$$
+CREATE OR REPLACE FUNCTION bible_create(
+    api_id VARCHAR(255),
+    name VARCHAR(100),
+    language VARCHAR(50),
+    version VARCHAR(50) = NULL,
+    description TEXT = NULL
+) RETURNS UUID AS $$
+DECLARE
+    v_bible_id UUID;
+BEGIN
+    v_bible_id := uuid_generate_v4();
+    INSERT INTO "Bible" (bible_id, api_id, name, language, version, description, num_books)
+    VALUES (v_bible_id, api_id, name, language, version, description, 0);
+    RETURN v_bible_id;
+END;
+$$ LANGUAGE plpgsql;
+-- Rollback
+-- DROP FUNCTION bible_create(VARCHAR(255), VARCHAR(100), VARCHAR(50), VARCHAR(50), TEXT);
+
+-- Changeset andres:17 splitStatements:false endDelimiter:$$
+CREATE OR REPLACE FUNCTION book_create(
+    p_bible_id UUID,
+    name VARCHAR(100),
+    book_order INT,
+    abbreviation VARCHAR(10) = NULL
+) RETURNS UUID AS $$
+DECLARE
+    v_book_id UUID;
+BEGIN
+    v_book_id := uuid_generate_v4();
+    INSERT INTO "Book" (book_id, bible_id, name, book_order, abbreviation, num_chapters)
+    VALUES (v_book_id, p_bible_id, name, book_order, abbreviation, 0);
+
+    /* Update the number of books in the Bible */
+    UPDATE "Bible"
+    SET num_books = num_books + 1, updated_at = CURRENT_TIMESTAMP
+    WHERE bible_id = p_bible_id;
+
+    RETURN v_book_id;
+END;
+$$ LANGUAGE plpgsql;
+-- Rollback
+-- DROP FUNCTION book_create(UUID, VARCHAR(100), INT, VARCHAR(10));
+
+-- Changeset andres:18 splitStatements:false endDelimiter:$$
+CREATE OR REPLACE FUNCTION chapter_create(
+    p_book_id UUID,
+    chapter_number INT,
+    num_verses INT
+) RETURNS UUID AS $$
+DECLARE
+    v_chapter_id UUID;
+BEGIN
+    v_chapter_id := uuid_generate_v4();
+    INSERT INTO "Chapter" (chapter_id, book_id, chapter_number, num_verses)
+    VALUES (v_chapter_id, p_book_id, chapter_number, num_verses);
+
+    RETURN v_chapter_id;
+END;
+$$ LANGUAGE plpgsql;
+-- Rollback
+-- DROP FUNCTION chapter_create(UUID, INT, INT);
+
+-- Changeset andres:19 splitStatements:false endDelimiter:$$
+CREATE OR REPLACE FUNCTION verse_create(
+    p_chapter_id UUID,
+    verse_number INT,
+    text TEXT
+) RETURNS UUID AS $$
+DECLARE
+    v_verse_id UUID;
+BEGIN
+    v_verse_id := uuid_generate_v4();
+    INSERT INTO "Verse" (verse_id, chapter_id, verse_number, text)
+    VALUES (v_verse_id, p_chapter_id, verse_number, text);
+
+    RETURN v_verse_id;
+END;
+$$ LANGUAGE plpgsql;
+-- Rollback
+-- DROP FUNCTION verse_create(UUID, INT, TEXT);
+
+-- Changeset andres:20 splitStatements:false endDelimiter:$$
+CREATE OR REPLACE FUNCTION chapter_get_verses(
+    _chapter_id UUID
+) RETURNS TABLE(
+    verse_id UUID,
+    chapter_id UUID,
+    verse_number INT,
+    text TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT verse_id, chapter_id, verse_number, text
+    FROM "Verse"
+    WHERE chapter_id = _chapter_id
+    ORDER BY verse_number;
+END;
+$$ LANGUAGE plpgsql;
+-- Rollback
+-- DROP FUNCTION chapter_get_verses(UUID);
+
+-- Changeset andres:21 splitStatements:false endDelimiter:$$
+CREATE OR REPLACE FUNCTION chapter_get_previous(
+    _chapter_id UUID
+) RETURNS TABLE(
+    prev_chapter_id UUID,
+    chapter_number INT,
+    name VARCHAR
+) AS $$
+DECLARE
+    v_book_id UUID;
+    v_chapter_number INT;
+BEGIN
+    /* Retrieve the current chapter's book ID and chapter number */
+    SELECT book_id, chapter_number INTO v_book_id, v_chapter_number
+    FROM "Chapter"
+    WHERE chapter_id = _chapter_id;
+
+    /* Find the previous chapter in the same book */
+    RETURN QUERY
+    SELECT chapter_id, chapter_number, 'Chapter ' || chapter_number AS name
+    FROM "Chapter"
+    WHERE book_id = v_book_id AND chapter_number < v_chapter_number
+    ORDER BY chapter_number DESC
+    LIMIT 1;
+END;
+$$ LANGUAGE plpgsql;
+-- Rollback
+-- DROP FUNCTION chapter_get_previous(UUID);
+
+-- Changeset andres:22 splitStatements:false endDelimiter:$$
+CREATE OR REPLACE FUNCTION chapter_get_next(
+    _chapter_id UUID
+) RETURNS TABLE(
+    next_chapter_id UUID,
+    chapter_number INT,
+    name VARCHAR
+) AS $$
+DECLARE
+    v_book_id UUID;
+    v_chapter_number INT;
+BEGIN
+    /* Retrieve the current chapter's book ID and chapter number */
+    SELECT book_id, chapter_number INTO v_book_id, v_chapter_number
+    FROM "Chapter"
+    WHERE chapter_id = _chapter_id;
+
+    /* Find the next chapter in the same book */
+    RETURN QUERY
+    SELECT chapter_id, chapter_number, 'Chapter ' || chapter_number AS name
+    FROM "Chapter"
+    WHERE book_id = v_book_id AND chapter_number > v_chapter_number
+    ORDER BY chapter_number ASC
+    LIMIT 1;
+END;
+$$ LANGUAGE plpgsql;
+-- Rollback
+-- DROP FUNCTION chapter_get_next(UUID);
+
+-- Changeset andres:23 splitStatements:false endDelimiter:$$
+CREATE OR REPLACE FUNCTION bible_get_all()
+RETURNS TABLE(
+    bible_id UUID,
+    api_id VARCHAR(255),
+    name VARCHAR(100),
+    language VARCHAR(50),
+    version VARCHAR(50),
+    description TEXT,
+    num_books INT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT b.bible_id, b.api_id, b.name, b.language, b.version, b.description, b.num_books, b.created_at, b.updated_at
+    FROM "Bible" b
+    ORDER BY b.name;
+END;
+$$ LANGUAGE plpgsql;
