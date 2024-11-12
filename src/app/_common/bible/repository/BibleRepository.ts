@@ -16,12 +16,16 @@ export class BibleRepository {
 
 		if (output.length === 0) {
 			output = await this._externalDao.getAll();
-			output.map((actual) => {
-				this._internalDao.create(actual);
+			output.map(async (actual) => {
+				await this._internalDao.create(actual);
 			});
 		}
 
 		return output;
 	}
+	async getByBibleId(bibleId: string): Promise<Bible> {
+		return await this._internalDao.getByBibleId(bibleId);
+	}
+
 }
 

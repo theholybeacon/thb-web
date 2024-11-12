@@ -410,3 +410,22 @@ BEGIN
     ORDER BY b.name;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Changeset andres:24 splitStatements:false endDelimiter:$$
+CREATE OR REPLACE FUNCTION book_get_all_by_bible_id(_bible_id UUID)
+RETURNS TABLE(
+    book_id UUID,
+    bible_id UUID,
+    name VARCHAR(100),
+    book_order INT,
+    abbreviation VARCHAR(50),
+    num_chapters INT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT * FROM "Book"
+    WHERE _bile_id = bible_id;
+END;
+$$ LANGUAGE plpgsql;

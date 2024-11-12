@@ -1,8 +1,8 @@
 "use client";
 import { Button, Divider, Group, Indicator, Title, useMantineColorScheme } from "@mantine/core";
 import styles from "./HomePage.module.css";
-import { BibleGetAllCS } from "./_common/bible/service/client/BibleGetAllCS";
 import { logger } from "./_utils/logger";
+import { InitialLoadCS } from "./_common/initial-load/service/client/InitialLoadCS";
 
 
 const log = logger.child({ module: 'HomePage' });
@@ -11,9 +11,9 @@ export default function HomePage() {
 
   function loadInfo() {
     log.trace("loadInfo");
-    const bibleGetAllCS = new BibleGetAllCS();
-    bibleGetAllCS.execute();
 
+    const initialLoad = new InitialLoadCS();
+    initialLoad.execute();
   }
 
   log.trace("render");

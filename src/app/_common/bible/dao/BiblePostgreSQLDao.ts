@@ -29,5 +29,9 @@ export class BiblePostgreSQLDao implements IBibleDao {
 			);`;
 		return response.rows[0].v_bible_id;
 	}
+
+	async getByBibleId(bibleId: string): Promise<Bible> {
+
+	}
 }
 
