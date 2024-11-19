@@ -18,13 +18,12 @@ export class BookRepository {
 		let output = await this._internalDao.getAllByBibleId(bibleId);
 
 		if (output.length === 0) {
-			const bibleToFetch = this._bibleRepository.getById();
 			output = await this._externalDao.getAllByBibleId(bibleId);
 			output.map(async (actual) => {
+				actual.bibleId = bibleId;
 				await this._internalDao.create(actual);
 			});
 		}
-
 		return output;
 	}
 

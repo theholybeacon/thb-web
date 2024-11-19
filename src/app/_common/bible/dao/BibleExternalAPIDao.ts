@@ -1,7 +1,8 @@
 import { logger } from "@/app/_utils/logger";
 import { IBibleDao } from "./IBibleDao";
-import { Bible } from "../model/Bible";
 import { randomUUID } from "crypto";
+import { Bible } from "../model/Bible";
+import { selectBibleSchema } from "@/db/schema/bible";
 
 const API_KEY = process.env.BIBLE_API_KEY;
 const BASE_URL = "https://api.scripture.api.bible/v1/";
@@ -38,19 +39,19 @@ export class BibleExternalAPIDao implements IBibleDao {
 		);
 		const data = await response.json();
 		const output: Bible[] = [];
-		log.trace(data);
 		if (data.data.length > 0) {
 			data.data.map((bible: BibleAPI) => {
-				output.push(Bible.create({
-					bible_id: String(randomUUID()),
-					api_id: bible.id,
+				output.push(selectBibleSchema.parse({
+					id: String(randomUUID()),
+					bibleId: String(randomUUID()),
+					apiId: bible.id,
 					name: bible.name,
 					language: bible.language.name,
 					version: bible.abbreviationLocal,
 					description: bible.description || "",
-					num_books: 0,
-					created_at: new Date(),
-					updated_at: new Date()
+					numBooks: 0,
+					createdAt: new Date(),
+					updatedAt: new Date()
 				}));
 			});
 		}
@@ -58,7 +59,7 @@ export class BibleExternalAPIDao implements IBibleDao {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async create(bible: Bible): Promise<string> {
+	async create(bible: Bible): Promise<Bible> {
 		log.trace("create");
 		throw (Error("Method not valid"));
 	}

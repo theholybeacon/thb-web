@@ -23,7 +23,7 @@ export class BibleRepository {
 
 		return output;
 	}
-	async getByBibleId(bibleId: string): Promise<Bible> {
+	async getById(bibleId: string): Promise<Bible> {
 		return await this._internalDao.getByBibleId(bibleId);
 	}
 
