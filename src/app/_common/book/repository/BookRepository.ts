@@ -7,29 +7,31 @@ import { BibleRepository } from "../../bible/repository/BibleRepository";
 
 const log = logger.child({ module: 'BookRepository' });
 export class BookRepository {
-	_internalDao = new BookPostgreSQLDao();
-	_externalDao = new BookExternalAPIDao();
+	private internalDao = new BookPostgreSQLDao();
+	private externalDao = new BookExternalAPIDao();
 
 	_bibleRepository = new BibleRepository();
 
 	async getAllByBibleId(bibleId: string): Promise<Book[]> {
 		log.trace("getAllByBibleId");
 
-		let output = await this._internalDao.getAllByBibleId(bibleId);
+		let output = await this.internalDao.getAllByBibleId(bibleId);
 
 		if (output.length === 0) {
-			output = await this._externalDao.getAllByBibleId(bibleId);
+			const bibleToFetch = await this._bibleRepository.getById(bibleId);
+			output = await this.externalDao.getAllByBibleId(bibleToFetch!.apiId);
 			output.map(async (actual) => {
 				actual.bibleId = bibleId;
-				await this._internalDao.create(actual);
+				await this.internalDao.create(actual);
 			});
+			await this._bibleRepository.updateBookNumber(output.length, bibleId);
 		}
 		return output;
 	}
 
-	async create(book: Book): Promise<string> {
+	async create(book: Book): Promise<Book> {
 		log.trace("getAllByBibleId");
-		return await this._internalDao.create(book);
+		return await this.internalDao.create(book);
 	}
 }
 

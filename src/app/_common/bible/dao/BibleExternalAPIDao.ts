@@ -1,18 +1,10 @@
 import { logger } from "@/app/_utils/logger";
-import { IBibleDao } from "./IBibleDao";
 import { randomUUID } from "crypto";
-import { Bible } from "../model/Bible";
 import { selectBibleSchema } from "@/db/schema/bible";
+import { Bible } from "../model/Bible";
 
 const API_KEY = process.env.BIBLE_API_KEY;
 const BASE_URL = "https://api.scripture.api.bible/v1/";
-//const BASE_QUERY_PARAMS =
-//	`?content-type=text
-//	&include-notes=false
-//	&include-chapter-numbers=false
-//	&include-titles=false
-//	&include-verse-numbers=false`;
-
 
 interface BibleAPI {
 	id: string;
@@ -24,13 +16,12 @@ interface BibleAPI {
 
 
 const log = logger.child({ module: 'BibleExternalAPIDao' });
-export class BibleExternalAPIDao implements IBibleDao {
+export class BibleExternalAPIDao {
 
 	async getAll(): Promise<Bible[]> {
 		log.trace("getAll");
 		const response = await fetch(
-			BASE_URL +
-			'bibles',
+			`${BASE_URL}bibles`,
 			{
 				headers: {
 					'api-key': API_KEY!,
@@ -58,10 +49,4 @@ export class BibleExternalAPIDao implements IBibleDao {
 		return output;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async create(bible: Bible): Promise<Bible> {
-		log.trace("create");
-		throw (Error("Method not valid"));
-	}
 }
-

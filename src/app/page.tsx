@@ -1,19 +1,19 @@
-"use client";
 import { Button, Divider, Group, Indicator, Title, useMantineColorScheme } from "@mantine/core";
 import styles from "./HomePage.module.css";
 import { logger } from "./_utils/logger";
-import { InitialLoadCS } from "./_common/initial-load/service/client/InitialLoadCS";
+import { InitialLoadSS } from "./_common/initial-load/service/InitialLoadSS";
 
 
 const log = logger.child({ module: 'HomePage' });
 export default function HomePage() {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
-  function loadInfo() {
+  async function loadInfo() {
+    "use server";
+
     log.trace("loadInfo");
 
-    const initialLoad = new InitialLoadCS();
-    initialLoad.execute();
+    const initialLoad = new InitialLoadSS();
+    await initialLoad.execute();
   }
 
   log.trace("render");
@@ -30,9 +30,6 @@ export default function HomePage() {
             </Button>
           </Indicator>
           <Divider orientation="vertical" />
-          <Button color="primary" onClick={toggleColorScheme}>
-            {colorScheme}
-          </Button>
         </Group>
       </main>
     </div>

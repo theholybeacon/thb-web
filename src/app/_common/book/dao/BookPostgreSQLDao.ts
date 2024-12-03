@@ -1,35 +1,29 @@
 
 import { logger } from "@/app/_utils/logger";
-import { sql } from "@vercel/postgres";
-import { Book } from "../model/Book";
-import { IBookDao } from "./IBookDao";
+import { Book, BookInsert } from "../model/Book";
+import { db } from "@/db";
+import { bookTable } from "@/db/schema/book";
+import { eq } from "drizzle-orm";
 
 const log = logger.child({ module: 'BookPostgreSQLDao' });
-export class BookPostgreSQLDao implements IBookDao {
-	async getAllByBibleId(bibleId: string): Promise<Book[]> {
-		log.trace("getAllByBibleId");
-		const response = await sql`SELECT * from book_get_all_by_bible_id(${bibleId});`;
+export class BookPostgreSQLDao {
 
-		const output: Book[] = [];
-		if (response.rows.length > 0) {
-			response.rows.map(row => {
-				output.push(Book.create(row));
-			});
-		}
-		return output;
+	async getById(id: string): Promise<Book | undefined> {
+		return await db.query.bookTable.findFirst({
+			where: eq(bookTable.id, id),
+		});
 	}
 
-	async create(book: Book): Promise<string> {
+	async getAllByBibleId(bibleId: string): Promise<Book[]> {
+		return await db.query.bookTable.findMany({
+			where: eq(bookTable.bibleId, bibleId),
+		});
+	}
+
+	async create(book: BookInsert): Promise<Book> {
 		log.trace("create");
-		const response = await sql`SELECT * from book_create(
-				${book.bibleId},
-				${book.bookId},
-				${book.name},
-				${book.bookOrder},
-				${book.abbreviation},
-				${book.numChapters}
-			);`;
-		return response.rows[0].v_book_id;
+		const returned = await db.insert(bookTable).values(book).returning();
+		return returned[0];
 	}
 }
 

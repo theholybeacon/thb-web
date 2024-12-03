@@ -1,15 +1,22 @@
-"use client";
-
 import { Card, Title, ScrollArea, Box, Flex } from "@mantine/core";
-import { useState } from "react";
 import styles from "./current-chapter.module.css";
 import React from "react";
 import { VerseItem } from "./verse-item";
+import { ChapterGetForMainService } from "@/app/_common/chapter/service/ChapterForMainService";
+import { Verse } from "@/app/_common/verse/model/Verse";
+import { ChapterVerNav } from "@/app/_common/chapter/model/Chapter";
 
 
-export default function CurentChapter() {
+export default async function CurentChapter() {
 
-	const [verses] = useState<string[]>([]);
+	const currentChapter: ChapterVerNav = await fetchChapter;
+
+	async function fetchChapter(): Promise<ChapterVerNav> {
+		"use server";
+
+		const chaptersGetFormMainService = new ChapterGetForMainService();
+		return await chaptersGetFormMainService.execute("");
+	}
 
 
 
@@ -19,8 +26,8 @@ export default function CurentChapter() {
 				<Title order={1}>Genesis 1</Title>
 				<ScrollArea offsetScrollbars>
 					<Flex direction="row" wrap="wrap" className={styles.content}>
-						{verses.map((verse, index) => (
-							<VerseItem verseNumber={index + 1} content={verse} key={index + 1} />
+						{currentChapter.verses.map((verse: Verse, index: number) => (
+							<VerseItem verseNumber={index + 1} content={verse.content} key={index + 1} />
 						))}
 					</Flex>
 				</ScrollArea>
