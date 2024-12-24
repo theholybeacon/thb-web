@@ -7,7 +7,7 @@ export const verseTable = pgTable("verse", {
 	id: uuid().defaultRandom().primaryKey(),
 	chapterId: uuid().notNull(),
 	verseNumber: integer().notNull(),
-	content: varchar({ length: 255 }).notNull(),
+	content: varchar({ length: 1000 }).notNull(),
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow(),
 });

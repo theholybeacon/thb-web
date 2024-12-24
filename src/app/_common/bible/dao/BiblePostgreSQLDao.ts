@@ -24,6 +24,12 @@ export class BiblePostgreSQLDao {
 			where: eq(bibleTable.id, id),
 		});
 	}
+	async getByApiId(apiId: string): Promise<Bible | undefined> {
+		log.trace("getByApiId");
+		return await db.query.bibleTable.findFirst({
+			where: eq(bibleTable.apiId, apiId),
+		});
+	}
 
 	async updateBookNumber(n: number, bibleId: string): Promise<void> {
 		log.trace("updateBookNumber");

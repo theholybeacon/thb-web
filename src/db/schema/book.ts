@@ -6,6 +6,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const bookTable = pgTable("book", {
 	id: uuid().defaultRandom().primaryKey(),
+	apiId: varchar({ length: 255 }).notNull(),
 	bibleId: uuid().notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	bookOrder: integer().notNull(),

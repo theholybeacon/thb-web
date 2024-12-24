@@ -1,22 +1,18 @@
+"use client";
 import { Button, Divider, Group, Indicator, Title, useMantineColorScheme } from "@mantine/core";
 import styles from "./HomePage.module.css";
 import { logger } from "./_utils/logger";
-import { InitialLoadSS } from "./_common/initial-load/service/InitialLoadSS";
+import { initialLoadSS } from "./_common/initial-load/service/InitialLoadSS";
 
 
 const log = logger.child({ module: 'HomePage' });
 export default function HomePage() {
 
   async function loadInfo() {
-    "use server";
-
     log.trace("loadInfo");
-
-    const initialLoad = new InitialLoadSS();
-    await initialLoad.execute();
+    await initialLoadSS();
   }
 
-  log.trace("render");
   return (
     <div className={styles.content}>
       <main className={styles.main}>

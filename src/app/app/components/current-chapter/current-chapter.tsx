@@ -9,14 +9,14 @@ import { ChapterVerNav } from "@/app/_common/chapter/model/Chapter";
 
 export default async function CurentChapter() {
 
-	const currentChapter: ChapterVerNav = await fetchChapter;
+	//const currentChapter: ChapterVerNav = await fetchChapter;
 
-	async function fetchChapter(): Promise<ChapterVerNav> {
-		"use server";
-
-		const chaptersGetFormMainService = new ChapterGetForMainService();
-		return await chaptersGetFormMainService.execute("");
-	}
+	//async function fetchChapter(): Promise<ChapterVerNav> {
+	//	"use server";
+	//
+	//	const chaptersGetFormMainService = new ChapterGetForMainService();
+	//	//return await chaptersGetFormMainService.execute("");
+	//}
 
 
 
@@ -26,9 +26,10 @@ export default async function CurentChapter() {
 				<Title order={1}>Genesis 1</Title>
 				<ScrollArea offsetScrollbars>
 					<Flex direction="row" wrap="wrap" className={styles.content}>
-						{currentChapter.verses.map((verse: Verse, index: number) => (
-							<VerseItem verseNumber={index + 1} content={verse.content} key={index + 1} />
-						))}
+						{//currentChapter.verses.map((verse: Verse, index: number) => (
+							//<VerseItem verseNumber={index + 1} content={verse.content} key={index + 1} />
+							//))
+						}
 					</Flex>
 				</ScrollArea>
 			</Card>

@@ -1,0 +1,1 @@
+ALTER TABLE "book" ADD COLUMN "apiId" varchar(255) NOT NULL;

@@ -8,15 +8,21 @@ import { eq } from "drizzle-orm";
 const log = logger.child({ module: 'BookPostgreSQLDao' });
 export class BookPostgreSQLDao {
 
-	async getById(id: string): Promise<Book | undefined> {
-		return await db.query.bookTable.findFirst({
+	async getById(id: string): Promise<Book> {
+		const response = await db.query.bookTable.findFirst({
 			where: eq(bookTable.id, id),
 		});
+
+		if (!response) {
+			throw Error("Book not found");
+		}
+		return response;
 	}
 
 	async getAllByBibleId(bibleId: string): Promise<Book[]> {
 		return await db.query.bookTable.findMany({
 			where: eq(bookTable.bibleId, bibleId),
+			orderBy: bookTable.bookOrder
 		});
 	}
 

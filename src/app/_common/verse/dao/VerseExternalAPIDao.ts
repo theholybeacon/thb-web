@@ -5,22 +5,28 @@ const BASE_URL = "https://api.scripture.api.bible/v1/";
 
 
 
-const log = logger.child({ module: 'BibleExternalAPIDao' });
+const log = logger.child({ module: 'VerseExternalDao' });
 export class VerseExternalDao {
 
-	async getByBibleApiIdAndAbbreviations(bibleApiId: string, abbreviations: string): Promise<string> {
-		log.trace("getAll");
-		const response = await fetch(
-			`${BASE_URL}bibles/${bibleApiId}/verses/${abbreviations}`,
-			{
-				headers: {
-					'api-key': API_KEY!,
-				},
-			},
-		);
-		const data = await response.json();
+	async getByBibleApiIdAndAbbreviations(bibleApiId: string, abbreviations: string): Promise<string | null> {
+		log.trace("getByBibleApiIdAndAbbreviations");
 
-		return data.content;
+		try {
+			const response = await fetch(
+				`${BASE_URL}bibles/${bibleApiId}/verses/${abbreviations}?content-type=text&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=false&include-verse-spans=false&use-org-id=false`,
+				{
+
+					headers: {
+						'api-key': API_KEY!,
+					},
+				},
+			);
+			const data = await response.json();
+			console.log(data.data.content);
+			return data.data.content;
+		} catch (e) {
+			return null;
+		}
 	}
 
 }

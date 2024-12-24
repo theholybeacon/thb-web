@@ -30,12 +30,12 @@ export class BookExternalAPIDao {
 		);
 		const data = await response.json();
 		const output: Book[] = [];
-		log.trace(data);
 		if (data.data.length > 0) {
 			let bookNumber = 1;
 			data.data.map((book: BookAPI) => {
 				output.push({
 					id: randomUUID(),
+					apiId: book.id,
 					bibleId: "",
 					name: book.name,
 					bookOrder: bookNumber,

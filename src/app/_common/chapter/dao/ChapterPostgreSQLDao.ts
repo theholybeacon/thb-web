@@ -6,7 +6,6 @@ import { chapterTable } from "@/db/schema/chapter";
 
 const log = logger.child({ module: 'ChapterPostgreSQLDao' });
 export class ChapterPostgreSQLDao {
-
 	async create(chapter: ChapterInsert): Promise<Chapter> {
 		log.trace("create");
 		const returned = await db.insert(chapterTable).values(chapter).returning();
@@ -20,6 +19,20 @@ export class ChapterPostgreSQLDao {
 		});
 		if (!returned) {
 			throw ("Chapter not found")
+		} else {
+			return returned;
+		}
+	}
+
+	async getAllByBookId(bookId: string): Promise<Chapter[]> {
+		const returned = await db.query.chapterTable.findMany({
+			where: (
+				and(
+					eq(chapterTable.bookId, bookId),
+				)),
+		});
+		if (!returned) {
+			throw ("Chapters not found")
 		} else {
 			return returned;
 		}
@@ -40,6 +53,10 @@ export class ChapterPostgreSQLDao {
 		} else {
 			return returned;
 		}
+	}
+
+	async update(chapter: Chapter): Promise<void> {
+		await db.update(chapterTable).set(chapter).where(eq(chapterTable.id, chapter.id));
 	}
 }
 

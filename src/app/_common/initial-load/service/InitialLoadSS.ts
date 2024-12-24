@@ -1,50 +1,35 @@
+"use server";
 import { BibleRepository } from "@/app/_common/bible/repository/BibleRepository";
 import { BookRepository } from "@/app/_common/book/repository/BookRepository";
 import { logger } from "@/app/_utils/logger";
 import { ChapterRepository } from "../../chapter/repository/ChapterRepository";
-import { VerseRepository } from "../../verse/repository/VerseRepository";
 
 const log = logger.child({ module: 'InitialLoadSS' });
-export async function InitialLoadSS() {
+export async function initialLoadSS() {
 
 
 	const bibleRepository = new BibleRepository();
 	const bookRepository = new BookRepository();
 	const chapterRepository = new ChapterRepository();
-	const verseRepository = new VerseRepository();
-	log.trace("execute");
-	const bible = await bibleRepository.getById("de4e12af7f28f599-02");
+	const bibles = await bibleRepository.getAll();
 
-	//for (const actualBible of bibles) {
-	const books = await bookRepository.getAllByBibleId(bible!.id);
-	log.trace(books);
+	for (const actualBible of bibles) {
+		log.trace("Bible to fetch:" + actualBible.name);
 
-	for (const book of books) {
-		for (let i = 0; i < book.numChapters; i++) {
-			const chapter = await chapterRepository.create({
-				bookId: book.id,
-				chapterNumber: i,
-				numVerses: 0,
-				createdAt: new Date(),
-				updatedAt: new Date()
-			});
-			for (let j = 0; i < book.numChapters + 1; i++) {
+		try {
 
-				const verseContent = await verseRepository.getByBibleApiIdAndAbbreviations(bible?.apiId!, book.abbreviation, chapter.chapterNumber, j);
-				const verse = await verseRepository.create({
-					verseNumber: j,
-					content: verseContent,
-					chapterId: chapter.id,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				});
+			const books = await bookRepository.getAllByBibleId(actualBible!.id);
+
+			for (const book of books) {
+				log.trace("Book to fetch:" + book.name);
+				const chapters = await chapterRepository.getAllByBookId(book.id);
 			}
+		}
+		catch (e) {
+			console.error(e);
 
 		}
 	}
-	//}
-
-
 }
 
 

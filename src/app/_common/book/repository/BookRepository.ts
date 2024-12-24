@@ -28,6 +28,9 @@ export class BookRepository {
 		}
 		return output;
 	}
+	async getById(bookId: string): Promise<Book> {
+		return await this.internalDao.getById(bookId)!;
+	}
 
 	async create(book: Book): Promise<Book> {
 		log.trace("getAllByBibleId");

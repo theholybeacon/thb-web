@@ -7,6 +7,7 @@ import * as bibleSchema from "@/db/schema/bible";
 import * as bookSchema from "@/db/schema/book";
 import * as chapterSchema from "@/db/schema/chapter";
 import * as verseSchema from "@/db/schema/verse";
+import * as userSchema from "@/db/schema/user";
 
 export const db = drizzle(
 	{
@@ -15,6 +16,8 @@ export const db = drizzle(
 			...bibleSchema,
 			...bookSchema,
 			...chapterSchema,
-			...verseSchema
+			...verseSchema,
+			...userSchema
 		}
-	});
+	}
+);

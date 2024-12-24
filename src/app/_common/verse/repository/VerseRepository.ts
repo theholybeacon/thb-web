@@ -13,7 +13,7 @@ export class VerseRepository {
 		return await this.versePostgreSQLDao.create(verse);
 	}
 
-	async getByBibleApiIdAndAbbreviations(bibleApiId: string, bookAbbreviation: string, chapterNumber: number, verseNumber: number) {
+	async getByBibleApiIdAndAbbreviations(bibleApiId: string, bookAbbreviation: string, chapterNumber: number, verseNumber: number): Promise<string | null> {
 		return await this.verseExternalDao.getByBibleApiIdAndAbbreviations(bibleApiId, `${bookAbbreviation}.${chapterNumber}.${verseNumber}`);
 	}
 

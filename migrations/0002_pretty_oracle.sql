@@ -1,0 +1,1 @@
+ALTER TABLE "verse" ALTER COLUMN "content" SET DATA TYPE varchar(1000);
