@@ -1,37 +1,80 @@
-import { Card, Title, ScrollArea, Box, Flex } from "@mantine/core";
+"use client";
+import { Card, Title, ScrollArea, Box, Flex, Group, Button, Loader, Center } from "@mantine/core";
 import styles from "./current-chapter.module.css";
 import React from "react";
 import { VerseItem } from "./verse-item";
-import { ChapterGetForMainService } from "@/app/_common/chapter/service/ChapterForMainService";
 import { Verse } from "@/app/_common/verse/model/Verse";
 import { ChapterVerNav } from "@/app/_common/chapter/model/Chapter";
+import { useSetState } from "@mantine/hooks";
+import { useQuery } from "@tanstack/react-query";
+import { bookGetByIdSS } from "@/app/_common/book/service/server/getByIdSS";
+import { chapterGetForMainSS } from "@/app/_common/chapter/service/ChapterForMainService";
 
 
-export default async function CurentChapter() {
+export default function CurentChapter() {
 
-	//const currentChapter: ChapterVerNav = await fetchChapter;
+	const [state, setState] = useSetState({
+		bookId: "08c999d1-b50a-486e-95f4-0d16d26b66d5",
+		chapterNumber: 30
+	});
 
-	//async function fetchChapter(): Promise<ChapterVerNav> {
-	//	"use server";
-	//
-	//	const chaptersGetFormMainService = new ChapterGetForMainService();
-	//	//return await chaptersGetFormMainService.execute("");
-	//}
+	const { data: chapter, isLoading: isChapterLoading } = useQuery({
+		queryKey: ['chapter', state],
+		queryFn: async () => {
+			return await chapterGetForMainSS(state.bookId, state.chapterNumber);
+		},
+	});
+
+	const { data: book, isLoading: isBookLoading } = useQuery({
+		queryKey: ['book', state],
+		queryFn: async () => {
+			return await bookGetByIdSS(state.bookId);
+		},
+	});
 
 
+	if (isChapterLoading && isBookLoading) {
+		return <Center className={styles.main}><Loader></Loader></Center>
+	}
 
 	return (
 		<Box className={styles.main}>
 			<Card>
-				<Title order={1}>Genesis 1</Title>
+				<Title order={1}>{`${book?.name!}: ${chapter?.chapterNumber}`}</Title>
 				<ScrollArea offsetScrollbars>
 					<Flex direction="row" wrap="wrap" className={styles.content}>
-						{//currentChapter.verses.map((verse: Verse, index: number) => (
-							//<VerseItem verseNumber={index + 1} content={verse.content} key={index + 1} />
-							//))
-						}
+						{chapter!.verses.map((v) => {
+							return <VerseItem verseNumber={v.verseNumber} content={v.content} key={v.id} />
+						})}
 					</Flex>
 				</ScrollArea>
+				<Group justify="space-between">
+					{
+						chapter?.prev ?
+							<Button onClick={
+								(e) => {
+									e.preventDefault();
+									setState({
+										bookId: chapter?.prev.bookId,
+										chapterNumber: chapter?.prev.chapterNumber
+									});
+								}}
+							>Previous</Button> : <></>
+					}
+					{
+						chapter?.next ?
+							<Button onClick={
+								(e) => {
+									e.preventDefault();
+									setState({
+										bookId: chapter?.next.bookId,
+										chapterNumber: chapter?.next.chapterNumber
+									})
+								}}
+							>Next</Button> : <></>
+					}
+				</Group>
+
 			</Card>
 		</Box>
 	);

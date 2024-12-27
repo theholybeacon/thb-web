@@ -1,4 +1,5 @@
 "use client";
+import { LoggedUserProvider } from "@/app/_state/LoggedUserContext";
 import { theme } from "@/app/_utils/theme/Theme";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import {
@@ -15,14 +16,13 @@ export default function ClientProvider({
     const queryClient = new QueryClient();
 
     return (
-        <>
+        <LoggedUserProvider>
             <ColorSchemeScript defaultColorScheme="dark" />
             <MantineProvider theme={theme} defaultColorScheme="dark">
                 <QueryClientProvider client={queryClient}>
                     {children}
                 </QueryClientProvider>
             </MantineProvider>
-
-        </>
+        </LoggedUserProvider>
     );
 }

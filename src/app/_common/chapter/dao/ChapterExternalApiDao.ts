@@ -15,13 +15,13 @@ interface ChapterApi {
 const log = logger.child({ module: 'ChapterExternalAPIDao' });
 export class ChapterExternalAPIDao {
 
-	async getAllByBibleIdAndBookAbbreviation(bibleId: string, bookAbbreviation: string): Promise<Chapter[]> {
+	async getAllByBibleApiIdAndBookAbbreviation(bibleApiId: string, bookAbbreviation: string): Promise<Chapter[]> {
 
-		log.trace(`bibles/${bibleId}/books/${bookAbbreviation}/chapters`);
+		log.trace(`bibles/${bibleApiId}/books/${bookAbbreviation}/chapters`);
 
 		const response = await fetch(
 			BASE_URL +
-			`bibles/${bibleId}/books/${bookAbbreviation}/chapters`,
+			`bibles/${bibleApiId}/books/${bookAbbreviation}/chapters`,
 			{
 				headers: {
 					'api-key': API_KEY!,
@@ -44,6 +44,7 @@ export class ChapterExternalAPIDao {
 		}
 		return output;
 	}
+
 
 }
 

@@ -13,7 +13,6 @@ export default function LayoutContent({
 }>) {
   const loggedUserContext = useLoggedUserContext();
 
-  console.log(loggedUserContext);
   if (loggedUserContext.loading) {
     return (
       <div style={{ width: "100vw", height: "100vh" }}>

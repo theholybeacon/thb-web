@@ -38,7 +38,7 @@ export class ChapterPostgreSQLDao {
 		}
 	}
 
-	async getByBookIdAndChapterNumber(bookId: string, chapterNumber: number): Promise<ChapterVer> {
+	async getByBookIdAndChapterNumber(bookId: string, chapterNumber: number): Promise<ChapterVer | undefined> {
 		log.trace("getByBookIdAndChapterNumber");
 		const returned = await db.query.chapterTable.findFirst({
 			where: (
@@ -48,11 +48,7 @@ export class ChapterPostgreSQLDao {
 				)),
 			with: { verses: true }
 		});
-		if (!returned) {
-			throw ("Chapter not found")
-		} else {
-			return returned;
-		}
+		return returned;
 	}
 
 	async update(chapter: Chapter): Promise<void> {

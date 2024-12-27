@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 
 import { isEmail, matchesField, useForm } from '@mantine/form';
-import { Button, Card, TextInput, Text, Stack, Center } from '@mantine/core';
+import { Button, Card, TextInput, Text, Stack, Center, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { authSignUpCS } from '@/app/_common/auth/service/client/authSignUpCS';
 import { logger } from '@/app/_utils/logger';
@@ -44,13 +44,13 @@ export default function SignUpPage() {
     onError: (error: unknown) => {
       console.error(error);
     },
-  });
+  })
 
   return (
     <Center>
       <Card w={pageWidth} >
 
-        <h1>Sign Up</h1>
+        <Title order={1}>Sign Up</Title>
 
         <form onSubmit={form.onSubmit(() => signUpMutation.mutate())}>
 

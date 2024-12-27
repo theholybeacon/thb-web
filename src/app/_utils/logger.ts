@@ -6,5 +6,5 @@ export const logger: Logger =
 		pino({ level: "warn" })
 		: // JSON in development (handle pretty printing externally)
 		pino({
-			level: "trace",
+			level: "debug",
 		});

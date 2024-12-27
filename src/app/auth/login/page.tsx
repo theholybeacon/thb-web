@@ -4,11 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 
 import { hasLength, isEmail, matchesField, useForm } from '@mantine/form';
-import { Button, Card, TextInput, Text, Group, Stack, Center } from '@mantine/core';
+import { Button, Card, TextInput, Text, Group, Stack, Center, Title } from '@mantine/core';
 import { authLogInCS } from '@/app/_common/auth/service/client/authLogInCS';
 import { pageWidth } from '@/app/_utils/theme/ThemeValues';
+import { useLoggedUserContext } from '@/app/_state/LoggedUserContext';
+import { logger } from '@/app/_utils/logger';
 
 
+const log = logger.child({ module: 'LoginPage' });
 export default function LoginPage() {
   const form = useForm({
     mode: 'uncontrolled',
@@ -18,6 +21,7 @@ export default function LoginPage() {
       password: (v) => v.length > 7 ? null : 'Must be at least 7 characters',
     },
   });
+  const loggedUser = useLoggedUserContext();
   const router = useRouter();
   const loginMutation = useMutation({
     mutationFn: async () => {
@@ -27,13 +31,16 @@ export default function LoginPage() {
     onSuccess: () => {
       router.push('/');
     },
+    onError: (e) => {
+      logger.error(e);
+    }
   });
 
   return (
     <Center>
       <Card w={pageWidth} >
 
-        <h1>Log in</h1>
+        <Title order={1}>Log in</Title>
 
         <form onSubmit={form.onSubmit(() => loginMutation.mutate())}>
 

@@ -19,40 +19,58 @@ interface LoggedUserProviderProps {
   children: ReactNode;
 }
 
+const reload = async () => {
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  window.location.reload();
+};
+
 export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children }) => {
-  const [state, setState] = useState<LoggedUserState>({ user: null, loading: true });
+  const [state, setState] = useState<LoggedUserState>({ user: null, loading: false });
 
   useEffect(() => {
     const cachedUser = localStorage.getItem('user');
     if (cachedUser) {
-      setState({ user: JSON.parse(cachedUser), loading: false });
+      try {
+        const parsedUser = JSON.parse(cachedUser);
+        setState({ user: parsedUser, loading: false });
+      } catch (error) {
+        console.error("Error parsing cached user:", error);
+        localStorage.removeItem('user');
+      }
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setState((prevState) => ({ ...prevState, loading: true }));
-        const user = await initialFetch(firebaseUser);
-        setState({
-          user,
-          loading: false,
-        });
+      try {
+        if (firebaseUser) {
+          setState((prevState) => ({ ...prevState, loading: true }));
+          const user = await initialFetch(firebaseUser);
+          setState({
+            user,
+            loading: false,
+          });
 
-        localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem('user', JSON.stringify(user));
 
-        const token = await firebaseUser.getIdToken();
-        nookies.set(undefined, 'token', token, { path: '/' });
-      } else {
-        setState({
-          user: null,
-          loading: false,
-        });
+          const token = await firebaseUser.getIdToken();
+          nookies.set(undefined, 'token', token, { path: '/' });
+        } else {
+          setState({
+            user: null,
+            loading: false,
+          });
 
-        localStorage.removeItem('user');
-        nookies.destroy(undefined, 'token');
+          localStorage.removeItem('user');
+          nookies.destroy(undefined, 'token');
+        }
+      } catch (error) {
+        console.error("Error during auth state change:", error);
+        setState({ user: null, loading: false });
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   return (
@@ -61,22 +79,21 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
     </LoggedUserContext.Provider>
   );
 }
-const reload = async () => {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  window.location.reload();
-};
 
 export const useLoggedUserContext = (): LoggedUserContextType => useContext(LoggedUserContext);
 
 export async function initialFetch(firebaseUser: FirebaseUser): Promise<User> {
-  const user = await userGetByAuthIdSS(firebaseUser.uid);
+  try {
+    const user = await userGetByAuthIdSS(firebaseUser.uid);
 
-  if (!user.isEmailVerified && firebaseUser.emailVerified) {
-    user.isEmailVerified = true;
-    await userUpdateSS(user);
+    if (!user.isEmailVerified && firebaseUser.emailVerified) {
+      user.isEmailVerified = true;
+      await userUpdateSS(user);
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Error in initialFetch:", error);
+    throw error; // Ensure the error propagates to be caught in useEffect
   }
-
-  return user;
 }
-
-
