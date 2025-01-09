@@ -1,6 +1,7 @@
-import { boolean } from 'drizzle-orm/pg-core';
-import { pgTable, uuid, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import { studyTable } from './study';
+import { relations } from 'drizzle-orm';
 
 export const userTable = pgTable("user", {
 	id: uuid().defaultRandom().primaryKey(),
@@ -11,6 +12,10 @@ export const userTable = pgTable("user", {
 	isEmailVerified: boolean().notNull().default(false),
 
 });
+
+export const userRelations = relations(userTable, ({ one, many }) => ({
+	studies: many(studyTable)
+}));
 
 export const insertUserSchema = createInsertSchema(userTable);
 export const selectUserSchema = createSelectSchema(userTable);

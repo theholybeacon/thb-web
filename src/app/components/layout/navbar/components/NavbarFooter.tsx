@@ -1,12 +1,12 @@
 
 "use client";
-import { useLoggedUserContext } from "@/app/_state/LoggedUserContext";
+import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { AppShell, Button, Menu, Stack, Text } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import style from "./NavbarFooter.module.css";
 import { IoIosArrowUp, IoIosLogOut, IoIosSettings } from "react-icons/io";
 import { FaBook, FaMap, FaMask, FaUser, FaUserFriends } from "react-icons/fa";
-import { authLogOutCS } from "@/app/_common/auth/service/client/authLogOutCS";
+import { authLogOutCS } from "@/app/common/auth/service/client/authLogOutCS";
 import { FaEnvelope, FaPerson } from "react-icons/fa6";
 
 export default function NavbarFooter() {
@@ -14,8 +14,8 @@ export default function NavbarFooter() {
   const router = useRouter();
 
   async function logoutHandler(): Promise<void> {
-    await authLogOutCS();
     router.push("/");
+    await authLogOutCS();
   }
 
   return (
@@ -24,8 +24,7 @@ export default function NavbarFooter() {
 
         <Menu withArrow>
           <Menu.Target>
-            <Button variant="transparent" className={style.loggedUserButton} size="lg" radius="lg"
-              leftSection={<FaPerson />}
+            <Button variant="filled" color="primary" className={style.loggedUserButton} size="lg" radius="lg"
               rightSection={<IoIosArrowUp />}
               styles={{
                 label: {
@@ -42,19 +41,19 @@ export default function NavbarFooter() {
 
           <Menu.Dropdown>
             <Menu.Item
-              rightSection={<FaBook />}
+              rightSection={<FaMap />}
               component="a"
-              href="/message"
+              href="/study"
             >
               Studies
             </Menu.Item>
 
             <Menu.Item
-              rightSection={<FaMap />}
+              rightSection={<FaBook />}
               component="a"
-              href="/maps"
+              href="/session"
             >
-              Maps
+              Sessions
             </Menu.Item>
             <Menu.Item
               rightSection={<IoIosSettings />}

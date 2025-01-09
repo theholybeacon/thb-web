@@ -3,7 +3,7 @@ import { AppShell, Button, Stack } from "@mantine/core";
 import NavbarHeader from "./components/NavbarHeader";
 import NavbarBody from "./components/NavbarBody";
 import NavbarFooter from "./components/NavbarFooter";
-import { useLoggedUserContext } from "@/app/_state/LoggedUserContext";
+import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 
 export default function Navbar() {
   const loggedUser = useLoggedUserContext().user;

@@ -6,9 +6,9 @@ import { useMutation } from '@tanstack/react-query';
 import { isEmail, matchesField, useForm } from '@mantine/form';
 import { Button, Card, TextInput, Text, Stack, Center, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { authSignUpCS } from '@/app/_common/auth/service/client/authSignUpCS';
-import { logger } from '@/app/_utils/logger';
-import { pageWidth } from '@/app/_utils/theme/ThemeValues';
+import { authSignUpCS } from '@/app/common/auth/service/client/authSignUpCS';
+import { logger } from '@/app/utils/logger';
+import { pageWidth } from '@/app/utils/theme/ThemeValues';
 
 
 export default function SignUpPage() {

@@ -1,8 +1,7 @@
 "use client";
 import { AppShell, Center, Loader } from "@mantine/core";
 import Navbar from "./navbar/Navbar";
-import Header from "./Header";
-import { useLoggedUserContext } from "@/app/_state/LoggedUserContext";
+import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import ConfirmEmailAlert from "./ConfirmEmailAlert";
 import { Notifications } from "@mantine/notifications";
 
@@ -22,19 +21,25 @@ export default function LayoutContent({
       </div>
     );
   } else {
-    return (<AppShell header={{ height: loggedUserContext.user ? 0 : 60 }} padding="xs" navbar={{ width: { sm: 200, lg: 300 }, breakpoint: 'sm' }} >
-      <Header />
-      <Navbar />
-      <AppShell.Main>
-        <Notifications
-          zIndex={1000}
-          position="top-right"
-          containerWidth="300"
-        />
-        <ConfirmEmailAlert />
-        {children}
-      </AppShell.Main>
-    </AppShell>);
+    return (
+      <AppShell
+        layout="alt"
+        header={{ height: 80 }}
+        padding="xs"
+        navbar={loggedUserContext.user ? { width: { sm: 200, lg: 300 }, breakpoint: 'sm' } : undefined} >
+
+        <Navbar />
+
+        <AppShell.Main>
+          <Notifications
+            zIndex={1000}
+            position="top-right"
+            containerWidth="300"
+          />
+          <ConfirmEmailAlert />
+          {children}
+        </AppShell.Main>
+      </AppShell>);
 
   }
 }

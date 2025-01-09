@@ -3,12 +3,10 @@ import { Card, Title, ScrollArea, Box, Flex, Group, Button, Loader, Center } fro
 import styles from "./current-chapter.module.css";
 import React from "react";
 import { VerseItem } from "./verse-item";
-import { Verse } from "@/app/_common/verse/model/Verse";
-import { ChapterVerNav } from "@/app/_common/chapter/model/Chapter";
 import { useSetState } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
-import { bookGetByIdSS } from "@/app/_common/book/service/server/getByIdSS";
-import { chapterGetForMainSS } from "@/app/_common/chapter/service/ChapterForMainService";
+import { bookGetByIdSS } from "@/app/common/book/service/server/getByIdSS";
+import { chapterGetForMainSS } from "@/app/common/chapter/service/ChapterForMainService";
 
 
 export default function CurentChapter() {

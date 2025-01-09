@@ -5,10 +5,10 @@ import { useMutation } from '@tanstack/react-query';
 
 import { hasLength, isEmail, matchesField, useForm } from '@mantine/form';
 import { Button, Card, TextInput, Text, Group, Stack, Center, Title } from '@mantine/core';
-import { authLogInCS } from '@/app/_common/auth/service/client/authLogInCS';
-import { pageWidth } from '@/app/_utils/theme/ThemeValues';
-import { useLoggedUserContext } from '@/app/_state/LoggedUserContext';
-import { logger } from '@/app/_utils/logger';
+import { authLogInCS } from '@/app/common/auth/service/client/authLogInCS';
+import { pageWidth } from '@/app/utils/theme/ThemeValues';
+import { useLoggedUserContext } from '@/app/state/LoggedUserContext';
+import { logger } from '@/app/utils/logger';
 
 
 const log = logger.child({ module: 'LoginPage' });

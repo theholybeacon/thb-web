@@ -1,5 +1,5 @@
 "use client";
-import { useLoggedUserContext } from "@/app/_state/LoggedUserContext";
+import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { Alert } from "@mantine/core";
 import { FaInfoCircle } from "react-icons/fa";
 

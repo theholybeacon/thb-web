@@ -1,5 +1,5 @@
 "use client";
-import { useLoggedUserContext } from "@/app/_state/LoggedUserContext";
+import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { AppShell } from "@mantine/core";
 import { useRouter } from "next/navigation";
 

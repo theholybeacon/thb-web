@@ -1,6 +1,6 @@
 "use client";
-import { LoggedUserProvider } from "@/app/_state/LoggedUserContext";
-import { theme } from "@/app/_utils/theme/Theme";
+import { LoggedUserProvider } from "@/app/state/LoggedUserContext";
+import { theme } from "@/app/utils/theme/Theme";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import {
     QueryClient,
