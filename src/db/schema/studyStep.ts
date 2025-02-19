@@ -10,8 +10,10 @@ export const studyStepTable = pgTable("study_step", {
 	id: uuid().defaultRandom().primaryKey(),
 	studyId: uuid().references((): AnyPgColumn => studyTable.id).notNull(),
 	stepNumber: integer().notNull(),
-	description: text(),
 	stepType: varchar({ length: 21 }).notNull(),
+
+	title: varchar({ length: 1000 }).notNull(),
+	explanation: varchar({ length: 1000 }).notNull(),
 
 	startBookId: uuid().references((): AnyPgColumn => bookTable.id),
 	endBookId: uuid().references((): AnyPgColumn => bookTable.id),
@@ -41,20 +43,20 @@ export const studyStepRelations = relations(studyStepTable, ({ one }) => ({
 	}),
 
 	startChapter: one(chapterTable, {
-		fields: [studyStepTable.startBookId],
+		fields: [studyStepTable.startChapterId],
 		references: [chapterTable.id],
 	}),
 	endChapter: one(chapterTable, {
-		fields: [studyStepTable.endBookId],
+		fields: [studyStepTable.endChapterId],
 		references: [chapterTable.id],
 	}),
 
 	startVerse: one(verseTable, {
-		fields: [studyStepTable.startBookId],
+		fields: [studyStepTable.startVerseId],
 		references: [verseTable.id],
 	}),
 	endVerse: one(verseTable, {
-		fields: [studyStepTable.endBookId],
+		fields: [studyStepTable.endVerseId],
 		references: [verseTable.id],
 	}),
 }));

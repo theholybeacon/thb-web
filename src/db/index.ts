@@ -9,6 +9,7 @@ import * as chapterSchema from "@/db/schema/chapter";
 import * as verseSchema from "@/db/schema/verse";
 import * as userSchema from "@/db/schema/user";
 import * as studySchema from "@/db/schema/study";
+import * as studyStepSchema from "@/db/schema/studyStep";
 
 export const db = drizzle(
 	{
@@ -19,6 +20,7 @@ export const db = drizzle(
 			...chapterSchema,
 			...verseSchema,
 			...userSchema,
+			...studySchema,
 			...studySchema,
 		}
 	}

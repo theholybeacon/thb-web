@@ -1,5 +1,5 @@
 
-import { Study, StudyInsert } from "../model/Study";
+import { Study, StudyFull, StudyInsert } from "../model/Study";
 import { StudyPostgreSQLDao } from "../dao/StudyPostgreSQLDao";
 
 export class StudyRepository {
@@ -10,7 +10,7 @@ export class StudyRepository {
         return await this.studyPostgreSQLDao.create(study);
     }
 
-    async getByOwnerId(ownerId: string): Promise<Study[]> {
+    async getByOwnerId(ownerId: string): Promise<StudyFull[]> {
         return await this.studyPostgreSQLDao.getByOwnerId(ownerId);
     }
 }

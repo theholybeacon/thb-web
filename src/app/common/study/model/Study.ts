@@ -10,6 +10,7 @@ export type StudyInsertFull = StudyInsert & {
 
 
 export type Study = typeof studyTable.$inferSelect;
+
 export type StudyFull = Study & {
     steps: StudyStep[]
 }

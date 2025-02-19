@@ -1,18 +1,12 @@
-import { Character } from "../../character/model/Character";
-import { ChatMessage } from "../../chat_message/model/ChatMessage";
+import { StudyInsert, StudyInsertFull } from "../../study/model/Study";
+import { StudyStepInsert } from "../../studyStep/model/StudyStep";
 import { AIOpenAiDao } from "../dao/AIOpenAiDao";
 
 export class AIRepository {
 
-	dao: AIOpenAiDao;
+	private dao: AIOpenAiDao = new AIOpenAiDao();
 
-	constructor() {
-		this.dao = new AIOpenAiDao();
+	async studyStepsCreate(input: StudyInsert): Promise<StudyStepInsert[]> {
+		return this.dao.studyStepsCreate(input);
 	}
-
-
-	sendMessageRecieveResponse(messages: ChatMessage[], senderCharacter: Character, respondAsCharacter: Character): Promise<string> {
-		return this.dao.sendMessageRecieveResponse(messages, senderCharacter, respondAsCharacter);
-	}
-
 }
