@@ -5,6 +5,7 @@ import { bookTable } from "./book";
 import { chapterTable } from "./chapter";
 import { verseTable } from "./verse";
 import { relations } from "drizzle-orm";
+import { bibleTable } from "./bible";
 
 export const studyStepTable = pgTable("study_step", {
 	id: uuid().defaultRandom().primaryKey(),
@@ -14,6 +15,8 @@ export const studyStepTable = pgTable("study_step", {
 
 	title: varchar({ length: 1000 }).notNull(),
 	explanation: varchar({ length: 1000 }).notNull(),
+
+	bibleId: uuid().references((): AnyPgColumn => bibleTable.id),
 
 	startBookId: uuid().references((): AnyPgColumn => bookTable.id),
 	endBookId: uuid().references((): AnyPgColumn => bookTable.id),
@@ -32,6 +35,10 @@ export const studyStepRelations = relations(studyStepTable, ({ one }) => ({
 	study: one(studyTable, {
 		fields: [studyStepTable.studyId],
 		references: [studyTable.id],
+	}),
+	bible: one(bibleTable, {
+		fields: [studyStepTable.bibleId],
+		references: [bibleTable.id],
 	}),
 	startBook: one(bookTable, {
 		fields: [studyStepTable.startBookId],

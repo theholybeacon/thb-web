@@ -1,6 +1,6 @@
 import { logger } from "@/app/utils/logger";
 import { bibleTable } from "@/db/schema/bible";
-import { Bible, BibleInsert } from "../model/Bible";
+import { Bible, BibleInsert, BibleWithBooks } from "../model/Bible";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 
@@ -18,11 +18,14 @@ export class BiblePostgreSQLDao {
 		return returned[0];
 	}
 
-	async getById(id: string): Promise<Bible | undefined> {
+	async getById(id: string): Promise<BibleWithBooks | undefined> {
 		log.trace("getById");
 		return await db.query.bibleTable.findFirst({
 			where: eq(bibleTable.id, id),
-		});
+			with: {
+				books: true
+			}
+		}) as BibleWithBooks;
 	}
 	async getByApiId(apiId: string): Promise<Bible | undefined> {
 		log.trace("getByApiId");

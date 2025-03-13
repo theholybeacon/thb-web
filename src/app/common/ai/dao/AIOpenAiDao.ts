@@ -4,6 +4,7 @@ import { StudyStepInsert } from '../../studyStep/model/StudyStep';
 import { insertStudyStepSchema } from '@/db/schema/studyStep';
 import { StudyStepFromAIDTO } from '../../studyStep/model/StudyStepFromAIDTO';
 import { aiStudyStepAbbreviatonToIdParserSS } from '../service/server/aiStudyStepAbbreviatonToIdParserSS';
+import { Bible, BibleWithBooks } from '../../bible/model/Bible';
 
 export class AIOpenAiDao {
 
@@ -11,14 +12,24 @@ export class AIOpenAiDao {
 
 	private client = new OpenAI();
 
-	async studyStepsCreate(input: StudyInsert): Promise<StudyStepInsert[]> {
+	async studyStepsCreate(input: StudyInsert, bible: BibleWithBooks): Promise<StudyStepInsert[]> {
 
 
 		var messagesToSend: any[] = [];
 
+		console.log(bible);
+
 		messagesToSend.push({
 			role: "system", content: `
-				Create a comprehensiv  Bible study plan focused on the following attributes:
+				Create a comprehensive  Bible for the bible version ${bible.name} refer to it with the id ${bible.id} and the following book names and abbreviations: 
+
+
+				${createBibleBookAdAbbreviationAIReadable(bible)}
+
+
+
+				The study plan focused on the following attributes:
+
 				- Topic: ${input.name}.
 				- Description: ${input.description}
 				- Depth: ${input.depth}. (1=shallow - 10=deep)
@@ -29,7 +40,7 @@ export class AIOpenAiDao {
 				Format: JSON. NO EXTRA CHARACTERS, CLEAN JSON.I WILL USE ON API no trailing and leading characters that determine this is a json. ONLY the actual JSON.
 				Fields for Each Step:
 				-stepNumber: The number of the step
-				-bibleAbbreviation: Abbreviation of the Bible version (e.g., NIV, ESV).
+				-bibleId: The bible Id referenced previously
 				-bookAbbreviation: Standard abbreviation of the Bible book THIS IS VERY IMPORTANT DONT  TYPE THE WHOLE NAME (e.g., Gen, Eph).
 				Entire book if applicable.
 				-chapterNumber:
@@ -63,8 +74,7 @@ export class AIOpenAiDao {
 				Null Values: When the Type is fullBook, chapterRange, or singleChapter, set VerseNumber to null.
 
 
-				VERY IMPORTANT: Only use KJV protestant english bible version.
-			` });
+				VERY IMPORTANT: Only use KJV protestant english bible version. ` });
 
 
 
@@ -77,19 +87,13 @@ export class AIOpenAiDao {
 
 		const responseContent = chatCompletion.choices[0].message.content!;
 
-		console.log(responseContent);
-
 		let out: StudyStepInsert[] = [];
 
 		try {
 			const parsedData: StudyStepFromAIDTO[] = JSON.parse(responseContent);
-			console.log(parsedData);
 
 			for (let i = 0; i < parsedData.length; i++) {
-
-				//TODO an orchestrator that gets the abbreviations from the api and turns it into actual ids.
 				out.push(await aiStudyStepAbbreviatonToIdParserSS(parsedData[i]))
-
 			}
 
 		} catch (error) {
@@ -100,4 +104,9 @@ export class AIOpenAiDao {
 		return out;
 	}
 
+}
+function createBibleBookAdAbbreviationAIReadable(bible: BibleWithBooks): String {
+
+	const abbreviationString = bible.books.map((b) => b.abbreviation);
+	return `You can only use EXACTLY this book abbreviations: ${abbreviationString}`
 }

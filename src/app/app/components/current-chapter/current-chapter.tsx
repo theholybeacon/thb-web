@@ -5,8 +5,8 @@ import React from "react";
 import { VerseItem } from "./verse-item";
 import { useSetState } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
-import { bookGetByIdSS } from "@/app/common/book/service/server/getByIdSS";
-import { chapterGetForMainSS } from "@/app/common/chapter/service/ChapterForMainService";
+import { bookGetByIdSS } from "@/app/common/book/service/server/bookGetByIdSS";
+import { chapterGetForMainSS } from "@/app/common/chapter/service/chapterGetForMainSS";
 
 
 export default function CurentChapter() {

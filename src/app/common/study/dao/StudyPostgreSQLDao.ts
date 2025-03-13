@@ -21,7 +21,7 @@ export class StudyPostgreSQLDao {
             with: { steps: true }
 
         });
-        console.log(returned);
+        console.log(JSON.stringify(returned));
         return returned as unknown as StudyFull[];
     }
 

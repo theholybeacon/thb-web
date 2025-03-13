@@ -91,5 +91,9 @@ export class ChapterRepository {
 	}
 
 
+	async getByBookIdAndChapterNumber(bookId: string, chapterNumber: number): Promise<ChapterVer | undefined> {
+		return await this.chapterInternalDao.getByBookIdAndChapterNumber(bookId, chapterNumber);
+	}
+
 
 }

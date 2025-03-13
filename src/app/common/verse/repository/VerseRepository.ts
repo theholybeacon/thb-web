@@ -17,4 +17,10 @@ export class VerseRepository {
 	async getByBibleApiIdAndVerseAbbreviation(bibleApiId: string, bookApiId: string, chapterNumber: number, verseNumber: number): Promise<VerseInsert> {
 		return await this.verseExternalDao.getByBibleApiIdAndVerseAbbreviation(bibleApiId, bookApiId, chapterNumber, verseNumber);
 	}
+
+
+	async getByChapterIdAndVerseNumber(chapterId: string, verseNumber: number): Promise<Verse> {
+		return await this.versePostgreSQLDao.getByChapterIdAndVerseNumber(chapterId, verseNumber);
+
+	}
 }

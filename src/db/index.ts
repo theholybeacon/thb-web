@@ -21,7 +21,7 @@ export const db = drizzle(
 			...verseSchema,
 			...userSchema,
 			...studySchema,
-			...studySchema,
+			...studyStepSchema,
 		}
 	}
 );

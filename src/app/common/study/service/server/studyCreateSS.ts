@@ -15,7 +15,6 @@ export async function studyCreateSS(input: StudyInsertFull): Promise<StudyFull> 
     for (let step of input.steps) {
         step.studyId = returnedStudy.id;
 
-
         returnedStudy.steps.push(await studyStepRepository.create(step));
     }
 

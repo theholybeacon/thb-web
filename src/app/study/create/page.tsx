@@ -29,11 +29,11 @@ export default function CreateStudyPage() {
   const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
-      name: '',
-      description: '',
+      name: 'Sloth as sin',
+      description: 'Sloth as sin',
       length: 1,
       depth: 1,
-      topic: '',
+      topic: 'Sloth as sin',
       ownerId: loggedUser?.id,
     },
 

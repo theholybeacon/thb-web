@@ -1,7 +1,7 @@
 import { logger } from "@/app/utils/logger";
 import { BibleExternalAPIDao } from "../dao/BibleExternalAPIDao";
 import { BiblePostgreSQLDao } from "../dao/BiblePostgreSQLDao";
-import { Bible } from "../model/Bible";
+import { Bible, BibleWithBooks } from "../model/Bible";
 
 const log = logger.child({ module: 'BibleRepository' });
 export class BibleRepository {
@@ -23,7 +23,7 @@ export class BibleRepository {
 
 		return output;
 	}
-	async getById(id: string): Promise<Bible | undefined> {
+	async getById(id: string): Promise<BibleWithBooks | undefined> {
 		return await this.internalBibleDao.getById(id);
 	}
 

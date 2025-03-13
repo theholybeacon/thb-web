@@ -36,5 +36,11 @@ export class BookRepository {
 		log.trace("getAllByBibleId");
 		return await this.internalDao.create(book);
 	}
+
+	async getByAbbreviationAndBibleId(bibleId: string, abbreviation: string): Promise<Book> {
+		return await this.internalDao.getByAbbreviationAndBibleId(bibleId, abbreviation)!;
+	}
+
+
 }
 

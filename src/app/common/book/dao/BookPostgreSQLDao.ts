@@ -3,7 +3,8 @@ import { logger } from "@/app/utils/logger";
 import { Book, BookInsert } from "../model/Book";
 import { db } from "@/db";
 import { bookTable } from "@/db/schema/book";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { bibleTable } from "@/db/schema/bible";
 
 const log = logger.child({ module: 'BookPostgreSQLDao' });
 export class BookPostgreSQLDao {
@@ -17,6 +18,20 @@ export class BookPostgreSQLDao {
 			throw Error("Book not found");
 		}
 		return response;
+	}
+	async getByAbbreviationAndBibleId(bibleId: string, abbreviation: string): Promise<Book> {
+		const response = await db.query.bookTable.findFirst({
+			where: and(
+				eq(bookTable.bibleId, bibleId),
+				eq(bookTable.abbreviation, abbreviation),
+			),
+		});
+
+		if (!response) {
+			throw Error("Book not found");
+		}
+		return response;
+
 	}
 
 	async getAllByBibleId(bibleId: string): Promise<Book[]> {
