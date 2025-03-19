@@ -10,6 +10,7 @@ import * as verseSchema from "@/db/schema/verse";
 import * as userSchema from "@/db/schema/user";
 import * as studySchema from "@/db/schema/study";
 import * as studyStepSchema from "@/db/schema/studyStep";
+import * as sessionScema from "@/db/schema/session";
 
 export const db = drizzle(
 	{
@@ -22,6 +23,7 @@ export const db = drizzle(
 			...userSchema,
 			...studySchema,
 			...studyStepSchema,
+			...sessionScema,
 		}
 	}
 );

@@ -1,15 +1,19 @@
 "use client";
 import { Card, Title, ScrollArea, Box, Flex, Group, Button, Loader, Center } from "@mantine/core";
-import styles from "./current-chapter.module.css";
+import styles from "./SesionView.module.css";
 import React from "react";
-import { VerseItem } from "./verse-item";
+import { VerseItem } from "./VerseItem";
 import { useSetState } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { bookGetByIdSS } from "@/app/common/book/service/server/bookGetByIdSS";
 import { chapterGetForMainSS } from "@/app/common/chapter/service/chapterGetForMainSS";
+import { SessionFull } from "@/app/common/session/model/Session";
 
+interface SessionViewParams {
+	session: SessionFull;
+}
 
-export default function CurentChapter() {
+export default function SessionView({ session }: SessionViewParams) {
 
 	const [state, setState] = useSetState({
 		bookId: "08c999d1-b50a-486e-95f4-0d16d26b66d5",
@@ -19,6 +23,7 @@ export default function CurentChapter() {
 	const { data: chapter, isLoading: isChapterLoading } = useQuery({
 		queryKey: ['chapter', state],
 		queryFn: async () => {
+			console.log(session);
 			return await chapterGetForMainSS(state.bookId, state.chapterNumber);
 		},
 	});

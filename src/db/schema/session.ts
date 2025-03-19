@@ -13,7 +13,7 @@ export const sessionTable = pgTable("session", {
 	userId: uuid().references((): AnyPgColumn => userTable.id).notNull(),
 	studyId: uuid().references((): AnyPgColumn => studyTable.id).notNull(),
 
-	currentStep: uuid().references((): AnyPgColumn => studyStepTable.id),
+	currentStepId: uuid().references((): AnyPgColumn => studyStepTable.id).notNull(),
 
 	currentBookId: uuid().references((): AnyPgColumn => bookTable.id),
 	currentChapterId: uuid().references((): AnyPgColumn => chapterTable.id),
@@ -34,6 +34,10 @@ export const sessionRelations = relations(sessionTable, ({ one }) => ({
 	study: one(studyTable, {
 		fields: [sessionTable.studyId],
 		references: [studyTable.id],
+	}),
+	currentStep: one(studyStepTable, {
+		fields: [sessionTable.currentStepId],
+		references: [studyStepTable.id],
 	}),
 	currentBook: one(bookTable, {
 		fields: [sessionTable.currentBookId],

@@ -13,7 +13,7 @@ export async function studyCreateWithAISS(input: StudyInsert): Promise<StudyFull
     const bibleRepository = new BibleRepository();
     const bible = await bibleRepository.getById("fea849c2-2354-4d09-992a-83b11762cb8f");
 
-    const steps = await aiRepository.studyStepsCreate(input, bible);
+    const steps = await aiRepository.studyStepsCreate(input, bible!);
 
     const fullInsertStudy: StudyInsertFull = {
         ...input,
