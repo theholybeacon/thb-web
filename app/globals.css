@@ -1,7 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+@import "tailwindcss";
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 @layer base {
   :root {
     --font-sans: var(--font-roboto);
@@ -70,23 +68,5 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-heading font-bold;
-  }
-  h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl;
-  }
 }
 
