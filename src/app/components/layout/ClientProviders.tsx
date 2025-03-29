@@ -1,11 +1,10 @@
 "use client";
 import { LoggedUserProvider } from "@/app/state/LoggedUserContext";
-import { theme } from "@/app/utils/theme/Theme";
-import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import {
     QueryClient,
     QueryClientProvider,
 } from '@tanstack/react-query'
+import { ThemeProvider } from "./ThemeProvider";
 
 export default function ClientProvider({
     children,
@@ -15,14 +14,14 @@ export default function ClientProvider({
 
     const queryClient = new QueryClient();
 
+
     return (
-        <LoggedUserProvider>
-            <ColorSchemeScript defaultColorScheme="dark" />
-            <MantineProvider theme={theme} defaultColorScheme="dark">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            <LoggedUserProvider>
                 <QueryClientProvider client={queryClient}>
                     {children}
                 </QueryClientProvider>
-            </MantineProvider>
-        </LoggedUserProvider>
+            </LoggedUserProvider>
+        </ThemeProvider>
     );
 }

@@ -1,29 +1,27 @@
-import '@mantine/core/styles.css';
+import type React from "react"
+import type { Metadata } from "next"
+import { roboto, oswald } from "@/lib/fonts"
+import { ThemeProvider } from "@/components/theme-provider"
+import "./globals.css"
 
-import './styles/themes.css';
-import './styles/global.css';
-import LayoutContent from './components/layout/LayoutContent';
-import ClientProvider from './components/layout/ClientProviders';
-
-export const metadata = {
-  title: 'The Holy Beacon | Interactive Bible Study App',
-  description: 'Discover The Holy Beacon, your digital playground for immersive Bible study. Engage with interactive lessons, multimedia content, personalized learning, and a supportive faith community to deepen your spiritual journey.',
-};
+export const metadata: Metadata = {
+  title: "The Holy Beacon",
+  description: "Illuminate Your Path Through the Word",
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning >
-      <body>
-        <ClientProvider>
-          <LayoutContent>
-            {children}
-          </LayoutContent>
-        </ClientProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${roboto.variable} ${oswald.variable} font-sans`}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          {children}
+        </ThemeProvider>
       </body>
-    </html >
-  );
+    </html>
+  )
 }
+
