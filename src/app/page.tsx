@@ -47,10 +47,10 @@ export default function LandingPage() {
           </nav>
           <div className="flex items-center gap-4">
             <ThemeSwitcher />
-            <Link href="/login">
+            <Link href="/auth/login">
               <Button variant="outline">Log In</Button>
             </Link>
-            <Link href="/signup">
+            <Link href="/auth/signup">
               <Button>Sign Up</Button>
             </Link>
           </div>
