@@ -1,8 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ThemeSwitcher } from "@/components/theme-switcher"
 import {
   BookOpen,
   Calendar,
@@ -21,404 +19,21 @@ import {
   Eye,
   Footprints,
 } from "lucide-react"
+import { Header } from "./layout/components/Header"
+import { HeroSection } from "./components/HeroSection"
+import { StudyPlansSection } from "./components/StudyPlansSection"
+import { RoadmapSection } from "./components/RoadmapSection"
+import { FeaturePreviewSection } from "./components/FeaturePreviewSection"
 
 export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between py-4">
-          <div className="flex items-center gap-2">
-            <Sun className="h-8 w-8 text-holyGold-500" />
-            <span className="text-xl font-bold">The Holy Beacon</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="#features" className="text-sm font-medium hover:text-primary">
-              Features
-            </Link>
-            <Link href="#study-plans" className="text-sm font-medium hover:text-primary">
-              Study Plans
-            </Link>
-            <Link href="#roadmap" className="text-sm font-medium hover:text-primary">
-              Roadmap
-            </Link>
-            <Link href="#pricing" className="text-sm font-medium hover:text-primary">
-              Pricing
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <ThemeSwitcher />
-            <Link href="/auth/login">
-              <Button variant="outline">Log In</Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button>Sign Up</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header />
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-holyBlue-50/30 to-transparent dark:from-holyDark-300/30 dark:to-transparent">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Illuminate Your Path Through the Word
-                  </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    The Holy Beacon is a smart, spiritually-aligned productivity tool that helps believers build a
-                    deeper, more meaningful relationship with Scripture—one that adapts to your lifestyle, learning
-                    style, and spiritual maturity.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/signup">
-                    <Button size="lg" className="bg-holyTan-600 hover:bg-holyTan-700 text-white">
-                      Start Your Journey
-                    </Button>
-                  </Link>
-                  <Link href="#roadmap">
-                    <Button size="lg" variant="outline">
-                      View Roadmap
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="mx-auto flex items-center justify-center">
-                <Image
-                  src="/placeholder.svg?height=550&width=550"
-                  width={550}
-                  height={550}
-                  alt="The Holy Beacon App"
-                  className="rounded-xl shadow-xl"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* AI Study Plans Section - Available Now */}
-        <section id="study-plans" className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-holyDark-100/5">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Available Now</span>
-                </div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Learn With Purpose</h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  The beating heart of The Holy Beacon is its AI-powered Study Plan Generator. Simply describe what you
-                  want to learn, and receive a personalized study plan tailored to your needs.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
-              <div className="flex flex-col justify-center space-y-4">
-                <ul className="grid gap-6">
-                  <li className="flex items-start gap-4">
-                    <div className="rounded-full bg-holyGold-100 p-2 dark:bg-holyGold-100/20">
-                      <Calendar className="h-6 w-6 text-holyTan-700 dark:text-holyGold-300" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">Customizable Duration</h3>
-                      <p className="text-muted-foreground">
-                        From quick daily devotionals to in-depth multi-week studies, tailor your plan to fit your
-                        schedule.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-4">
-                    <div className="rounded-full bg-holyGold-100 p-2 dark:bg-holyGold-100/20">
-                      <Lightbulb className="h-6 w-6 text-holyTan-700 dark:text-holyGold-300" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">Adjustable Depth</h3>
-                      <p className="text-muted-foreground">
-                        From beginner-friendly introductions to theological deep dives for seasoned scholars.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-4">
-                    <div className="rounded-full bg-holyGold-100 p-2 dark:bg-holyGold-100/20">
-                      <BookOpen className="h-6 w-6 text-holyTan-700 dark:text-holyGold-300" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">Thematic Exploration</h3>
-                      <p className="text-muted-foreground">
-                        Focus on specific themes like forgiveness, leadership, or end times prophecy.
-                      </p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-              <div className="mx-auto aspect-video overflow-hidden rounded-xl bg-holyBlue-50 dark:bg-holyDark-200/50 object-cover">
-                <Image
-                  src="/placeholder.svg?height=310&width=550"
-                  width={550}
-                  height={310}
-                  alt="AI Study Plan Generator"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Roadmap Section - NEW */}
-        <section id="roadmap" className="w-full py-12 md:py-24 lg:py-32 bg-holyBlue-50/30 dark:bg-holyDark-200/10">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800">
-                  Our Journey Ahead
-                </div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Feature Roadmap</h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  We're building The Holy Beacon step by step. Here's our plan for bringing all the promised features to
-                  life.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-16 relative">
-              {/* Timeline line */}
-              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-holyGold-200 dark:bg-holyGold-900/20"></div>
-
-              {/* Phase 1 - Current */}
-              <div className="relative mb-24">
-                <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyGold-500 border-4 border-white dark:border-holyDark-100 z-10"></div>
-                <div className="flex flex-col md:flex-row items-center">
-                  <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0">
-                    <div className="inline-flex items-center gap-2 rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800 mb-2">
-                      <CheckCircle2 className="h-4 w-4" />
-                      <span>Phase 1 - Available Now</span>
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2">AI-Guided Study Plans</h3>
-                    <p className="text-muted-foreground">
-                      Our core feature that helps you create personalized Bible study plans based on your interests,
-                      schedule, and spiritual goals.
-                    </p>
-                  </div>
-                  <div className="md:w-1/2 md:pl-8">
-                    <div className="bg-white dark:bg-holyDark-100/20 rounded-lg p-4 shadow-sm border">
-                      <ul className="space-y-2">
-                        <li className="flex items-center gap-2">
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          <span>Customizable study durations</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          <span>Depth adjustment for all knowledge levels</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          <span>Thematic exploration options</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Phase 2 - Coming Soon */}
-              <div className="relative mb-24">
-                <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyBlue-200 dark:bg-holyBlue-700 border-4 border-white dark:border-holyDark-100 z-10"></div>
-                <div className="flex flex-col md:flex-row items-center">
-                  <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0 order-1 md:order-1">
-                    <div className="bg-white dark:bg-holyDark-100/20 rounded-lg p-4 shadow-sm border">
-                      <ul className="space-y-2">
-                        <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                          <span>Smart verse connections</span>
-                          <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                        </li>
-                        <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                          <span>Character profiles and timelines</span>
-                          <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                        </li>
-                        <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                          <span>Historical and cultural context layers</span>
-                          <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="md:w-1/2 md:pl-8 order-0 md:order-2">
-                    <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
-                      <Clock4 className="h-4 w-4" />
-                      <span>Phase 2 - Q2 2025</span>
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2">Scripture in HD</h3>
-                    <p className="text-muted-foreground">
-                      Smart links, timelines, and contextual layers that bring the Bible's interconnected tapestry to
-                      life.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Phase 3 - Future */}
-              <div className="relative mb-24">
-                <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyBlue-200 dark:bg-holyBlue-700 border-4 border-white dark:border-holyDark-100 z-10"></div>
-                <div className="flex flex-col md:flex-row items-center">
-                  <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0">
-                    <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
-                      <Clock4 className="h-4 w-4" />
-                      <span>Phase 3 - Q3 2025</span>
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2">Multi-Modal Bible Consumption</h3>
-                    <p className="text-muted-foreground">
-                      Multiple ways to engage with Scripture through reading, listening, typing, and visual experiences.
-                    </p>
-                  </div>
-                  <div className="md:w-1/2 md:pl-8">
-                    <div className="bg-white dark:bg-holyDark-100/20 rounded-lg p-4 shadow-sm border">
-                      <ul className="space-y-2">
-                        <li className="flex items-center gap-2">
-                          <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                          <span>Distraction-free reading mode</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                          <span>High-quality audio narration</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                          <span>AI-generated verse visualization</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Phase 4 - Future */}
-              <div className="relative">
-                <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyBlue-200 dark:bg-holyBlue-700 border-4 border-white dark:border-holyDark-100 z-10"></div>
-                <div className="flex flex-col md:flex-row items-center">
-                  <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0 order-1 md:order-1">
-                    <div className="bg-white dark:bg-holyDark-100/20 rounded-lg p-4 shadow-sm border">
-                      <ul className="space-y-2">
-                        <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                          <span>Study circles for group learning</span>
-                          <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                        </li>
-                        <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                          <span>Theological discussion boards</span>
-                          <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                        </li>
-                        <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                          <span>Daily Word personalized feed</span>
-                          <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="md:w-1/2 md:pl-8 order-0 md:order-2">
-                    <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
-                      <Clock4 className="h-4 w-4" />
-                      <span>Phase 4 - Q4 2025</span>
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2">Community & Daily Word</h3>
-                    <p className="text-muted-foreground">
-                      Fellowship features and daily Scripture engagement to help believers grow together and maintain
-                      consistency.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Feature Preview Section - Coming Soon Features */}
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-holyDark-100/5">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800">
-                  <Clock4 className="h-4 w-4" />
-                  <span>Coming Soon</span>
-                </div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Feature Previews</h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Get a sneak peek at the exciting features we're developing for future releases.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3 mt-12">
-              {/* Scripture in HD Preview */}
-              <div className="flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm bg-white/80 dark:bg-holyDark-100/20 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-holyBlue-900/10 dark:bg-holyDark-400/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Button variant="outline" className="bg-white/80 dark:bg-holyDark-200/80">
-                    <span className="mr-2">Learn More</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="rounded-full bg-holyGold-100 p-3 dark:bg-holyGold-100/20">
-                  <Bookmark className="h-8 w-8 text-holyTan-700 dark:text-holyGold-300" />
-                </div>
-                <div className="absolute top-2 right-2">
-                  <div className="inline-flex items-center gap-1 rounded-full bg-holyBlue-100 px-2 py-1 text-xs text-holyBlue-800 dark:bg-holyBlue-900/20 dark:text-holyBlue-300">
-                    <Clock4 className="h-3 w-3" />
-                    <span>Q2 2025</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold">Scripture in HD</h3>
-                <p className="text-center text-muted-foreground">
-                  Smart links, character profiles, and contextual layers that bring the Bible to life.
-                </p>
-              </div>
-
-              {/* Multi-Modal Preview */}
-              <div className="flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm bg-white/80 dark:bg-holyDark-100/20 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-holyBlue-900/10 dark:bg-holyDark-400/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Button variant="outline" className="bg-white/80 dark:bg-holyDark-200/80">
-                    <span className="mr-2">Learn More</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="rounded-full bg-holyGold-100 p-3 dark:bg-holyGold-100/20">
-                  <Headphones className="h-8 w-8 text-holyTan-700 dark:text-holyGold-300" />
-                </div>
-                <div className="absolute top-2 right-2">
-                  <div className="inline-flex items-center gap-1 rounded-full bg-holyBlue-100 px-2 py-1 text-xs text-holyBlue-800 dark:bg-holyBlue-900/20 dark:text-holyBlue-300">
-                    <Clock4 className="h-3 w-3" />
-                    <span>Q3 2025</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold">Multi-Modal Bible</h3>
-                <p className="text-center text-muted-foreground">
-                  Experience Scripture through reading, listening, and visual engagement.
-                </p>
-              </div>
-
-              {/* Community Preview */}
-              <div className="flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm bg-white/80 dark:bg-holyDark-100/20 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-holyBlue-900/10 dark:bg-holyDark-400/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Button variant="outline" className="bg-white/80 dark:bg-holyDark-200/80">
-                    <span className="mr-2">Learn More</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="rounded-full bg-holyGold-100 p-3 dark:bg-holyGold-100/20">
-                  <Users className="h-8 w-8 text-holyTan-700 dark:text-holyGold-300" />
-                </div>
-                <div className="absolute top-2 right-2">
-                  <div className="inline-flex items-center gap-1 rounded-full bg-holyBlue-100 px-2 py-1 text-xs text-holyBlue-800 dark:bg-holyBlue-900/20 dark:text-holyBlue-300">
-                    <Clock4 className="h-3 w-3" />
-                    <span>Q4 2025</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold">Community Features</h3>
-                <p className="text-center text-muted-foreground">
-                  Study circles, discussion boards, and shared spiritual growth.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <HeroSection />
+        <StudyPlansSection />
+        <RoadmapSection />
+        <FeaturePreviewSection />
 
         {/* Pricing Section - NEW */}
         <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-holyBlue-50/30 dark:bg-holyDark-200/10">
@@ -593,12 +208,20 @@ export default function LandingPage() {
             </div>
 
             {/* Sponsorship Queue Section */}
-            <div className="mt-16 bg-white dark:bg-holyDark-100/20 rounded-xl p-8 border shadow-sm">
+            <div className="mt-16 bg-white dark:bg-holyDark-100/20 rounded-xl p-8 border shadow-sm relative overflow-hidden">
+              {/* Coming Soon Ribbon */}
+              <div className="absolute -right-12 top-6 bg-holyGold-500 text-holyDark-900 font-bold py-1 px-10 transform rotate-45 shadow-md z-10">
+                COMING SOON
+              </div>
+
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold mb-2">Sponsorship Program</h3>
                 <p className="text-muted-foreground max-w-3xl mx-auto">
                   Our community-driven sponsorship program connects those who want to support others with those who need
                   access to The Holy Beacon.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2 italic">
+                  Note: The numbers below are simulated for demonstration purposes only.
                 </p>
               </div>
 
@@ -664,40 +287,155 @@ export default function LandingPage() {
               <div className="mt-8 pt-6 border-t border-border">
                 <div className="flex items-center gap-4 italic text-sm text-muted-foreground">
                   <span>
-                    "Thanks to a generous sponsor, I've been able to deepen my faith journey through The Holy Beacon."
+                    "Here is where your awesome testimonial will appear after you've experienced The Holy Beacon's
+                    sponsorship program."
                   </span>
                   <span>—</span>
-                  <span>Sarah K., Sponsored Member</span>
+                  <span>Future Sponsored Member</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
+        {/* CTA Section - Twitch & Support */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-holyBlue-50/30 to-transparent dark:from-holyDark-300/20 dark:to-transparent">
           <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Join Our Journey</h2>
+            <div className="flex flex-col items-center justify-center space-y-6 text-center">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800">
+                  <Sun className="h-4 w-4" />
+                  <span>Support The Journey</span>
+                </div>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Built Live on Twitch</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Be part of The Holy Beacon's development. Sign up to get early access to new features and updates.
+                  The Holy Beacon is a side project that's being built live on Twitch. Follow along as we bring this
+                  vision to life!
                 </p>
               </div>
-              <div className="w-full max-w-sm space-y-2">
-                <form className="flex flex-col sm:flex-row gap-2">
-                  <Input type="email" placeholder="Enter your email" className="max-w-lg flex-1" />
-                  <Button type="submit" className="bg-holyTan-600 hover:bg-holyTan-700 text-white">
-                    Join Waitlist
-                  </Button>
-                </form>
-                <p className="text-xs text-muted-foreground">
-                  Be the first to know when we launch new features.{" "}
-                  <Link href="/terms" className="underline underline-offset-2">
-                    Terms & Conditions
-                  </Link>
-                </p>
+
+              <div className="max-w-3xl mx-auto bg-white/80 dark:bg-holyDark-100/30 p-6 md:p-8 rounded-xl border shadow-sm">
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  <div className="flex-1 space-y-4 text-left">
+                    <h3 className="text-2xl font-bold">Watch the Development</h3>
+                    <p className="text-muted-foreground">
+                      Join us at{" "}
+                      <a
+                        href="https://www.twitch.tv/a2xres"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-holyTan-600 hover:text-holyTan-700 font-medium underline underline-offset-2"
+                      >
+                        www.twitch.tv/a2xres
+                      </a>{" "}
+                      to watch as we build The Holy Beacon live. Your support can help transform this from a side
+                      project into our main focus.
+                    </p>
+                    <p className="text-muted-foreground">
+                      With enough support, we can hire developers and designers to accelerate development and expand to
+                      multiple Bible translations and languages, reaching the whole world with the Holy Word.
+                    </p>
+                    <div className="pt-2">
+                      <Button className="bg-[#6441a5] hover:bg-[#4b367c] text-white" asChild>
+                        <a href="https://www.twitch.tv/a2xres" target="_blank" rel="noopener noreferrer">
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="h-5 w-5 mr-2 fill-current"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+                          </svg>
+                          Follow on Twitch
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 space-y-4">
+                    <h4 className="text-lg font-bold">How You Can Help</h4>
+                    <ul className="space-y-3">
+                      <li className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                        <span>Subscribe to the Twitch channel</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                        <span>Follow our social media accounts</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                        <span>Consider purchasing a subscription even while in development</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                        <span>Share The Holy Beacon with your community</span>
+                      </li>
+                    </ul>
+                    <div className="flex flex-wrap gap-3 pt-2 justify-center md:justify-start">
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-twitter"
+                        >
+                          <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
+                        </svg>
+                        Twitter
+                      </Button>
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-instagram"
+                        >
+                          <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                          <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                        </svg>
+                        Instagram
+                      </Button>
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-youtube"
+                        >
+                          <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+                          <path d="m10 15 5-3-5-3z" />
+                        </svg>
+                        YouTube
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              <p className="text-sm text-muted-foreground max-w-2xl">
+                Your support is greatly appreciated and will help us convert The Holy Beacon into a full-time project.
+                Even though it's not a finished product yet, every subscription, follow, and share brings us closer to
+                our vision.
+              </p>
             </div>
           </div>
         </section>
@@ -727,4 +465,5 @@ export default function LandingPage() {
     </div>
   )
 }
+
 

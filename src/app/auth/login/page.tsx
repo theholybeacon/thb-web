@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
-import { ThemeSwitcher } from "@/components/theme-switcher"
+import { ThemeSwitcher } from "@/components/theme/theme-switcher"
 import { Sun, ArrowLeft, Mail, Lock } from "lucide-react"
 
 export default function LoginPage() {

@@ -1,7 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { roboto, oswald } from "@/lib/fonts"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/theme/theme-provider"
 import "./globals.css"
 
 export const metadata: Metadata = {
