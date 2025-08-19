@@ -4,7 +4,6 @@ import {
     QueryClient,
     QueryClientProvider,
 } from '@tanstack/react-query'
-import { ThemeProvider } from "./ThemeProvider";
 
 export default function ClientProvider({
     children,
@@ -16,12 +15,10 @@ export default function ClientProvider({
 
 
     return (
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-            <LoggedUserProvider>
-                <QueryClientProvider client={queryClient}>
-                    {children}
-                </QueryClientProvider>
-            </LoggedUserProvider>
-        </ThemeProvider>
+        <LoggedUserProvider>
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        </LoggedUserProvider>
     );
 }

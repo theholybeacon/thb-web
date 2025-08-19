@@ -32,7 +32,7 @@ export function FeaturePreviewSection() {
             <div className="absolute top-2 right-2">
               <div className="inline-flex items-center gap-1 rounded-full bg-holyBlue-100 px-2 py-1 text-xs text-holyBlue-800 dark:bg-holyBlue-900/20 dark:text-holyBlue-300">
                 <Clock4 className="h-3 w-3" />
-                <span>Q2 2025</span>
+                <span>Q4 2025</span>
               </div>
             </div>
             <h3 className="text-xl font-bold">Scripture in HD</h3>
@@ -55,7 +55,7 @@ export function FeaturePreviewSection() {
             <div className="absolute top-2 right-2">
               <div className="inline-flex items-center gap-1 rounded-full bg-holyBlue-100 px-2 py-1 text-xs text-holyBlue-800 dark:bg-holyBlue-900/20 dark:text-holyBlue-300">
                 <Clock4 className="h-3 w-3" />
-                <span>Q3 2025</span>
+                <span>Q1 2026</span>
               </div>
             </div>
             <h3 className="text-xl font-bold">Multi-Modal Bible</h3>
@@ -78,7 +78,7 @@ export function FeaturePreviewSection() {
             <div className="absolute top-2 right-2">
               <div className="inline-flex items-center gap-1 rounded-full bg-holyBlue-100 px-2 py-1 text-xs text-holyBlue-800 dark:bg-holyBlue-900/20 dark:text-holyBlue-300">
                 <Clock4 className="h-3 w-3" />
-                <span>Q4 2025</span>
+                <span>Q2 2026</span>
               </div>
             </div>
             <h3 className="text-xl font-bold">Community Features</h3>

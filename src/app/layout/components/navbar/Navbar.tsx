@@ -1,5 +1,4 @@
 "use client";
-import { AppShell, Button, Stack } from "@mantine/core";
 import NavbarHeader from "./components/NavbarHeader";
 import NavbarBody from "./components/NavbarBody";
 import NavbarFooter from "./components/NavbarFooter";
@@ -9,11 +8,11 @@ export default function Navbar() {
   const loggedUser = useLoggedUserContext().user;
   if (loggedUser)
     return (
-      <AppShell.Navbar p="md" >
+      <div>
         <NavbarHeader />
         <NavbarBody />
         <NavbarFooter />
-      </AppShell.Navbar >
+      </div>
 
     );
 }

@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image"
-import { BookOpen, Calendar, CheckCircle2, Lightbulb } from "lucide-react";
+import { BookOpen, Calendar, CheckCircle2, Clock4, Lightbulb } from "lucide-react";
 
 export function StudyPlansSection() {
   return (
@@ -10,9 +10,9 @@ export function StudyPlansSection() {
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Available Now</span>
+            <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
+              <Clock4 className="h-4 w-4" />
+              <span>Coming soon!</span>
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Learn With Purpose</h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
@@ -62,7 +62,7 @@ export function StudyPlansSection() {
           </div>
           <div className="mx-auto aspect-video overflow-hidden rounded-xl bg-holyBlue-50 dark:bg-holyDark-200/50 object-cover">
             <Image
-              src="/placeholder.svg?height=310&width=550"
+              src="/images/learn-with-purpose.png?height=310&width=550"
               width={550}
               height={310}
               alt="AI Study Plan Generator"

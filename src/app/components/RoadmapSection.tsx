@@ -23,13 +23,17 @@ export function RoadmapSection() {
 
           {/* Phase 1 - Current */}
           <div className="relative mb-24">
-            <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyGold-500 border-4 border-white dark:border-holyDark-100 z-10"></div>
+            <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyBlue-200 dark:bg-holyBlue-700 border-4 border-white dark:border-holyDark-100 z-10"></div>
             <div className="flex flex-col md:flex-row items-center">
               <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0">
-                <div className="inline-flex items-center gap-2 rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800 mb-2">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Phase 1 - Available Now</span>
+                <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
+                  <Clock4 className="h-4 w-4" />
+                  <span>Coming soon!</span>
                 </div>
+                {/* <div className="inline-flex items-center gap-2 rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800 mb-2"> */}
+                {/*   <CheckCircle2 className="h-4 w-4" /> */}
+                {/*   <span>Phase 1 - Available Now</span> */}
+                {/* </div> */}
                 <h3 className="text-2xl font-bold mb-2">AI-Guided Study Plans</h3>
                 <p className="text-muted-foreground">
                   Our core feature that helps you create personalized Bible study plans based on your interests,
@@ -57,7 +61,7 @@ export function RoadmapSection() {
             </div>
           </div>
 
-          {/* Phase 2 - Coming Soon */}
+          {/* Phase 2 - Q4 2025 */}
           <div className="relative mb-24">
             <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyBlue-200 dark:bg-holyBlue-700 border-4 border-white dark:border-holyDark-100 z-10"></div>
             <div className="flex flex-col md:flex-row items-center">
@@ -82,7 +86,7 @@ export function RoadmapSection() {
               <div className="md:w-1/2 md:pl-8 order-0 md:order-2">
                 <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
                   <Clock4 className="h-4 w-4" />
-                  <span>Phase 2 - Q2 2025</span>
+                  <span>Phase 2 - Q4 2025</span>
                 </div>
                 <h3 className="text-2xl font-bold mb-2">Scripture in HD</h3>
                 <p className="text-muted-foreground">
@@ -100,7 +104,7 @@ export function RoadmapSection() {
               <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0">
                 <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
                   <Clock4 className="h-4 w-4" />
-                  <span>Phase 3 - Q3 2025</span>
+                  <span>Phase 3 - Q1 2026</span>
                 </div>
                 <h3 className="text-2xl font-bold mb-2">Multi-Modal Bible Consumption</h3>
                 <p className="text-muted-foreground">
@@ -153,7 +157,7 @@ export function RoadmapSection() {
               <div className="md:w-1/2 md:pl-8 order-0 md:order-2">
                 <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
                   <Clock4 className="h-4 w-4" />
-                  <span>Phase 4 - Q4 2025</span>
+                  <span>Phase 4 - Q2 2026</span>
                 </div>
                 <h3 className="text-2xl font-bold mb-2">Community & Daily Word</h3>
                 <p className="text-muted-foreground">

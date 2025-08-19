@@ -1,6 +1,5 @@
 "use client";
 
-import { Button, Card, Center, Group, Stack, Text, Title } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { useLoggedUserContext } from "../state/LoggedUserContext";
 import { useQuery } from "@tanstack/react-query";
@@ -26,23 +25,24 @@ export default function SessionPage() {
   }
 
   return (
-    <Center>
-      <Stack>
-        <Title ta="center" order={1}>Sessions</Title>
-        {
-          data?.map((actual) => {
-            return (
-              <Card key={actual.id}>
-                <Group>
-                  <Text>{actual.study.name}</Text>
-                  <Button onClick={() => { handleGoToSession(actual) }}>Create session</Button>
-                </Group>
-              </Card>
-            );
-          })
-        }
-      </Stack>
-    </Center>
+    <div>commented</div>
   );
+  {/* <Center> */ }
+  {/*   <Stack> */ }
+  {/*     <Title ta="center" order={1}>Sessions</Title> */ }
+  {/*     { */ }
+  {/*       data?.map((actual) => { */ }
+  {/*         return ( */ }
+  {/*           <Card key={actual.id}> */ }
+  {/*             <Group> */ }
+  {/*               <Text>{actual.study.name}</Text> */ }
+  {/*               <Button onClick={() => { handleGoToSession(actual) }}>Create session</Button> */ }
+  {/*             </Group> */ }
+  {/*           </Card> */ }
+  {/*         ); */ }
+  {/*       }) */ }
+  {/*     } */ }
+  {/*   </Stack> */ }
+  {/* </Center> */ }
 
 }

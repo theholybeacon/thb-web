@@ -33,7 +33,7 @@ export function HeroSection() {
           </div>
           <div className="mx-auto flex items-center justify-center">
             <Image
-              src="/placeholder.svg?height=550&width=550"
+              src="/images/main-landing-2.png?height=550&width=550"
               width={550}
               height={550}
               alt="The Holy Beacon App"

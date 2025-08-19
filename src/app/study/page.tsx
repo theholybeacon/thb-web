@@ -1,6 +1,5 @@
 "use client";
 
-import { Button, Card, Center, Group, Stack, Text, Title } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { useLoggedUserContext } from "../state/LoggedUserContext";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -49,24 +48,25 @@ export default function StudyPage() {
   });
 
   return (
-    <Center>
-      <Stack>
-        <Title ta="center" order={1}>Studies</Title>
-        <Button variant="filled" color="primary" onClick={onCreateHandler} >Create</Button>
-        {
-          data?.map((actual) => {
-            return (
-              <Card key={actual.id}>
-                <Group>
-                  <Text>{actual.name}</Text>
-                  <Button onClick={() => { createSessionMutation.mutate(actual); }}>Create session</Button>
-                </Group>
-              </Card>
-            );
-          })
-        }
-      </Stack>
-    </Center>
+    <div>commented</div>
+    // <Center>
+    //   <Stack>
+    //     <Title ta="center" order={1}>Studies</Title>
+    //     <Button variant="filled" color="primary" onClick={onCreateHandler} >Create</Button>
+    //     {
+    //       data?.map((actual) => {
+    //         return (
+    //           <Card key={actual.id}>
+    //             <Group>
+    //               <Text>{actual.name}</Text>
+    //               <Button onClick={() => { createSessionMutation.mutate(actual); }}>Create session</Button>
+    //             </Group>
+    //           </Card>
+    //         );
+    //       })
+    //     }
+    //   </Stack>
+    // </Center>
   );
 
 }
