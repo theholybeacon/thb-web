@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 
-import { authSignUpCS } from '@/app/common/auth/service/client/authSignUpCS';
 import { logger } from '@/app/utils/logger';
 
 
