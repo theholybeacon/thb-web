@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { roboto, oswald } from "@/lib/fonts"
 import { ThemeProvider } from "@/components/theme/theme-provider"
 import "./globals.css"
+import ClientProvider from "./layout/components/ClientProviders"
 
 export const metadata: Metadata = {
   title: "The Holy Beacon",
@@ -17,9 +18,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${roboto.variable} ${oswald.variable} font-sans`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+        <ClientProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            {children}
+          </ThemeProvider>
+        </ClientProvider>
       </body>
     </html>
   )
