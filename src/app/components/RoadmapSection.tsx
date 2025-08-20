@@ -44,15 +44,18 @@ export function RoadmapSection() {
                 <div className="bg-white dark:bg-holyDark-100/20 rounded-lg p-4 shadow-sm border">
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      {/* <CheckCircle2 className="h-5 w-5 text-green-500" /> */}
+                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
                       <span>Customizable study durations</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      {/* <CheckCircle2 className="h-5 w-5 text-green-500" /> */}
+                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
                       <span>Depth adjustment for all knowledge levels</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      {/* <CheckCircle2 className="h-5 w-5 text-green-500" /> */}
+                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
                       <span>Thematic exploration options</span>
                     </li>
                   </ul>
