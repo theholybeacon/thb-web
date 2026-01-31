@@ -1,13 +1,11 @@
 "use server";
 
-import { StudyFull } from "../../model/Study";
+import { StudyFullWithBible } from "../../model/Study";
 import { StudyRepository } from "../../repository/StudyRepository";
 
-export async function studyGetAllByOwnerIdSS(ownerId: string): Promise<StudyFull[]> {
+export async function studyGetAllByOwnerIdSS(ownerId: string): Promise<StudyFullWithBible[]> {
 
     const studyRepository = new StudyRepository();
 
     return await studyRepository.getByOwnerId(ownerId);
 }
-
-

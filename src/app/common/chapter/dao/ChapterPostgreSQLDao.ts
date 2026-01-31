@@ -1,7 +1,7 @@
 import { logger } from "@/app/utils/logger";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { Chapter, ChapterInsert, ChapterVer } from "../model/Chapter";
+import { Chapter, ChapterFull, ChapterInsert, ChapterVer } from "../model/Chapter";
 import { chapterTable } from "@/db/schema/chapter";
 
 const log = logger.child({ module: 'ChapterPostgreSQLDao' });
@@ -49,6 +49,18 @@ export class ChapterPostgreSQLDao {
 			with: { verses: true }
 		});
 		return returned;
+	}
+
+	async getByIdWithBook(id: string): Promise<ChapterFull | null> {
+		log.trace("getByIdWithBook");
+		const returned = await db.query.chapterTable.findFirst({
+			where: eq(chapterTable.id, id),
+			with: {
+				verses: true,
+				book: true
+			}
+		});
+		return returned as ChapterFull | null;
 	}
 
 	async update(chapter: Chapter): Promise<void> {

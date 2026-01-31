@@ -1,10 +1,9 @@
 import OpenAI from 'openai';
-import { StudyInsert, StudyInsertFull } from '../../study/model/Study';
+import { StudyInsert } from '../../study/model/Study';
 import { StudyStepInsert } from '../../studyStep/model/StudyStep';
-import { insertStudyStepSchema } from '@/db/schema/studyStep';
 import { StudyStepFromAIDTO } from '../../studyStep/model/StudyStepFromAIDTO';
 import { aiStudyStepAbbreviatonToIdParserSS } from '../service/server/aiStudyStepAbbreviatonToIdParserSS';
-import { Bible, BibleWithBooks } from '../../bible/model/Bible';
+import { BibleWithBooks } from '../../bible/model/Bible';
 
 export class AIOpenAiDao {
 
@@ -21,60 +20,46 @@ export class AIOpenAiDao {
 
 		messagesToSend.push({
 			role: "system", content: `
-				Create a comprehensive  Bible for the bible version ${bible.name} refer to it with the id ${bible.id} and the following book names and abbreviations: 
+				Create a comprehensive Bible study plan for the bible version "${bible.name}" (ID: ${bible.id}).
 
-
+				CRITICAL - Book Abbreviations:
 				${createBibleBookAdAbbreviationAIReadable(bible)}
 
-
-
-				The study plan focused on the following attributes:
-
-				- Topic: ${input.name}.
+				Study Plan Attributes:
+				- Topic: ${input.name}
 				- Description: ${input.description}
-				- Depth: ${input.depth}. (1=shallow - 10=deep)
-				- Length: ${input.length}. (1=5 minutes - 10=1year) 
+				- Depth: ${input.depth} (1=shallow - 10=deep)
+				- Length: ${input.length} (1=5 minutes - 10=1 year)
 
-				Structure:
+				Response Format: Pure JSON array, no extra text or markdown.
 
-				Format: JSON. NO EXTRA CHARACTERS, CLEAN JSON.I WILL USE ON API no trailing and leading characters that determine this is a json. ONLY the actual JSON.
-				Fields for Each Step:
-				-stepNumber: The number of the step
-				-bibleId: The bible Id referenced previously
-				-bookAbbreviation: Standard abbreviation of the Bible book THIS IS VERY IMPORTANT DONT  TYPE THE WHOLE NAME (e.g., Gen, Eph).
-				Entire book if applicable.
-				-chapterNumber:
-				Single chapter (e.g., "16"),
-				Range of chapters (e.g., "16-18"),
-				Entire chapter if applicable.
-				-verseNumber:
-				Single verse (e.g., "16"),
-				Range of verses (e.g., "16-18"),
-				Set to null if studying an entire chapter, range of chapters, or full book.
-				-stepType: Specifies the scope of the study step. It should be one of the following:
-				--FullBook: Study the entire book.
-				--ChapterRange: Study specific chapters within a book.
-				--SingleChapter: Study a single chapter.
-				--VerseRange: Study a range of verses within a chapter.
-				--SingleVerse: Study a single verse.
+				Required Fields for Each Step (ALL fields are REQUIRED, never null):
+				- stepNumber: Sequential step number (integer)
+				- bibleId: "${bible.id}"
+				- bookAbbreviation: MUST be one of the exact abbreviations listed above (string)
+				- chapterNumber: Single ("5") or range ("5-7") or null for full book
+				- verseNumber: Single ("16") or range ("16-18") or null for full chapter/book
+				- stepType: One of: FullBook, ChapterRange, SingleChapter, VerseRange, SingleVerse
+				- title: A clear, engaging title for the step (string, REQUIRED)
+				- explanation: A thoughtful, detailed explanation (string, REQUIRED, 2-4 sentences minimum)
 
-				Title for the step.
-				Explanation on what to focus on the step.
+				EXPLANATION GUIDELINES (VERY IMPORTANT):
+				The explanation field must NEVER be null or empty. Each explanation should:
+				- Provide spiritual wisdom and insight about the passage
+				- Explain WHY this scripture is relevant to the study topic
+				- Offer practical guidance on what to look for while reading
+				- Share theological context or historical background when helpful
+				- Connect the passage to the broader theme of the study
+				- Be written in an encouraging, pastoral tone
 
-				VERY IMPORTANT: Only respond with the JSON. NO more text. I am using this for an api.
+				General Guidelines:
+				- Use ONLY the abbreviations provided above (they are specific to this Bible version)
+				- Cover the topic comprehensively from various biblical perspectives
+				- Mix different step types for depth and variety
+				- Arrange steps to build understanding progressively
+				- Set verseNumber to null when stepType is FullBook, ChapterRange, or SingleChapter
 
-				Content Guidelines:
-
-				Comprehensive Coverage: Ensure the study plan covers the topic from various perspectives within the Bible.
-				Variety: Include a mix of different types (fullBook, chapterRange, singleChapter, verseRange, singleVerse) to provide depth and variety.
-				Logical Organization: Arrange the steps in a sequence that builds understanding progressively.
-				Additional Instructions:
-				Consistency: Use a consistent Bible version abbreviation throughout (e.g., NIV).
-				Standard Abbreviations: Follow standard abbreviations for all books.
-				Null Values: When the Type is fullBook, chapterRange, or singleChapter, set VerseNumber to null.
-
-
-				VERY IMPORTANT: Only use KJV protestant english bible version. ` });
+				RESPOND ONLY WITH THE JSON ARRAY. NO OTHER TEXT.` });
 
 
 
@@ -105,8 +90,7 @@ export class AIOpenAiDao {
 	}
 
 }
-function createBibleBookAdAbbreviationAIReadable(bible: BibleWithBooks): String {
-
-	const abbreviationString = bible.books.map((b) => b.abbreviation);
-	return `You can only use EXACTLY this book abbreviations: ${abbreviationString}`
+function createBibleBookAdAbbreviationAIReadable(bible: BibleWithBooks): string {
+	const bookList = bible.books.map((b) => `${b.name}: "${b.abbreviation}"`).join(", ");
+	return `You MUST use EXACTLY these book abbreviations (book name: abbreviation): ${bookList}`;
 }

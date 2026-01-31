@@ -1,175 +1,135 @@
-import { CheckCircle2, Clock4, } from "lucide-react";
+"use client";
+
+import { CheckCircle2, Clock4, Sparkles } from "lucide-react";
+
+const phases = [
+  {
+    status: "current",
+    timeline: "Coming soon!",
+    title: "AI-Guided Study Plans",
+    description: "Our core feature that helps you create personalized Bible study plans based on your interests, schedule, and spiritual goals.",
+    features: [
+      { text: "Customizable study durations", done: true },
+      { text: "Depth adjustment for all knowledge levels", done: true },
+      { text: "Thematic exploration options", done: true },
+    ],
+    side: "left",
+  },
+  {
+    status: "upcoming",
+    timeline: "Phase 2 - Q4 2025",
+    title: "Scripture in HD",
+    description: "Smart links, timelines, and contextual layers that bring the Bible's interconnected tapestry to life.",
+    features: [
+      { text: "Smart verse connections", done: false },
+      { text: "Character profiles and timelines", done: false },
+      { text: "Historical and cultural context layers", done: false },
+    ],
+    side: "right",
+  },
+  {
+    status: "upcoming",
+    timeline: "Phase 3 - Q1 2026",
+    title: "Multi-Modal Bible Consumption",
+    description: "Multiple ways to engage with Scripture through reading, listening, typing, and visual experiences.",
+    features: [
+      { text: "Distraction-free reading mode", done: false },
+      { text: "High-quality audio narration", done: false },
+      { text: "AI-generated verse visualization", done: false },
+    ],
+    side: "left",
+  },
+  {
+    status: "upcoming",
+    timeline: "Phase 4 - Q2 2026",
+    title: "Community & Daily Word",
+    description: "Fellowship features and daily Scripture engagement to help believers grow together and maintain consistency.",
+    features: [
+      { text: "Study circles for group learning", done: false },
+      { text: "Theological discussion boards", done: false },
+      { text: "Daily Word personalized feed", done: false },
+    ],
+    side: "right",
+  },
+];
 
 export function RoadmapSection() {
   return (
-    <section id="roadmap" className="w-full py-12 md:py-24 lg:py-32 bg-holyBlue-50/30 dark:bg-holyDark-200/10">
-      <div className="container px-4 md:px-6">
+    <section id="roadmap" className="relative w-full py-16 md:py-24 lg:py-32 bg-secondary/30 overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-1/4 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+
+      <div className="container relative px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
-            <div className="inline-block rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800">
-              Our Journey Ahead
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary animate-fade-down opacity-0">
+              <Sparkles className="h-4 w-4" />
+              <span className="font-medium">Our Journey Ahead</span>
             </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Feature Roadmap</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              We're building The Holy Beacon step by step. Here's our plan for bringing all the promised features to
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-up opacity-0 animation-delay-100">
+              Feature <span className="gradient-text">Roadmap</span>
+            </h2>
+            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed animate-fade-up opacity-0 animation-delay-200">
+              We&apos;re building The Holy Beacon step by step. Here&apos;s our plan for bringing all the promised features to
               life.
             </p>
           </div>
         </div>
 
         <div className="mt-16 relative">
-          {/* Timeline line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-holyGold-200 dark:bg-holyGold-900/20"></div>
+          {/* Timeline line - hidden on mobile, shown on md+ */}
+          <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-primary/40 via-primary/20 to-transparent" />
 
-          {/* Phase 1 - Current */}
-          <div className="relative mb-24">
-            <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyBlue-200 dark:bg-holyBlue-700 border-4 border-white dark:border-holyDark-100 z-10"></div>
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0">
-                <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
-                  <Clock4 className="h-4 w-4" />
-                  <span>Coming soon!</span>
-                </div>
-                {/* <div className="inline-flex items-center gap-2 rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800 mb-2"> */}
-                {/*   <CheckCircle2 className="h-4 w-4" /> */}
-                {/*   <span>Phase 1 - Available Now</span> */}
-                {/* </div> */}
-                <h3 className="text-2xl font-bold mb-2">AI-Guided Study Plans</h3>
-                <p className="text-muted-foreground">
-                  Our core feature that helps you create personalized Bible study plans based on your interests,
-                  schedule, and spiritual goals.
-                </p>
+          {phases.map((phase, index) => (
+            <div
+              key={phase.title}
+              className="relative mb-16 last:mb-0 animate-fade-up opacity-0"
+              style={{ animationDelay: `${300 + index * 150}ms` }}
+            >
+              {/* Timeline dot */}
+              <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 -mt-1 w-4 h-4 rounded-full bg-primary/40 border-4 border-background z-10 items-center justify-center">
+                {phase.status === "current" && (
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                )}
               </div>
-              <div className="md:w-1/2 md:pl-8">
-                <div className="bg-white dark:bg-holyDark-100/20 rounded-lg p-4 shadow-sm border">
-                  <ul className="space-y-2">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      <span>Customizable study durations</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      <span>Depth adjustment for all knowledge levels</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      <span>Thematic exploration options</span>
-                    </li>
-                  </ul>
+
+              <div className={`flex flex-col md:flex-row items-center gap-8 ${phase.side === "right" ? "md:flex-row-reverse" : ""}`}>
+                {/* Content side */}
+                <div className={`w-full md:w-1/2 ${phase.side === "left" ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-secondary border border-border px-3 py-1 text-sm text-secondary-foreground mb-3">
+                    <Clock4 className="h-4 w-4" />
+                    <span>{phase.timeline}</span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">{phase.title}</h3>
+                  <p className="text-muted-foreground">{phase.description}</p>
+                </div>
+
+                {/* Features card side */}
+                <div className={`w-full md:w-1/2 ${phase.side === "left" ? "md:pl-12" : "md:pr-12"}`}>
+                  <div className="glass rounded-xl p-5 shadow-lg hover-lift transition-all duration-300">
+                    <ul className="space-y-3">
+                      {phase.features.map((feature) => (
+                        <li
+                          key={feature.text}
+                          className={`flex items-center gap-3 ${phase.side === "right" ? "md:flex-row-reverse md:text-right" : ""}`}
+                        >
+                          {feature.done ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                          ) : (
+                            <Clock4 className="h-5 w-5 text-muted-foreground shrink-0" />
+                          )}
+                          <span className={feature.done ? "" : "text-muted-foreground"}>{feature.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Phase 2 - Q4 2025 */}
-          <div className="relative mb-24">
-            <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyBlue-200 dark:bg-holyBlue-700 border-4 border-white dark:border-holyDark-100 z-10"></div>
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0 order-1 md:order-1">
-                <div className="bg-white dark:bg-holyDark-100/20 rounded-lg p-4 shadow-sm border">
-                  <ul className="space-y-2">
-                    <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                      <span>Smart verse connections</span>
-                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                    </li>
-                    <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                      <span>Character profiles and timelines</span>
-                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                    </li>
-                    <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                      <span>Historical and cultural context layers</span>
-                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="md:w-1/2 md:pl-8 order-0 md:order-2">
-                <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
-                  <Clock4 className="h-4 w-4" />
-                  <span>Phase 2 - Q4 2025</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Scripture in HD</h3>
-                <p className="text-muted-foreground">
-                  Smart links, timelines, and contextual layers that bring the Bible's interconnected tapestry to
-                  life.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Phase 3 - Future */}
-          <div className="relative mb-24">
-            <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyBlue-200 dark:bg-holyBlue-700 border-4 border-white dark:border-holyDark-100 z-10"></div>
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0">
-                <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
-                  <Clock4 className="h-4 w-4" />
-                  <span>Phase 3 - Q1 2026</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Multi-Modal Bible Consumption</h3>
-                <p className="text-muted-foreground">
-                  Multiple ways to engage with Scripture through reading, listening, typing, and visual experiences.
-                </p>
-              </div>
-              <div className="md:w-1/2 md:pl-8">
-                <div className="bg-white dark:bg-holyDark-100/20 rounded-lg p-4 shadow-sm border">
-                  <ul className="space-y-2">
-                    <li className="flex items-center gap-2">
-                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                      <span>Distraction-free reading mode</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                      <span>High-quality audio narration</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                      <span>AI-generated verse visualization</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Phase 4 - Future */}
-          <div className="relative">
-            <div className="absolute left-1/2 transform -translate-x-1/2 -mt-3 w-6 h-6 rounded-full bg-holyBlue-200 dark:bg-holyBlue-700 border-4 border-white dark:border-holyDark-100 z-10"></div>
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 md:pr-8 md:text-right mb-8 md:mb-0 order-1 md:order-1">
-                <div className="bg-white dark:bg-holyDark-100/20 rounded-lg p-4 shadow-sm border">
-                  <ul className="space-y-2">
-                    <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                      <span>Study circles for group learning</span>
-                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                    </li>
-                    <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                      <span>Theological discussion boards</span>
-                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                    </li>
-                    <li className="flex items-center gap-2 justify-end md:flex-row-reverse">
-                      <span>Daily Word personalized feed</span>
-                      <Clock4 className="h-5 w-5 text-holyBlue-500" />
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="md:w-1/2 md:pl-8 order-0 md:order-2">
-                <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800 mb-2">
-                  <Clock4 className="h-4 w-4" />
-                  <span>Phase 4 - Q2 2026</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Community & Daily Word</h3>
-                <p className="text-muted-foreground">
-                  Fellowship features and daily Scripture engagement to help believers grow together and maintain
-                  consistency.
-                </p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
-

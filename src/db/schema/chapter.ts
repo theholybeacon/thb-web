@@ -8,9 +8,9 @@ export const chapterTable = pgTable("chapter", {
 	id: uuid().defaultRandom().primaryKey(),
 	bookId: uuid().notNull(),
 	chapterNumber: integer().notNull(),
-	numVerses: integer().notNull(),
-	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	numVerses: integer().default(0),
+	createdAt: timestamp().defaultNow(),
+	updatedAt: timestamp().defaultNow(),
 });
 
 export const chapterRelations = relations(chapterTable, ({ one, many }) => ({

@@ -7,7 +7,6 @@ import { PricingSection } from "./components/PricingSection"
 import { Footer } from "./layout/components/Footer"
 
 export default function LandingPage() {
-
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -19,7 +18,7 @@ export default function LandingPage() {
         <PricingSection />
       </main>
       <Footer />
-    </div >
+    </div>
   );
 }
 

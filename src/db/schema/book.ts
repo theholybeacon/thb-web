@@ -11,9 +11,9 @@ export const bookTable = pgTable("book", {
 	name: varchar({ length: 255 }).notNull(),
 	bookOrder: integer().notNull(),
 	abbreviation: varchar({ length: 255 }).notNull(),
-	numChapters: integer().notNull(),
-	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	numChapters: integer().default(0),
+	createdAt: timestamp().defaultNow(),
+	updatedAt: timestamp().defaultNow(),
 });
 
 

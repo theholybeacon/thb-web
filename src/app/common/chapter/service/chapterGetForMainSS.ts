@@ -19,7 +19,7 @@ export async function chapterGetForMainSS(bookId: string, chapterNumber: number)
    }
 
 
-   if (mainChapter.chapterNumber + 1 <= book.numChapters - 1) {
+   if (mainChapter.chapterNumber + 1 <= (book.numChapters || 0) - 1) {
       mainChapter.next = await chapterRepo.getFullChapter(mainChapter.bookId, mainChapter.chapterNumber + 1);
    } else {
       //TODO get next book

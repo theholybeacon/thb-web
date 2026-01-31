@@ -3,8 +3,7 @@ import { logger } from "@/app/utils/logger";
 import { Book, BookInsert } from "../model/Book";
 import { db } from "@/db";
 import { bookTable } from "@/db/schema/book";
-import { and, eq } from "drizzle-orm";
-import { bibleTable } from "@/db/schema/bible";
+import { and, eq, ilike } from "drizzle-orm";
 
 const log = logger.child({ module: 'BookPostgreSQLDao' });
 export class BookPostgreSQLDao {
@@ -19,19 +18,26 @@ export class BookPostgreSQLDao {
 		}
 		return response;
 	}
-	async getByAbbreviationAndBibleId(bibleId: string, abbreviation: string): Promise<Book> {
-		const response = await db.query.bookTable.findFirst({
+	async getByAbbreviationAndBibleId(bibleId: string, abbreviation: string): Promise<Book | null> {
+		// Try exact match first
+		let response = await db.query.bookTable.findFirst({
 			where: and(
 				eq(bookTable.bibleId, bibleId),
 				eq(bookTable.abbreviation, abbreviation),
 			),
 		});
 
+		// If not found, try case-insensitive match
 		if (!response) {
-			throw Error("Book not found");
+			response = await db.query.bookTable.findFirst({
+				where: and(
+					eq(bookTable.bibleId, bibleId),
+					ilike(bookTable.abbreviation, abbreviation),
+				),
+			});
 		}
-		return response;
 
+		return response || null;
 	}
 
 	async getAllByBibleId(bibleId: string): Promise<Book[]> {

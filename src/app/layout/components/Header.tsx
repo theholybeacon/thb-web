@@ -1,15 +1,17 @@
-import { ThemeSwitcher } from "@/components/theme/theme-switcher";
+"use client";
+
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/app/UserAvatar";
 import { Sun } from "lucide-react";
 import Link from "next/link";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 export function Header() {
-
     return (
         <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center justify-between py-4">
                 <div className="flex items-center gap-2">
-                    <Sun className="h-8 w-8 text-holyGold-500" />
+                    <Sun className="h-8 w-8 text-primary" />
                     <span className="text-xl font-bold">The Holy Beacon</span>
                 </div>
                 <nav className="hidden md:flex items-center gap-6">
@@ -27,16 +29,22 @@ export function Header() {
                     </Link>
                 </nav>
                 <div className="flex items-center gap-4">
-                    <ThemeSwitcher />
-                    <Link href="/auth/login">
-                        <Button variant="outline">Log In</Button>
-                    </Link>
-                    <Link href="/auth/signup">
-                        <Button>Sign Up</Button>
-                    </Link>
+                    <SignedOut>
+                        <Link href="/auth/login">
+                            <Button variant="outline">Log In</Button>
+                        </Link>
+                        <Link href="/auth/sign-up">
+                            <Button>Sign Up</Button>
+                        </Link>
+                    </SignedOut>
+                    <SignedIn>
+                        <Link href="/home">
+                            <Button variant="outline">Dashboard</Button>
+                        </Link>
+                        <UserAvatar size="sm" />
+                    </SignedIn>
                 </div>
             </div>
         </header>
     );
-
 }

@@ -41,6 +41,15 @@ export class UserPostgreSQLDao {
         }
     }
 
+    async getByEmail(email: string): Promise<User | null> {
+        log.trace("getByEmail");
+
+        const response = await db.query.userTable.findFirst({
+            where: eq(userTable.email, email),
+        });
+        return response || null;
+    }
+
 
     async update(u: User): Promise<void> {
         log.trace("update");
@@ -48,6 +57,7 @@ export class UserPostgreSQLDao {
             username: u.username,
             email: u.email,
             isEmailVerified: u.isEmailVerified,
+            authId: u.authId,
         }).where(eq(userTable.id, u.id));
     }
 

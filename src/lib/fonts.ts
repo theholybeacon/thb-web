@@ -1,16 +1,17 @@
-import { Roboto, Oswald } from "next/font/google"
+import { Inter, Merriweather } from "next/font/google"
 
-export const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-roboto",
-  display: "swap",
-})
-
-export const oswald = Oswald({
+// Inter - highly legible sans-serif for body text
+export const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-oswald",
+  variable: "--font-inter",
   display: "swap",
 })
 
+// Merriweather - elegant serif for headings (fits spiritual/religious theme)
+export const merriweather = Merriweather({
+  subsets: ["latin"],
+  weight: ["400", "700", "900"],
+  variable: "--font-merriweather",
+  display: "swap",
+})

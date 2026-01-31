@@ -16,6 +16,10 @@ export class UserRepository {
         return await this.dao.getByAuthId(authId);
     }
 
+    async getByEmail(email: string): Promise<User | null> {
+        return await this.dao.getByEmail(email);
+    }
+
     async update(u: User): Promise<void> {
         return await this.dao.update(u);
     }

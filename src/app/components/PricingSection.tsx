@@ -1,17 +1,101 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { BookOpen, Calendar, Check, CheckCircle2, Eye, FlameIcon as Fire, Footprints, Gift, Lightbulb, Users, X } from "lucide-react";
+import { Check, Eye, FlameIcon as Fire, Footprints, Gift, Users, X, Sparkles, LucideIcon } from "lucide-react";
+
+interface PlanFeature {
+  text: string;
+  included: boolean;
+  gift?: boolean;
+}
+
+interface Plan {
+  name: string;
+  quote: string;
+  price: string;
+  period?: string;
+  annual?: string;
+  icon: LucideIcon;
+  features: PlanFeature[];
+  cta: string;
+  variant: "outline" | "default" | "secondary";
+  popular: boolean;
+}
+
+const plans: Plan[] = [
+  {
+    name: "The Glimpse",
+    quote: '"Taste and see..." — Psalm 34:8',
+    price: "Free",
+    icon: Eye,
+    features: [
+      { text: "Read-only access to the Chronological Bible (text only)", included: true },
+      { text: "No AI Study Plans", included: false },
+      { text: "No Smart Links or Contextual Layers", included: false },
+      { text: "No Audio or Typing Mode", included: false },
+    ],
+    cta: "Sign Up Free",
+    variant: "outline" as const,
+    popular: false,
+  },
+  {
+    name: "The Walk",
+    quote: '"Walk in the way of love..." — Ephesians 5:2',
+    price: "$9",
+    period: "/month",
+    annual: "or $90/year (save $18)",
+    icon: Footprints,
+    features: [
+      { text: "Full access to AI Study Plans (up to 3 active)", included: true },
+      { text: "Entire Chronological Bible with Smart Links", included: true },
+      { text: "Reading, Typing, and Audio Modes", included: true },
+      { text: "20 Monthly Verse Images via AI", included: true },
+      { text: "Join Study Circles & Community Discussions", included: true },
+      { text: "Add 1 person to your subscription", included: true, gift: true },
+    ],
+    cta: "Subscribe Now",
+    variant: "default" as const,
+    popular: true,
+  },
+  {
+    name: "The Fire",
+    quote: '"His Word burns in my heart like a fire..." — Jeremiah 20:9',
+    price: "$39",
+    period: "/month",
+    annual: "or $399/year (save $69)",
+    icon: Fire,
+    features: [
+      { text: "Unlimited AI Study Plans with deep-dive options", included: true },
+      { text: "Creator Mode – Build & publish custom Study Plans", included: true },
+      { text: "Multiple Bible versions & translation comparisons", included: true },
+      { text: "Unlimited AI Image Generation", included: true },
+      { text: "Lead your own Study Circles & track engagement", included: true },
+      { text: "Add 1 person to your subscription", included: true, gift: true },
+    ],
+    cta: "Upgrade to Premium",
+    variant: "secondary" as const,
+    popular: false,
+  },
+];
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-holyBlue-50/30 dark:bg-holyDark-200/10" >
-      <div className="container px-4 md:px-6">
+    <section id="pricing" className="relative w-full py-16 md:py-24 lg:py-32 bg-secondary/30 overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+
+      <div className="container relative px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
-            <div className="inline-block rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800">
-              Subscription Plans
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary animate-fade-down opacity-0">
+              <Sparkles className="h-4 w-4" />
+              <span className="font-medium">Subscription Plans</span>
             </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Choose Your Path</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-up opacity-0 animation-delay-100">
+              Choose Your <span className="gradient-text">Path</span>
+            </h2>
+            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed animate-fade-up opacity-0 animation-delay-200">
               Select the plan that best fits your spiritual journey, with the ability to share or gift each
               subscription.
             </p>
@@ -19,169 +103,109 @@ export function PricingSection() {
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
-          {/* Free Tier - "The Glimpse" */}
-          <div className="flex flex-col rounded-xl border bg-white dark:bg-holyDark-100/20 shadow-sm transition-all hover:shadow-md">
-            <div className="p-6 pt-8">
-              <div className="flex items-center justify-center mb-4">
-                <div className="rounded-full bg-holyBlue-100/50 p-2 dark:bg-holyBlue-900/20">
-                  <Eye className="h-8 w-8 text-holyBlue-600 dark:text-holyBlue-400" />
+          {plans.map((plan, index) => (
+            <div
+              key={plan.name}
+              className={`group relative flex flex-col rounded-2xl border bg-card shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-2 animate-fade-up opacity-0 ${
+                plan.popular ? "border-primary/50 md:scale-105" : ""
+              }`}
+              style={{ animationDelay: `${300 + index * 100}ms` }}
+            >
+              {/* Popular badge */}
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-full shadow-lg glow-sm">
+                    MOST POPULAR
+                  </div>
                 </div>
-              </div>
-              <h3 className="text-center text-2xl font-bold">The Glimpse</h3>
-              <div className="mt-1 text-center text-sm text-muted-foreground italic">
-                "Taste and see..." — Psalm 34:8
-              </div>
-              <div className="mt-6 text-center text-4xl font-bold">Free</div>
-              <ul className="mt-6 space-y-3">
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Read-only access to the Chronological Bible (text only)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <X className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground">No AI Study Plans</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <X className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground">No Smart Links or Contextual Layers</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <X className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground">No Audio or Typing Mode</span>
-                </li>
-              </ul>
-            </div>
-            <div className="mt-auto p-6 pt-0">
-              <Button className="w-full" variant="outline">
-                Sign Up Free
-              </Button>
-            </div>
-          </div>
+              )}
 
-          {/* Standard Tier - "The Walk" */}
-          <div className="flex flex-col rounded-xl border bg-white dark:bg-holyDark-100/20 shadow-sm transition-all hover:shadow-md relative">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="bg-holyTan-600 text-white text-xs font-bold px-3 py-1 rounded-full">MOST POPULAR</div>
-            </div>
-            <div className="p-6 pt-8">
-              <div className="flex items-center justify-center mb-4">
-                <div className="rounded-full bg-holyTan-100 p-2 dark:bg-holyTan-900/20">
-                  <Footprints className="h-8 w-8 text-holyTan-600 dark:text-holyTan-400" />
-                </div>
-              </div>
-              <h3 className="text-center text-2xl font-bold">The Walk</h3>
-              <div className="mt-1 text-center text-sm text-muted-foreground italic">
-                "Walk in the way of love..." — Ephesians 5:2
-              </div>
-              <div className="mt-6 text-center">
-                <span className="text-4xl font-bold">$9</span>
-                <span className="text-muted-foreground">/month</span>
-                <div className="mt-1 text-sm text-muted-foreground">or $90/year (save $18)</div>
-              </div>
-              <ul className="mt-6 space-y-3">
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Full access to AI Study Plans (up to 3 active)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Entire Chronological Bible with Smart Links</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Reading, Typing, and Audio Modes</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>20 Monthly Verse Images via AI</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Join Study Circles & Community Discussions</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Gift className="h-5 w-5 text-holyGold-500 shrink-0 mt-0.5" />
-                  <span className="font-medium">Add 1 person to your subscription</span>
-                </li>
-              </ul>
-            </div>
-            <div className="mt-auto p-6 pt-0">
-              <div className="mt-3 text-center text-xs text-muted-foreground">
-                <span className="flex items-center justify-center gap-1 mb-2">
-                  <Gift className="h-3 w-3" />
-                  <span>Can be gifted or shared with a loved one</span>
-                </span>
-              </div>
-              <Button className="w-full bg-holyTan-600 hover:bg-holyTan-700 text-white">Subscribe Now</Button>
-            </div>
-          </div>
+              {/* Hover glow */}
+              <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
+                plan.popular ? "bg-gradient-to-br from-primary/10 to-accent/10" : "bg-gradient-to-br from-primary/5 to-transparent"
+              }`} />
 
-          {/* Premium Tier - "The Fire" */}
-          <div className="flex flex-col rounded-xl border bg-gradient-to-b from-holyGold-50 to-white dark:from-holyDark-200 dark:to-holyDark-100/20 shadow-sm transition-all hover:shadow-md">
-            <div className="p-6 pt-8">
-              <div className="flex items-center justify-center mb-4">
-                <div className="rounded-full bg-holyGold-100 p-2 dark:bg-holyGold-900/20">
-                  <Fire className="h-8 w-8 text-holyGold-600 dark:text-holyGold-400" />
+              <div className="relative p-6 pt-8">
+                {/* Icon */}
+                <div className="flex items-center justify-center mb-4">
+                  <div className={`rounded-2xl p-3 transition-all duration-300 group-hover:scale-110 ${
+                    plan.popular ? "bg-primary/10" : "bg-secondary"
+                  }`}>
+                    <plan.icon className={`h-8 w-8 ${plan.popular ? "text-primary" : "text-muted-foreground"}`} />
+                  </div>
                 </div>
+
+                {/* Name & Quote */}
+                <h3 className="text-center text-2xl font-bold">{plan.name}</h3>
+                <div className="mt-1 text-center text-sm text-muted-foreground italic">
+                  {plan.quote}
+                </div>
+
+                {/* Price */}
+                <div className="mt-6 text-center">
+                  <span className="text-4xl font-bold">{plan.price}</span>
+                  {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
+                  {plan.annual && (
+                    <div className="mt-1 text-sm text-muted-foreground">{plan.annual}</div>
+                  )}
+                </div>
+
+                {/* Features */}
+                <ul className="mt-6 space-y-3">
+                  {plan.features.map((feature) => (
+                    <li key={feature.text} className="flex items-start gap-2">
+                      {feature.included ? (
+                        feature.gift ? (
+                          <Gift className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                        ) : (
+                          <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                        )
+                      ) : (
+                        <X className="h-5 w-5 text-destructive/50 shrink-0 mt-0.5" />
+                      )}
+                      <span className={`${feature.included ? "" : "text-muted-foreground"} ${feature.gift ? "font-medium" : ""}`}>
+                        {feature.text}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <h3 className="text-center text-2xl font-bold">The Fire</h3>
-              <div className="mt-1 text-center text-sm text-muted-foreground italic">
-                "His Word burns in my heart like a fire..." — Jeremiah 20:9
-              </div>
-              <div className="mt-6 text-center">
-                <span className="text-4xl font-bold">$39</span>
-                <span className="text-muted-foreground">/month</span>
-                <div className="mt-1 text-sm text-muted-foreground">or $399/year (save $69)</div>
-              </div>
-              <ul className="mt-6 space-y-3">
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Unlimited AI Study Plans with deep-dive options</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Creator Mode – Build & publish custom Study Plans</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Multiple Bible versions & translation comparisons</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Unlimited AI Image Generation</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Lead your own Study Circles & track engagement</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Gift className="h-5 w-5 text-holyGold-500 shrink-0 mt-0.5" />
-                  <span className="font-medium">Add 1 person to your subscription</span>
-                </li>
-              </ul>
-            </div>
-            <div className="mt-auto p-6 pt-0">
-              <div className="mt-3 text-center text-xs text-muted-foreground">
-                <span className="flex items-center justify-center gap-4 mb-2">
-                  <Gift className="h-3 w-3 " />
-                  <span>Can be gifted or shared with a loved one</span>
-                </span>
-                <Button className="w-full bg-gradient-to-r from-holyGold-500 to-holyTan-600 hover:from-holyGold-600 hover:to-holyTan-700 text-white">
-                  Upgrade to Premium
+
+              {/* CTA */}
+              <div className="relative mt-auto p-6 pt-0">
+                {plan.features.some(f => f.gift) && (
+                  <div className="text-center text-xs text-muted-foreground mb-3">
+                    <span className="flex items-center justify-center gap-1">
+                      <Gift className="h-3 w-3" />
+                      <span>Can be gifted or shared with a loved one</span>
+                    </span>
+                  </div>
+                )}
+                <Button
+                  className={`w-full transition-all duration-300 ${
+                    plan.popular ? "bg-primary hover:bg-primary/90 glow-sm hover:glow" : ""
+                  }`}
+                  variant={plan.variant}
+                >
+                  {plan.cta}
                 </Button>
               </div>
             </div>
-          </div>
+          ))}
         </div>
 
-        {/* Sponsorship Queue Section */}
-        <div className="mt-16 bg-white dark:bg-holyDark-100/20 rounded-xl p-8 border shadow-sm relative overflow-hidden">
+        {/* Sponsorship Section */}
+        <div className="mt-16 glass rounded-2xl p-8 shadow-xl relative overflow-hidden animate-fade-up opacity-0 animation-delay-600">
           {/* Coming Soon Ribbon */}
-          <div className="absolute -right-12 top-6 bg-holyGold-500 text-holyDark-900 font-bold py-1 px-10 transform rotate-45 shadow-md z-10">
+          <div className="absolute -right-12 top-6 bg-primary text-primary-foreground font-bold py-1.5 px-12 transform rotate-45 shadow-lg z-10 text-sm">
             COMING SOON
           </div>
 
           <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary mb-4">
+              <Gift className="h-4 w-4" />
+              <span className="font-medium">Community Program</span>
+            </div>
             <h3 className="text-2xl font-bold mb-2">Sponsorship Program</h3>
             <p className="text-muted-foreground max-w-3xl mx-auto">
               Our community-driven sponsorship program connects those who want to support others with those who need
@@ -194,11 +218,11 @@ export function PricingSection() {
 
           {/* Queue Visualization */}
           <div className="mb-10 relative">
-            <div className="h-4 bg-holyBlue-100 dark:bg-holyBlue-900/20 rounded-full overflow-hidden">
+            <div className="h-3 bg-secondary rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-holyTan-400 to-holyGold-500 rounded-full"
+                className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000"
                 style={{ width: "65%" }}
-              ></div>
+              />
             </div>
             <div className="flex justify-between mt-2 text-sm text-muted-foreground">
               <span>0</span>
@@ -208,54 +232,52 @@ export function PricingSection() {
 
             {/* Queue Stats */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-              <div className="bg-holyBlue-50 dark:bg-holyDark-200/30 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-holyBlue-700 dark:text-holyBlue-300">42</div>
-                <div className="text-sm text-muted-foreground">People in Queue</div>
-              </div>
-              <div className="bg-holyTan-50 dark:bg-holyDark-200/30 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-holyTan-700 dark:text-holyTan-300">128</div>
-                <div className="text-sm text-muted-foreground">Sponsorships Gifted</div>
-              </div>
-              <div className="bg-holyGold-50 dark:bg-holyDark-200/30 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-holyGold-700 dark:text-holyGold-300">14</div>
-                <div className="text-sm text-muted-foreground">Days Avg. Wait Time</div>
-              </div>
+              {[
+                { value: "42", label: "People in Queue" },
+                { value: "128", label: "Sponsorships Gifted" },
+                { value: "14", label: "Days Avg. Wait Time" },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-background/50 p-4 rounded-xl border border-border/50 hover-lift transition-all duration-300">
+                  <div className="text-2xl font-bold gradient-text">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col md:flex-row gap-6 justify-between">
-            <div className="flex-1 max-w-md bg-holyBlue-50/50 dark:bg-holyDark-300/20 p-6 rounded-xl border border-holyBlue-100 dark:border-holyBlue-900/20">
+            <div className="flex-1 max-w-md bg-background/50 p-6 rounded-xl border border-border/50 hover-lift transition-all duration-300">
               <h4 className="text-xl font-bold mb-2">Need a Subscription?</h4>
               <p className="text-muted-foreground mb-4">
-                Join our sponsorship queue if you're unable to afford a subscription. Our community of sponsors will
+                Join our sponsorship queue if you&apos;re unable to afford a subscription. Our community of sponsors will
                 help you access The Holy Beacon.
               </p>
-              <Button className="w-full bg-holyBlue-600 hover:bg-holyBlue-700 text-white">
+              <Button className="w-full" variant="outline">
                 <Users className="mr-2 h-5 w-5" />
                 <span>Join Sponsorship Queue</span>
               </Button>
             </div>
 
-            <div className="flex flex-col justify-between max-w-md bg-holyGold-50/50 dark:bg-holyDark-300/20 p-6 rounded-xl border border-holyGold-100 dark:border-holyGold-900/20">
+            <div className="flex-1 max-w-md bg-primary/5 p-6 rounded-xl border border-primary/20 hover-lift transition-all duration-300">
               <h4 className="text-xl font-bold mb-2">Become a Sponsor</h4>
               <p className="text-muted-foreground mb-4">
-                Gift subscriptions to those in need. Choose how many people you'd like to sponsor and help clear the
+                Gift subscriptions to those in need. Choose how many people you&apos;d like to sponsor and help clear the
                 queue.
               </p>
-              <Button className="w-full bg-gradient-to-r from-holyGold-500 to-holyTan-600 hover:from-holyGold-600 hover:to-holyTan-700 text-white">
+              <Button className="w-full bg-primary hover:bg-primary/90 glow-sm hover:glow transition-all duration-300">
                 <Gift className="mr-2 h-5 w-5" />
                 <span>Gift Subscriptions</span>
               </Button>
             </div>
           </div>
 
-          {/* Testimonials */}
+          {/* Testimonial */}
           <div className="mt-8 pt-6 border-t border-border">
             <div className="flex items-center gap-4 italic text-sm text-muted-foreground">
               <span>
-                "Here is where your awesome testimonial will appear after you've experienced The Holy Beacon's
-                sponsorship program."
+                &quot;Here is where your awesome testimonial will appear after you&apos;ve experienced The Holy Beacon&apos;s
+                sponsorship program.&quot;
               </span>
               <span>—</span>
               <span>Future Sponsored Member</span>
@@ -263,6 +285,6 @@ export function PricingSection() {
           </div>
         </div>
       </div>
-    </section >
+    </section>
   );
 }
