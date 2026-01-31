@@ -18,7 +18,9 @@
     "signOut": "Sign out",
     "language": "Language",
     "english": "English",
-    "spanish": "Spanish"
+    "spanish": "Spanish",
+    "reset": "Reset",
+    "skip": "Skip"
   },
   "nav": {
     "home": "Home",
@@ -103,7 +105,24 @@
     "markComplete": "Mark Complete",
     "finishStudy": "Finish Study",
     "deleteSession": "Delete Session",
-    "deleteConfirm": "Are you sure you want to delete this session? Your progress will be lost."
+    "deleteConfirm": "Are you sure you want to delete this session? Your progress will be lost.",
+    "modeRead": "Read",
+    "modeType": "Type",
+    "modeListen": "Listen",
+    "accuracy": "Accuracy",
+    "wpm": "WPM",
+    "timeSpent": "Time",
+    "clickToStart": "Click here and start typing",
+    "typeComplete": "Typing Complete!",
+    "tryAgain": "Try Again",
+    "completeStep": "Complete Step",
+    "listenComplete": "Listening Complete!",
+    "listenedFor": "You listened for {seconds} seconds",
+    "listenAgain": "Listen Again",
+    "markAsRead": "Mark as Read",
+    "verse": "Verse",
+    "speed": "Speed",
+    "skipStep": "Skip Step"
   },
   "sidebar": {
     "activeSessions": "Active Sessions",

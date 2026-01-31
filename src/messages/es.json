@@ -18,7 +18,9 @@
     "signOut": "Cerrar sesión",
     "language": "Idioma",
     "english": "Inglés",
-    "spanish": "Español"
+    "spanish": "Español",
+    "reset": "Reiniciar",
+    "skip": "Saltar"
   },
   "nav": {
     "home": "Inicio",
@@ -103,7 +105,24 @@
     "markComplete": "Marcar Completo",
     "finishStudy": "Finalizar Estudio",
     "deleteSession": "Eliminar Sesión",
-    "deleteConfirm": "¿Estás seguro de que quieres eliminar esta sesión? Tu progreso se perderá."
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar esta sesión? Tu progreso se perderá.",
+    "modeRead": "Leer",
+    "modeType": "Escribir",
+    "modeListen": "Escuchar",
+    "accuracy": "Precisión",
+    "wpm": "PPM",
+    "timeSpent": "Tiempo",
+    "clickToStart": "Haz clic aquí y comienza a escribir",
+    "typeComplete": "¡Escritura Completada!",
+    "tryAgain": "Intentar de Nuevo",
+    "completeStep": "Completar Paso",
+    "listenComplete": "¡Escucha Completada!",
+    "listenedFor": "Escuchaste durante {seconds} segundos",
+    "listenAgain": "Escuchar de Nuevo",
+    "markAsRead": "Marcar como Leído",
+    "verse": "Versículo",
+    "speed": "Velocidad",
+    "skipStep": "Saltar Paso"
   },
   "sidebar": {
     "activeSessions": "Sesiones Activas",

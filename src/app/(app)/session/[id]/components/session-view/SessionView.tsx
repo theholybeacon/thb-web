@@ -6,8 +6,11 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { chapterGetByCanonicalRefSS } from "@/app/common/chapter/service/chapterGetByCanonicalRefSS";
 import { sessionUpdateCurrentStepSS } from "@/app/common/session/service/sessionUpdateCurrentStepSS";
+import { sessionStepCompletionCreateSS } from "@/app/common/sessionStepCompletion/service/sessionStepCompletionCreateSS";
+import { sessionStepCompletionGetBySessionIdSS } from "@/app/common/sessionStepCompletion/service/sessionStepCompletionGetBySessionIdSS";
 import { SessionFull } from "@/app/common/session/model/Session";
 import { StudyStep } from "@/app/common/studyStep/model/StudyStep";
+import { StudyMode } from "@/app/common/sessionStepCompletion/model/SessionStepCompletion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -19,9 +22,13 @@ import {
   Sparkles,
   List,
   X,
+  Eye,
+  Keyboard,
+  Headphones,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app";
+import { ReadMode, TypeMode, ListenMode } from "../modes";
 
 interface SessionViewParams {
   session: SessionFull;
@@ -58,11 +65,18 @@ function formatBibleReference(step: StudyStep | undefined, bookName?: string): s
   return `${book} ${startChapter}`;
 }
 
+const STUDY_MODES: { id: StudyMode; icon: typeof Eye; labelKey: string }[] = [
+  { id: "read", icon: Eye, labelKey: "session.modeRead" },
+  { id: "type", icon: Keyboard, labelKey: "session.modeType" },
+  { id: "listen", icon: Headphones, labelKey: "session.modeListen" },
+];
+
 export default function SessionView({ session: initialSession }: SessionViewParams) {
   const t = useTranslations();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [showStepsSidebar, setShowStepsSidebar] = useState(true);
+  const [currentMode, setCurrentMode] = useState<StudyMode>("read");
 
   // Find current step index
   const getCurrentStepIndex = (session: SessionFull) => {
@@ -99,6 +113,12 @@ export default function SessionView({ session: initialSession }: SessionViewPara
     enabled: Boolean(bibleId && currentStep?.bookAbbreviation && currentStep?.startChapter),
   });
 
+  // Get step completions for this session
+  const { data: stepCompletions } = useQuery({
+    queryKey: ["stepCompletions", initialSession.id],
+    queryFn: () => sessionStepCompletionGetBySessionIdSS(initialSession.id),
+  });
+
   // Mutation to update current step
   const updateStepMutation = useMutation({
     mutationFn: async (stepId: string) => {
@@ -109,8 +129,26 @@ export default function SessionView({ session: initialSession }: SessionViewPara
     },
   });
 
+  // Mutation to save step completion
+  const saveCompletionMutation = useMutation({
+    mutationFn: sessionStepCompletionCreateSS,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stepCompletions", initialSession.id] });
+    },
+  });
+
   // Handle completing current step and moving to next
-  const handleCompleteStep = () => {
+  const handleCompleteStep = (stats?: { accuracy?: number; wpm?: number; timeSpentSeconds?: number }) => {
+    // Save completion with mode
+    saveCompletionMutation.mutate({
+      sessionId: initialSession.id,
+      stepId: currentStep.id,
+      mode: currentMode,
+      accuracy: stats?.accuracy,
+      wpm: stats?.wpm,
+      timeSpentSeconds: stats?.timeSpentSeconds,
+    });
+
     if (currentStepIndex < totalSteps - 1) {
       const nextStep = steps[currentStepIndex + 1];
       setCurrentStepIndex(currentStepIndex + 1);
@@ -140,6 +178,28 @@ export default function SessionView({ session: initialSession }: SessionViewPara
 
   // Format bible reference for current step (use full book name when available)
   const currentReference = formatBibleReference(currentStep, chapterData?.bookName);
+
+  // Get completion modes for a step
+  const getStepCompletionModes = (stepId: string): StudyMode[] => {
+    if (!stepCompletions) return [];
+    return stepCompletions
+      .filter((c) => c.stepId === stepId)
+      .map((c) => c.mode);
+  };
+
+  // Mode icon component
+  const ModeIcon = ({ mode }: { mode: StudyMode }) => {
+    switch (mode) {
+      case "read":
+        return <Eye className="h-3 w-3" />;
+      case "type":
+        return <Keyboard className="h-3 w-3" />;
+      case "listen":
+        return <Headphones className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <AppShell>
@@ -180,7 +240,8 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                 <div className="space-y-1">
                   {steps.map((step, index) => {
                     const isActive = index === currentStepIndex;
-                    const isCompleted = index < currentStepIndex;
+                    const completedModes = getStepCompletionModes(step.id);
+                    const isCompleted = completedModes.length > 0;
                     const stepReference = formatBibleReference(step);
 
                     return (
@@ -225,6 +286,19 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                             <p className="text-xs text-muted-foreground truncate mt-0.5">
                               {step.title}
                             </p>
+                            {/* Show completed modes */}
+                            {completedModes.length > 0 && (
+                              <div className="flex gap-1 mt-1">
+                                {completedModes.map((mode, i) => (
+                                  <span
+                                    key={i}
+                                    className="inline-flex items-center gap-0.5 text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded"
+                                  >
+                                    <ModeIcon mode={mode} />
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </button>
@@ -241,29 +315,50 @@ export default function SessionView({ session: initialSession }: SessionViewPara
           {/* Step header */}
           <header className="p-4 md:p-6 pb-4 border-b bg-card">
             <div className="max-w-4xl mx-auto">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                {!showStepsSidebar && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 mr-2"
-                    onClick={() => setShowStepsSidebar(true)}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                )}
-                <BookOpen className="h-4 w-4" />
-                <span>
-                  {t("session.stepNumber", { number: currentStepIndex + 1 })} {t("session.of")} {totalSteps}
-                </span>
-                {currentReference && (
-                  <>
-                    <span className="mx-1">•</span>
-                    <span className="font-medium text-foreground">
-                      {currentReference}
-                    </span>
-                  </>
-                )}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {!showStepsSidebar && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 mr-2"
+                      onClick={() => setShowStepsSidebar(true)}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <BookOpen className="h-4 w-4" />
+                  <span>
+                    {t("session.stepNumber", { number: currentStepIndex + 1 })} {t("session.of")} {totalSteps}
+                  </span>
+                  {currentReference && (
+                    <>
+                      <span className="mx-1">•</span>
+                      <span className="font-medium text-foreground">
+                        {currentReference}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* Mode selector */}
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                  {STUDY_MODES.map((mode) => (
+                    <Button
+                      key={mode.id}
+                      variant={currentMode === mode.id ? "secondary" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "h-8 px-3",
+                        currentMode === mode.id && "bg-background shadow-sm"
+                      )}
+                      onClick={() => setCurrentMode(mode.id)}
+                    >
+                      <mode.icon className="h-4 w-4 mr-1.5" />
+                      <span className="hidden sm:inline">{t(mode.labelKey)}</span>
+                    </Button>
+                  ))}
+                </div>
               </div>
               <h1 className="text-xl md:text-2xl font-bold">{currentStep?.title || t("session.untitledStep")}</h1>
             </div>
@@ -281,7 +376,7 @@ export default function SessionView({ session: initialSession }: SessionViewPara
             </div>
           )}
 
-          {/* Scripture content */}
+          {/* Scripture content - Mode dependent */}
           <div className="flex-1 overflow-y-auto">
             <div className="max-w-4xl mx-auto p-4 md:p-6">
               {isChapterLoading ? (
@@ -289,45 +384,38 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                   <div className="animate-pulse text-muted-foreground">{t("common.loading")}</div>
                 </div>
               ) : chapterData?.verses && chapterData.verses.length > 0 ? (
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                  {currentReference && (
-                    <div className="mb-6 pb-4 border-b">
-                      <h2 className="text-2xl md:text-3xl font-serif font-semibold text-center text-foreground">
-                        {currentReference}
-                      </h2>
-                    </div>
+                <>
+                  {currentMode === "read" && (
+                    <ReadMode
+                      verses={chapterData.verses}
+                      startVerse={currentStep?.startVerse}
+                      endVerse={currentStep?.endVerse}
+                      bookName={chapterData.bookName}
+                      chapterNumber={currentStep?.startChapter ?? undefined}
+                      onComplete={() => handleCompleteStep()}
+                    />
                   )}
-                  <div className="space-y-4">
-                    {chapterData.verses.map((verse) => {
-                      // Determine if this verse is in the highlighted range
-                      const hasVerseRange = currentStep?.startVerse != null;
-                      const startV = currentStep?.startVerse ?? 1;
-                      const endV = currentStep?.endVerse ?? startV;
-                      const isHighlighted = !hasVerseRange ||
-                        (verse.verseNumber >= startV && verse.verseNumber <= endV);
 
-                      return (
-                        <p
-                          key={verse.id}
-                          className={cn(
-                            "leading-relaxed text-base md:text-lg transition-opacity",
-                            !isHighlighted && "opacity-30"
-                          )}
-                        >
-                          <sup className={cn(
-                            "text-xs font-semibold mr-1.5 select-none",
-                            isHighlighted ? "text-primary" : "text-muted-foreground"
-                          )}>
-                            {verse.verseNumber}
-                          </sup>
-                          <span className={isHighlighted ? "text-foreground" : "text-muted-foreground"}>
-                            {verse.content}
-                          </span>
-                        </p>
-                      );
-                    })}
-                  </div>
-                </div>
+                  {currentMode === "type" && (
+                    <TypeMode
+                      verses={chapterData.verses}
+                      startVerse={currentStep?.startVerse}
+                      endVerse={currentStep?.endVerse}
+                      onComplete={(stats) => handleCompleteStep(stats)}
+                    />
+                  )}
+
+                  {currentMode === "listen" && (
+                    <ListenMode
+                      verses={chapterData.verses}
+                      startVerse={currentStep?.startVerse}
+                      endVerse={currentStep?.endVerse}
+                      bookName={chapterData.bookName}
+                      chapterNumber={currentStep?.startChapter ?? undefined}
+                      onComplete={(stats) => handleCompleteStep(stats)}
+                    />
+                  )}
+                </>
               ) : (
                 <div className="text-center py-12">
                   {currentReference && (
@@ -381,12 +469,18 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                 </Button>
               ) : (
                 <Button
-                  onClick={handleCompleteStep}
+                  variant="outline"
+                  onClick={() => {
+                    if (currentStepIndex < totalSteps - 1) {
+                      const nextStep = steps[currentStepIndex + 1];
+                      setCurrentStepIndex(currentStepIndex + 1);
+                      updateStepMutation.mutate(nextStep.id);
+                    }
+                  }}
                   disabled={updateStepMutation.isPending}
-                  className="bg-primary hover:bg-primary/90"
                 >
-                  <span className="hidden sm:inline">{t("session.markComplete")}</span>
-                  <span className="sm:hidden">Next</span>
+                  <span className="hidden sm:inline">{t("session.skipStep")}</span>
+                  <span className="sm:hidden">{t("common.skip")}</span>
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
