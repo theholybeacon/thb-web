@@ -1,4 +1,4 @@
-import { AnyPgColumn, pgTable, uuid, varchar, boolean } from 'drizzle-orm/pg-core';
+import { AnyPgColumn, pgTable, uuid, varchar, boolean, text } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { studyTable } from './study';
 import { relations } from 'drizzle-orm';
@@ -12,6 +12,9 @@ export const userTable = pgTable("user", {
 	authId: varchar({ length: 255 }).notNull().unique(),
 	isEmailVerified: boolean().notNull().default(false),
 	defaultBibleId: uuid().references((): AnyPgColumn => bibleTable.id),
+	// Profile fields
+	profilePicture: text(),
+	country: varchar({ length: 2 }), // ISO 3166-1 alpha-2 country code
 });
 
 export const userRelations = relations(userTable, ({ one, many }) => ({

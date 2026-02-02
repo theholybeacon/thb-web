@@ -9,6 +9,7 @@ export const bibleTable = pgTable("bible", {
 	name: varchar({ length: 255 }).notNull(),
 	language: varchar({ length: 50 }).notNull(),
 	version: varchar({ length: 50 }).notNull(),
+	slug: varchar({ length: 100 }).notNull().unique(),
 	description: text().default(""),
 	numBooks: integer().default(0),
 	createdAt: timestamp().defaultNow(),

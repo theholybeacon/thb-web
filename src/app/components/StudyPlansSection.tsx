@@ -1,8 +1,11 @@
 "use client";
 
 import { BookOpen, Calendar, Clock4, Lightbulb, Sparkles, Target, Layers } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function StudyPlansSection() {
+  const t = useTranslations("landing.studyPlans");
+
   return (
     <section id="study-plans" className="relative w-full py-16 md:py-24 lg:py-32 bg-card overflow-hidden">
       {/* Subtle background pattern */}
@@ -16,14 +19,13 @@ export function StudyPlansSection() {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary animate-fade-down opacity-0">
               <Clock4 className="h-4 w-4" />
-              <span className="font-medium">Coming soon!</span>
+              <span className="font-medium">{t("badge")}</span>
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-up opacity-0 animation-delay-100">
-              Learn With <span className="gradient-text">Purpose</span>
+              {t("title")} <span className="gradient-text">{t("titleHighlight")}</span>
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed animate-fade-up opacity-0 animation-delay-200">
-              The beating heart of The Holy Beacon is its AI-powered Study Plan Generator. Simply describe what you
-              want to learn, and receive a personalized study plan tailored to your needs.
+              {t("description")}
             </p>
           </div>
         </div>
@@ -37,10 +39,9 @@ export function StudyPlansSection() {
                   <Calendar className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">Customizable Duration</h3>
+                  <h3 className="text-xl font-bold">{t("customDuration")}</h3>
                   <p className="text-muted-foreground mt-1">
-                    From quick daily devotionals to in-depth multi-week studies, tailor your plan to fit your
-                    schedule.
+                    {t("customDurationDesc")}
                   </p>
                 </div>
               </li>
@@ -49,9 +50,9 @@ export function StudyPlansSection() {
                   <Lightbulb className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">Adjustable Depth</h3>
+                  <h3 className="text-xl font-bold">{t("adjustableDepth")}</h3>
                   <p className="text-muted-foreground mt-1">
-                    From beginner-friendly introductions to theological deep dives for seasoned scholars.
+                    {t("adjustableDepthDesc")}
                   </p>
                 </div>
               </li>
@@ -60,9 +61,9 @@ export function StudyPlansSection() {
                   <BookOpen className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">Thematic Exploration</h3>
+                  <h3 className="text-xl font-bold">{t("thematicExploration")}</h3>
                   <p className="text-muted-foreground mt-1">
-                    Focus on specific themes like forgiveness, leadership, or end times prophecy.
+                    {t("thematicExplorationDesc")}
                   </p>
                 </div>
               </li>
@@ -83,26 +84,26 @@ export function StudyPlansSection() {
                     <Sparkles className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-bold">AI Study Generator</h4>
-                    <p className="text-sm text-muted-foreground">Personalized for you</p>
+                    <h4 className="font-bold">{t("aiGenerator")}</h4>
+                    <p className="text-sm text-muted-foreground">{t("personalizedForYou")}</p>
                   </div>
                 </div>
 
                 {/* Simulated input */}
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-                    <p className="text-sm text-muted-foreground mb-2">What would you like to study?</p>
-                    <p className="font-medium">&quot;Understanding the parables of Jesus&quot;</p>
+                    <p className="text-sm text-muted-foreground mb-2">{t("whatToStudy")}</p>
+                    <p className="font-medium">&quot;{t("exampleQuery")}&quot;</p>
                   </div>
 
                   {/* Generated plan preview */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Target className="h-4 w-4" />
-                      <span>Generated Study Plan</span>
+                      <span>{t("generatedPlan")}</span>
                     </div>
                     <div className="space-y-2">
-                      {["The Sower & Seeds", "The Prodigal Son", "The Good Samaritan", "The Mustard Seed"].map((item, i) => (
+                      {(t.raw("exampleSteps") as string[]).map((item, i) => (
                         <div
                           key={item}
                           className="flex items-center gap-3 p-2 rounded-lg bg-background/50 text-sm animate-fade-up opacity-0"
@@ -120,11 +121,11 @@ export function StudyPlansSection() {
                   <div className="flex items-center justify-between pt-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      <span>4 weeks</span>
+                      <span>{t("exampleDuration")}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Layers className="h-4 w-4" />
-                      <span>Intermediate</span>
+                      <span>{t("exampleLevel")}</span>
                     </div>
                   </div>
                 </div>

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { Button } from "@/components/ui/button";
-import { BookOpen, CheckCircle2 } from "lucide-react";
+import { BookOpen, CheckCircle2, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ReadModeProps {
@@ -12,10 +12,12 @@ interface ReadModeProps {
 	endVerse?: number | null;
 	bookName?: string;
 	chapterNumber?: number;
-	onComplete: () => void;
+	isLastChapter?: boolean;
+	showCompletion?: boolean;
+	onComplete?: () => void;
 }
 
-export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, onComplete }: ReadModeProps) {
+export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, isLastChapter = true, showCompletion = true, onComplete }: ReadModeProps) {
 	const t = useTranslations();
 
 	const reference = bookName && chapterNumber
@@ -70,12 +72,23 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 				</div>
 			)}
 
-			<div className="flex justify-center pt-4">
-				<Button onClick={onComplete} size="lg">
-					<CheckCircle2 className="h-4 w-4 mr-2" />
-					{t("session.markAsRead")}
-				</Button>
-			</div>
+			{showCompletion && onComplete && (
+				<div className="flex justify-center pt-4">
+					<Button onClick={onComplete} size="lg">
+						{isLastChapter ? (
+							<>
+								<CheckCircle2 className="h-4 w-4 mr-2" />
+								{t("session.markAsRead")}
+							</>
+						) : (
+							<>
+								{t("session.nextChapter")}
+								<ChevronRight className="h-4 w-4 ml-2" />
+							</>
+						)}
+					</Button>
+				</div>
+			)}
 		</div>
 	);
 }

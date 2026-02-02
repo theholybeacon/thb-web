@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useRef } from 'react';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { LoggedUserContextType, LoggedUserState } from './LoggedUserContextType';
 import { userGetByAuthIdSS } from '../common/user/service/server/userGetByAuthIdSS';
@@ -23,6 +23,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
   const { user: clerkUser, isLoaded: isClerkLoaded } = useUser();
   const { isSignedIn } = useAuth();
   const [state, setState] = useState<LoggedUserState>({ user: null, loading: true });
+  const syncInProgress = useRef(false);
 
   const reload = useCallback(async () => {
     if (clerkUser) {
@@ -56,7 +57,9 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
     if (!isClerkLoaded) return;
 
     const syncUser = async () => {
-      if (isSignedIn && clerkUser) {
+      if (isSignedIn && clerkUser?.id) {
+        if (syncInProgress.current) return;
+        syncInProgress.current = true;
         setState(prev => ({ ...prev, loading: true }));
         try {
           const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
@@ -65,6 +68,8 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
         } catch (error) {
           console.error("Error syncing user:", error);
           setState({ user: null, loading: false });
+        } finally {
+          syncInProgress.current = false;
         }
       } else {
         setState({ user: null, loading: false });
@@ -73,7 +78,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
     };
 
     syncUser();
-  }, [isClerkLoaded, isSignedIn, clerkUser]);
+  }, [isClerkLoaded, isSignedIn, clerkUser?.id]);
 
   return (
     <LoggedUserContext.Provider value={{ ...state, setState, reload }}>

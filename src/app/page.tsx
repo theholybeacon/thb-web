@@ -1,5 +1,6 @@
 import { Header } from "./layout/components/Header"
 import { HeroSection } from "./components/HeroSection"
+import { ExploreSection } from "./components/ExploreSection"
 import { StudyPlansSection } from "./components/StudyPlansSection"
 import { RoadmapSection } from "./components/RoadmapSection"
 import { FeaturePreviewSection } from "./components/FeaturePreviewSection"
@@ -12,6 +13,7 @@ export default function LandingPage() {
       <Header />
       <main className="flex-1">
         <HeroSection />
+        <ExploreSection />
         <StudyPlansSection />
         <RoadmapSection />
         <FeaturePreviewSection />

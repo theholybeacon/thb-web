@@ -54,11 +54,23 @@ export class UserPostgreSQLDao {
     async update(u: User): Promise<void> {
         log.trace("update");
         await db.update(userTable).set({
+            name: u.name,
             username: u.username,
             email: u.email,
             isEmailVerified: u.isEmailVerified,
             authId: u.authId,
+            profilePicture: u.profilePicture,
+            country: u.country,
         }).where(eq(userTable.id, u.id));
+    }
+
+    async updateProfile(id: string, data: { name?: string; username?: string; profilePicture?: string; country?: string }): Promise<User> {
+        log.trace("updateProfile");
+        const result = await db.update(userTable)
+            .set(data)
+            .where(eq(userTable.id, id))
+            .returning();
+        return result[0];
     }
 
     async delete(id: string): Promise<void> {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,6 +19,7 @@ interface PreviewSlide {
 }
 
 interface Feature {
+  key: string;
   icon: LucideIcon;
   title: string;
   description: string;
@@ -27,92 +29,16 @@ interface Feature {
   previews: PreviewSlide[];
 }
 
-const features: Feature[] = [
-  {
-    icon: Bookmark,
-    title: "Scripture in HD",
-    description: "Smart links, character profiles, and contextual layers that bring the Bible to life.",
-    timeline: "Q4 2025",
-    modalTitle: "Scripture in HD",
-    modalDescription: "Experience the Bible like never before with rich, interconnected content.",
-    previews: [
-      {
-        title: "Smart Verse Connections",
-        description: "Instantly see related verses, cross-references, and thematic connections. Tap any verse to explore its relationship with other scriptures throughout the Bible.",
-        icon: Link2,
-      },
-      {
-        title: "Character Profiles",
-        description: "Dive deep into biblical figures with comprehensive profiles including their timeline, key events, relationships, and character arc throughout Scripture.",
-        icon: User,
-      },
-      {
-        title: "Historical & Cultural Context",
-        description: "Understand the world behind the text. Access maps, cultural insights, historical events, and archaeological discoveries that illuminate Scripture's meaning.",
-        icon: Globe,
-      },
-    ],
-  },
-  {
-    icon: Headphones,
-    title: "Multi-Modal Bible",
-    description: "Experience Scripture through reading, listening, and visual engagement.",
-    timeline: "Q1 2026",
-    modalTitle: "Multi-Modal Bible",
-    modalDescription: "Engage with God's Word in the way that works best for you.",
-    previews: [
-      {
-        title: "Distraction-Free Reading",
-        description: "A beautifully designed reading experience that removes all distractions. Customizable fonts, themes, and layouts to match your reading preferences.",
-        icon: BookOpen,
-      },
-      {
-        title: "High-Quality Audio",
-        description: "Listen to professionally narrated Scripture. Perfect for commutes, workouts, or when you want to close your eyes and let the Word wash over you.",
-        icon: Mic,
-      },
-      {
-        title: "AI Verse Visualization",
-        description: "Generate beautiful, shareable images of your favorite verses. Perfect for social media, personal reflection, or creating meaningful gifts.",
-        icon: Image,
-      },
-    ],
-  },
-  {
-    icon: Users,
-    title: "Community Features",
-    description: "Study circles, discussion boards, and shared spiritual growth.",
-    timeline: "Q2 2026",
-    modalTitle: "Community Features",
-    modalDescription: "Grow together in faith with believers around the world.",
-    previews: [
-      {
-        title: "Study Circles",
-        description: "Create or join small groups to study Scripture together. Share insights, track progress, and hold each other accountable in your spiritual journey.",
-        icon: Users,
-      },
-      {
-        title: "Discussion Boards",
-        description: "Engage in thoughtful theological discussions. Ask questions, share discoveries, and learn from diverse perspectives within a respectful community.",
-        icon: MessageCircle,
-      },
-      {
-        title: "Daily Word Feed",
-        description: "A personalized feed of Scripture, devotionals, and community insights. Start each day with curated content tailored to your spiritual journey.",
-        icon: Rss,
-      },
-    ],
-  },
-];
-
 function FeatureModal({
   feature,
   open,
-  onOpenChange
+  onOpenChange,
+  expectedText
 }: {
   feature: Feature | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  expectedText: string;
 }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -204,7 +130,7 @@ function FeatureModal({
           <div className="flex justify-center mt-4">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
               <Clock4 className="h-3 w-3" />
-              <span>Expected {feature.timeline}</span>
+              <span>{expectedText} {feature.timeline}</span>
             </div>
           </div>
         </div>
@@ -214,8 +140,90 @@ function FeatureModal({
 }
 
 export function FeaturePreviewSection() {
+  const t = useTranslations("landing.features");
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  const features: Feature[] = useMemo(() => [
+    {
+      key: "scriptureHD",
+      icon: Bookmark,
+      title: t("scriptureHD.title"),
+      description: t("scriptureHD.description"),
+      timeline: t("scriptureHD.timeline"),
+      modalTitle: t("scriptureHD.modalTitle"),
+      modalDescription: t("scriptureHD.modalDescription"),
+      previews: [
+        {
+          title: t("scriptureHD.preview1Title"),
+          description: t("scriptureHD.preview1Desc"),
+          icon: Link2,
+        },
+        {
+          title: t("scriptureHD.preview2Title"),
+          description: t("scriptureHD.preview2Desc"),
+          icon: User,
+        },
+        {
+          title: t("scriptureHD.preview3Title"),
+          description: t("scriptureHD.preview3Desc"),
+          icon: Globe,
+        },
+      ],
+    },
+    {
+      key: "multiModal",
+      icon: Headphones,
+      title: t("multiModal.title"),
+      description: t("multiModal.description"),
+      timeline: t("multiModal.timeline"),
+      modalTitle: t("multiModal.modalTitle"),
+      modalDescription: t("multiModal.modalDescription"),
+      previews: [
+        {
+          title: t("multiModal.preview1Title"),
+          description: t("multiModal.preview1Desc"),
+          icon: BookOpen,
+        },
+        {
+          title: t("multiModal.preview2Title"),
+          description: t("multiModal.preview2Desc"),
+          icon: Mic,
+        },
+        {
+          title: t("multiModal.preview3Title"),
+          description: t("multiModal.preview3Desc"),
+          icon: Image,
+        },
+      ],
+    },
+    {
+      key: "community",
+      icon: Users,
+      title: t("community.title"),
+      description: t("community.description"),
+      timeline: t("community.timeline"),
+      modalTitle: t("community.modalTitle"),
+      modalDescription: t("community.modalDescription"),
+      previews: [
+        {
+          title: t("community.preview1Title"),
+          description: t("community.preview1Desc"),
+          icon: Users,
+        },
+        {
+          title: t("community.preview2Title"),
+          description: t("community.preview2Desc"),
+          icon: MessageCircle,
+        },
+        {
+          title: t("community.preview3Title"),
+          description: t("community.preview3Desc"),
+          icon: Rss,
+        },
+      ],
+    },
+  ], [t]);
 
   const handleLearnMore = (feature: Feature) => {
     setSelectedFeature(feature);
@@ -233,13 +241,13 @@ export function FeaturePreviewSection() {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-secondary border border-border px-4 py-1.5 text-sm text-secondary-foreground animate-fade-down opacity-0">
               <Clock4 className="h-4 w-4" />
-              <span className="font-medium">Coming Soon</span>
+              <span className="font-medium">{t("badge")}</span>
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-up opacity-0 animation-delay-100">
-              Feature <span className="gradient-text">Previews</span>
+              {t("title")} <span className="gradient-text">{t("titleHighlight")}</span>
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed animate-fade-up opacity-0 animation-delay-200">
-              Get a sneak peek at the exciting features we&apos;re developing for future releases.
+              {t("description")}
             </p>
           </div>
         </div>
@@ -247,7 +255,7 @@ export function FeaturePreviewSection() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mt-12">
           {features.map((feature, index) => (
             <div
-              key={feature.title}
+              key={feature.key}
               className="group relative flex flex-col items-center space-y-4 rounded-2xl border bg-background/50 p-8 shadow-sm transition-all duration-500 hover:shadow-xl hover:border-primary/30 hover:-translate-y-2 animate-fade-up opacity-0"
               style={{ animationDelay: `${300 + index * 100}ms` }}
             >
@@ -279,7 +287,7 @@ export function FeaturePreviewSection() {
                 className="relative mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 onClick={() => handleLearnMore(feature)}
               >
-                <span className="mr-2">Learn More</span>
+                <span className="mr-2">{t("learnMore")}</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </div>
@@ -292,6 +300,7 @@ export function FeaturePreviewSection() {
         feature={selectedFeature}
         open={modalOpen}
         onOpenChange={setModalOpen}
+        expectedText={t("expected")}
       />
     </section>
   );

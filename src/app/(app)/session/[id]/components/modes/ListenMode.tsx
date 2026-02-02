@@ -5,8 +5,9 @@ import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Pause, SkipBack, SkipForward, Volume2, CheckCircle2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, CheckCircle2, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 
 interface ListenModeProps {
 	verses: Verse[];
@@ -14,10 +15,12 @@ interface ListenModeProps {
 	endVerse?: number | null;
 	bookName?: string;
 	chapterNumber?: number;
-	onComplete: (stats: { timeSpentSeconds: number }) => void;
+	isLastChapter?: boolean;
+	showCompletion?: boolean;
+	onComplete?: (stats: { timeSpentSeconds: number }) => void;
 }
 
-export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumber, onComplete }: ListenModeProps) {
+export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumber, isLastChapter = true, showCompletion = true, onComplete }: ListenModeProps) {
 	const t = useTranslations();
 
 	// Filter verses to only those in range
@@ -88,6 +91,7 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 			utterance.onerror = (e) => {
 				console.error("Speech error:", e);
 				setIsPlaying(false);
+				toast.error(t("session.speechError"));
 			};
 
 			utteranceRef.current = utterance;
@@ -132,7 +136,7 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 	};
 
 	const handleComplete = () => {
-		onComplete({ timeSpentSeconds: timeSpent });
+		onComplete?.({ timeSpentSeconds: timeSpent });
 	};
 
 	const handleReset = () => {
@@ -257,10 +261,21 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 						<Button variant="outline" onClick={handleReset}>
 							{t("session.listenAgain")}
 						</Button>
-						<Button onClick={handleComplete}>
-							<CheckCircle2 className="h-4 w-4 mr-2" />
-							{t("session.completeStep")}
-						</Button>
+						{showCompletion && onComplete && (
+							<Button onClick={handleComplete}>
+								{isLastChapter ? (
+									<>
+										<CheckCircle2 className="h-4 w-4 mr-2" />
+										{t("session.completeStep")}
+									</>
+								) : (
+									<>
+										{t("session.nextChapter")}
+										<ChevronRight className="h-4 w-4 ml-2" />
+									</>
+								)}
+							</Button>
+						)}
 					</div>
 				</div>
 			)}

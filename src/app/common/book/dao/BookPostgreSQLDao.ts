@@ -3,7 +3,7 @@ import { logger } from "@/app/utils/logger";
 import { Book, BookInsert } from "../model/Book";
 import { db } from "@/db";
 import { bookTable } from "@/db/schema/book";
-import { and, eq, ilike } from "drizzle-orm";
+import { and, eq, gt, ilike } from "drizzle-orm";
 
 const log = logger.child({ module: 'BookPostgreSQLDao' });
 export class BookPostgreSQLDao {
@@ -40,6 +40,17 @@ export class BookPostgreSQLDao {
 		return response || null;
 	}
 
+	async getBySlugAndBibleId(bibleId: string, slug: string): Promise<Book | null> {
+		const response = await db.query.bookTable.findFirst({
+			where: and(
+				eq(bookTable.bibleId, bibleId),
+				eq(bookTable.slug, slug),
+			),
+		});
+
+		return response || null;
+	}
+
 	async getAllByBibleId(bibleId: string): Promise<Book[]> {
 		return await db.query.bookTable.findMany({
 			where: eq(bookTable.bibleId, bibleId),
@@ -51,6 +62,17 @@ export class BookPostgreSQLDao {
 		log.trace("create");
 		const returned = await db.insert(bookTable).values(book).returning();
 		return returned[0];
+	}
+
+	async getNextByOrder(bibleId: string, currentBookOrder: number): Promise<Book | null> {
+		const response = await db.query.bookTable.findFirst({
+			where: and(
+				eq(bookTable.bibleId, bibleId),
+				gt(bookTable.bookOrder, currentBookOrder),
+			),
+			orderBy: bookTable.bookOrder,
+		});
+		return response || null;
 	}
 }
 

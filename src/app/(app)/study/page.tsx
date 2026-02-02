@@ -33,6 +33,7 @@ import {
 import { Plus, Play, MoreVertical, Trash2, Eye, BookOpen } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { toast } from "@/lib/toast";
 
 // Helper function to format bible reference using canonical fields
 function formatBibleReference(step: StudyStep): string {
@@ -96,10 +97,12 @@ export default function StudyPage() {
       return await sessionCreateSS(sessionInsert);
     },
     onSuccess: (session) => {
+      toast.success(t("startSession"));
       router.push(`/session/${session.id}`);
     },
     onError: (e) => {
       logger.error(e);
+      toast.error(tCommon("error"));
     },
   });
 
@@ -110,11 +113,13 @@ export default function StudyPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["studies"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      toast.success(t("deleteStudy"));
       setDeleteDialogOpen(false);
       setStudyToDelete(null);
     },
     onError: (e) => {
       logger.error(e);
+      toast.error(tCommon("error"));
     },
   });
 

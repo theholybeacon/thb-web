@@ -4,14 +4,16 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, CheckCircle2 } from "lucide-react";
+import { RotateCcw, CheckCircle2, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TypeModeProps {
 	verses: Verse[];
 	startVerse?: number | null;
 	endVerse?: number | null;
-	onComplete: (stats: { accuracy: number; wpm: number; timeSpentSeconds: number }) => void;
+	isLastChapter?: boolean;
+	showCompletion?: boolean;
+	onComplete?: (stats: { accuracy: number; wpm: number; timeSpentSeconds: number }) => void;
 }
 
 interface CharState {
@@ -19,7 +21,7 @@ interface CharState {
 	state: "pending" | "correct" | "incorrect";
 }
 
-export function TypeMode({ verses, startVerse, endVerse, onComplete }: TypeModeProps) {
+export function TypeMode({ verses, startVerse, endVerse, isLastChapter = true, showCompletion = true, onComplete }: TypeModeProps) {
 	const t = useTranslations();
 	const inputRef = useRef<HTMLInputElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -135,7 +137,7 @@ export function TypeMode({ verses, startVerse, endVerse, onComplete }: TypeModeP
 	};
 
 	const handleComplete = () => {
-		onComplete(stats);
+		onComplete?.(stats);
 	};
 
 	// Auto-scroll to keep cursor visible
@@ -292,10 +294,21 @@ export function TypeMode({ verses, startVerse, endVerse, onComplete }: TypeModeP
 							<RotateCcw className="h-4 w-4 mr-2" />
 							{t("session.tryAgain")}
 						</Button>
-						<Button onClick={handleComplete}>
-							<CheckCircle2 className="h-4 w-4 mr-2" />
-							{t("session.completeStep")}
-						</Button>
+						{showCompletion && onComplete && (
+							<Button onClick={handleComplete}>
+								{isLastChapter ? (
+									<>
+										<CheckCircle2 className="h-4 w-4 mr-2" />
+										{t("session.completeStep")}
+									</>
+								) : (
+									<>
+										{t("session.nextChapter")}
+										<ChevronRight className="h-4 w-4 ml-2" />
+									</>
+								)}
+							</Button>
+						)}
 					</div>
 				</div>
 			)}

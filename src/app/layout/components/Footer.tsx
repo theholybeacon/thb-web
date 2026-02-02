@@ -1,6 +1,10 @@
+"use client";
+
 import { Sun } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function Footer() {
+    const t = useTranslations("landing.footer");
 
     return (
         <footer className="w-full border-t bg-background py-6 md:py-12">
@@ -21,7 +25,7 @@ export function Footer() {
                 {/*     </Link> */}
                 {/* </nav> */}
                 <div className="flex-1 text-center md:text-right text-sm">
-                    &copy; {new Date().getFullYear()} The Holy Beacon. All rights reserved.
+                    &copy; {new Date().getFullYear()} The Holy Beacon. {t("allRightsReserved")}
                 </div>
             </div>
         </footer>

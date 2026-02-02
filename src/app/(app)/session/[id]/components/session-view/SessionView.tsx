@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { chapterGetByCanonicalRefSS } from "@/app/common/chapter/service/chapterGetByCanonicalRefSS";
+import { bookGetByAbbreviationAndBibleIdSS } from "@/app/common/book/service/server/bookGetByAbbreviationAndBibleIdSS";
 import { sessionUpdateCurrentStepSS } from "@/app/common/session/service/sessionUpdateCurrentStepSS";
 import { sessionStepCompletionCreateSS } from "@/app/common/sessionStepCompletion/service/sessionStepCompletionCreateSS";
 import { sessionStepCompletionGetBySessionIdSS } from "@/app/common/sessionStepCompletion/service/sessionStepCompletionGetBySessionIdSS";
@@ -25,8 +26,10 @@ import {
   Eye,
   Keyboard,
   Headphones,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 import { AppShell } from "@/components/app";
 import { ReadMode, TypeMode, ListenMode } from "../modes";
 
@@ -35,7 +38,7 @@ interface SessionViewParams {
 }
 
 // Helper function to format bible reference using canonical fields
-function formatBibleReference(step: StudyStep | undefined, bookName?: string): string {
+function formatBibleReference(step: StudyStep | undefined, bookName?: string, currentChapter?: number): string {
   if (!step) return "";
 
   const book = bookName || step.bookAbbreviation;
@@ -45,6 +48,17 @@ function formatBibleReference(step: StudyStep | undefined, bookName?: string): s
   const endChapter = step.endChapter;
   const startVerse = step.startVerse;
   const endVerse = step.endVerse;
+
+  // If currentChapter is provided, show the current chapter being viewed
+  if (currentChapter) {
+    if (startVerse && endVerse && startVerse !== endVerse) {
+      return `${book} ${currentChapter}:${startVerse}-${endVerse}`;
+    }
+    if (startVerse) {
+      return `${book} ${currentChapter}:${startVerse}`;
+    }
+    return `${book} ${currentChapter}`;
+  }
 
   if (!startChapter) {
     return book;
@@ -91,26 +105,62 @@ export default function SessionView({ session: initialSession }: SessionViewPara
     getCurrentStepIndex(initialSession)
   );
 
+  // Track current chapter within a multi-chapter step (1-indexed within the step)
+  const [currentChapterInStep, setCurrentChapterInStep] = useState(1);
+
   const steps = (initialSession.study?.steps || []) as StudyStep[];
   const currentStep = steps[currentStepIndex];
   const totalSteps = steps.length;
   const progress = totalSteps > 0 ? Math.round(((currentStepIndex + 1) / totalSteps) * 100) : 0;
 
-  // Get chapter data for the current step using canonical references
+  // Get book data to determine total chapters for whole-book steps
   const bibleId = initialSession.study?.bibleId;
-  const { data: chapterData, isLoading: isChapterLoading } = useQuery({
-    queryKey: ["chapter", currentStep?.bookAbbreviation, currentStep?.startChapter, bibleId],
+  const { data: bookData } = useQuery({
+    queryKey: ["book", currentStep?.bookAbbreviation, bibleId],
     queryFn: async () => {
-      if (!bibleId || !currentStep?.bookAbbreviation || !currentStep?.startChapter) {
+      if (!bibleId || !currentStep?.bookAbbreviation) {
+        return null;
+      }
+      return await bookGetByAbbreviationAndBibleIdSS(bibleId, currentStep.bookAbbreviation);
+    },
+    enabled: Boolean(bibleId && currentStep?.bookAbbreviation),
+  });
+
+  // Calculate chapter range for current step
+  const getChapterRange = () => {
+    if (!currentStep) return { start: 1, end: 1, total: 1 };
+
+    const startChapter = currentStep.startChapter ?? 1;
+    const endChapter = currentStep.endChapter ??
+      (currentStep.startChapter ? currentStep.startChapter : (bookData?.numChapters ?? 1));
+
+    return {
+      start: startChapter,
+      end: endChapter,
+      total: endChapter - startChapter + 1
+    };
+  };
+
+  const chapterRange = getChapterRange();
+  const isMultiChapterStep = chapterRange.total > 1;
+  const actualChapterNumber = chapterRange.start + currentChapterInStep - 1;
+  const isLastChapterInStep = currentChapterInStep >= chapterRange.total;
+  const isFirstChapterInStep = currentChapterInStep === 1;
+
+  // Get chapter data for the current step using canonical references
+  const { data: chapterData, isLoading: isChapterLoading } = useQuery({
+    queryKey: ["chapter", currentStep?.bookAbbreviation, actualChapterNumber, bibleId],
+    queryFn: async () => {
+      if (!bibleId || !currentStep?.bookAbbreviation) {
         return null;
       }
       return await chapterGetByCanonicalRefSS(
         bibleId,
         currentStep.bookAbbreviation,
-        currentStep.startChapter
+        actualChapterNumber
       );
     },
-    enabled: Boolean(bibleId && currentStep?.bookAbbreviation && currentStep?.startChapter),
+    enabled: Boolean(bibleId && currentStep?.bookAbbreviation && actualChapterNumber),
   });
 
   // Get step completions for this session
@@ -134,25 +184,50 @@ export default function SessionView({ session: initialSession }: SessionViewPara
     mutationFn: sessionStepCompletionCreateSS,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stepCompletions", initialSession.id] });
+      toast.success(t("toast.stepCompleted"));
+    },
+    onError: () => {
+      toast.error(t("common.error"));
     },
   });
 
-  // Handle completing current step and moving to next
-  const handleCompleteStep = (stats?: { accuracy?: number; wpm?: number; timeSpentSeconds?: number }) => {
-    // Save completion with mode
-    saveCompletionMutation.mutate({
-      sessionId: initialSession.id,
-      stepId: currentStep.id,
-      mode: currentMode,
-      accuracy: stats?.accuracy,
-      wpm: stats?.wpm,
-      timeSpentSeconds: stats?.timeSpentSeconds,
-    });
+  // Handle completing current chapter (and step if on last chapter)
+  const handleCompleteChapter = (stats?: { accuracy?: number; wpm?: number; timeSpentSeconds?: number }) => {
+    if (isLastChapterInStep) {
+      // Complete the step and save completion
+      saveCompletionMutation.mutate({
+        sessionId: initialSession.id,
+        stepId: currentStep.id,
+        mode: currentMode,
+        accuracy: stats?.accuracy,
+        wpm: stats?.wpm,
+        timeSpentSeconds: stats?.timeSpentSeconds,
+      });
 
-    if (currentStepIndex < totalSteps - 1) {
-      const nextStep = steps[currentStepIndex + 1];
-      setCurrentStepIndex(currentStepIndex + 1);
-      updateStepMutation.mutate(nextStep.id);
+      if (currentStepIndex < totalSteps - 1) {
+        // Move to next step
+        const nextStep = steps[currentStepIndex + 1];
+        setCurrentStepIndex(currentStepIndex + 1);
+        setCurrentChapterInStep(1); // Reset chapter counter for new step
+        updateStepMutation.mutate(nextStep.id);
+      }
+    } else {
+      // Move to next chapter within the step
+      setCurrentChapterInStep(prev => prev + 1);
+    }
+  };
+
+  // Navigate to previous chapter within step
+  const handlePreviousChapter = () => {
+    if (!isFirstChapterInStep) {
+      setCurrentChapterInStep(prev => prev - 1);
+    }
+  };
+
+  // Navigate to next chapter within step (without completing)
+  const handleNextChapter = () => {
+    if (!isLastChapterInStep) {
+      setCurrentChapterInStep(prev => prev + 1);
     }
   };
 
@@ -161,6 +236,7 @@ export default function SessionView({ session: initialSession }: SessionViewPara
     if (currentStepIndex > 0) {
       const prevStep = steps[currentStepIndex - 1];
       setCurrentStepIndex(currentStepIndex - 1);
+      setCurrentChapterInStep(1); // Reset chapter counter
       updateStepMutation.mutate(prevStep.id);
     }
   };
@@ -169,6 +245,7 @@ export default function SessionView({ session: initialSession }: SessionViewPara
   const handleStepClick = (index: number) => {
     if (index !== currentStepIndex) {
       setCurrentStepIndex(index);
+      setCurrentChapterInStep(1); // Reset chapter counter
       updateStepMutation.mutate(steps[index].id);
     }
   };
@@ -177,7 +254,10 @@ export default function SessionView({ session: initialSession }: SessionViewPara
   const isFirstStep = currentStepIndex === 0;
 
   // Format bible reference for current step (use full book name when available)
-  const currentReference = formatBibleReference(currentStep, chapterData?.bookName);
+  // For multi-chapter steps, show the current chapter being viewed
+  const currentReference = isMultiChapterStep
+    ? formatBibleReference(currentStep, chapterData?.bookName, actualChapterNumber)
+    : formatBibleReference(currentStep, chapterData?.bookName);
 
   // Get completion modes for a step
   const getStepCompletionModes = (stepId: string): StudyMode[] => {
@@ -331,6 +411,14 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                   <span>
                     {t("session.stepNumber", { number: currentStepIndex + 1 })} {t("session.of")} {totalSteps}
                   </span>
+                  {isMultiChapterStep && (
+                    <>
+                      <span className="mx-1">•</span>
+                      <span className="text-primary font-medium">
+                        {t("session.chapterProgress", { current: currentChapterInStep, total: chapterRange.total })}
+                      </span>
+                    </>
+                  )}
                   {currentReference && (
                     <>
                       <span className="mx-1">•</span>
@@ -380,8 +468,9 @@ export default function SessionView({ session: initialSession }: SessionViewPara
           <div className="flex-1 overflow-y-auto">
             <div className="max-w-4xl mx-auto p-4 md:p-6">
               {isChapterLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-pulse text-muted-foreground">{t("common.loading")}</div>
+                <div className="flex flex-col items-center justify-center py-16">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
                 </div>
               ) : chapterData?.verses && chapterData.verses.length > 0 ? (
                 <>
@@ -391,8 +480,9 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                       startVerse={currentStep?.startVerse}
                       endVerse={currentStep?.endVerse}
                       bookName={chapterData.bookName}
-                      chapterNumber={currentStep?.startChapter ?? undefined}
-                      onComplete={() => handleCompleteStep()}
+                      chapterNumber={actualChapterNumber}
+                      isLastChapter={isLastChapterInStep}
+                      onComplete={() => handleCompleteChapter()}
                     />
                   )}
 
@@ -401,7 +491,8 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                       verses={chapterData.verses}
                       startVerse={currentStep?.startVerse}
                       endVerse={currentStep?.endVerse}
-                      onComplete={(stats) => handleCompleteStep(stats)}
+                      isLastChapter={isLastChapterInStep}
+                      onComplete={(stats) => handleCompleteChapter(stats)}
                     />
                   )}
 
@@ -411,8 +502,9 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                       startVerse={currentStep?.startVerse}
                       endVerse={currentStep?.endVerse}
                       bookName={chapterData.bookName}
-                      chapterNumber={currentStep?.startChapter ?? undefined}
-                      onComplete={(stats) => handleCompleteStep(stats)}
+                      chapterNumber={actualChapterNumber}
+                      isLastChapter={isLastChapterInStep}
+                      onComplete={(stats) => handleCompleteChapter(stats)}
                     />
                   )}
                 </>
@@ -442,23 +534,43 @@ export default function SessionView({ session: initialSession }: SessionViewPara
           {/* Navigation footer */}
           <footer className="p-4 border-t bg-card">
             <div className="max-w-4xl mx-auto flex items-center justify-between">
-              <Button
-                variant="outline"
-                onClick={handlePreviousStep}
-                disabled={isFirstStep || updateStepMutation.isPending}
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">{t("common.previous")}</span>
-              </Button>
+              {/* Left side: Previous button (step or chapter) */}
+              <div className="flex items-center gap-2">
+                {isMultiChapterStep && !isFirstChapterInStep ? (
+                  <Button
+                    variant="outline"
+                    onClick={handlePreviousChapter}
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">{t("common.previous")}</span>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={handlePreviousStep}
+                    disabled={isFirstStep || updateStepMutation.isPending}
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">{t("common.previous")}</span>
+                  </Button>
+                )}
+              </div>
 
+              {/* Center: Progress indicator */}
               <div className="flex items-center gap-2">
                 <Progress value={progress} className="w-24 h-2 hidden sm:block" />
                 <span className="text-sm text-muted-foreground">
                   {currentStepIndex + 1} / {totalSteps}
                 </span>
+                {isMultiChapterStep && (
+                  <span className="text-xs text-primary hidden sm:inline">
+                    ({currentChapterInStep}/{chapterRange.total})
+                  </span>
+                )}
               </div>
 
-              {isLastStep ? (
+              {/* Right side: Next/Skip/Finish button */}
+              {isLastStep && isLastChapterInStep ? (
                 <Button
                   onClick={() => router.push("/session")}
                   className="bg-primary hover:bg-primary/90"
@@ -467,6 +579,15 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                   <span className="hidden sm:inline">{t("session.finishStudy")}</span>
                   <span className="sm:hidden">Finish</span>
                 </Button>
+              ) : isMultiChapterStep && !isLastChapterInStep ? (
+                <Button
+                  variant="outline"
+                  onClick={handleNextChapter}
+                >
+                  <span className="hidden sm:inline">{t("session.nextChapter")}</span>
+                  <span className="sm:hidden">{t("common.next")}</span>
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
               ) : (
                 <Button
                   variant="outline"
@@ -474,6 +595,7 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                     if (currentStepIndex < totalSteps - 1) {
                       const nextStep = steps[currentStepIndex + 1];
                       setCurrentStepIndex(currentStepIndex + 1);
+                      setCurrentChapterInStep(1); // Reset chapter counter
                       updateStepMutation.mutate(nextStep.id);
                     }
                   }}

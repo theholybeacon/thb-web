@@ -1,4 +1,99 @@
 {
+  "authPanel": {
+    "verses": {
+      "verse1": { "text": "Tu palabra es lámpara", "ref": "Salmo 119:105" },
+      "verse2": { "text": "La luz brilla en las tinieblas", "ref": "Juan 1:5" },
+      "verse3": { "text": "Yo soy el camino, la verdad", "ref": "Juan 14:6" },
+      "verse4": { "text": "Estad quietos y conoced", "ref": "Salmo 46:10" },
+      "verse5": { "text": "Fe, esperanza y amor", "ref": "1 Cor 13:13" }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Inicia sesión en tu cuenta",
+      "subtitle": "Ingresa tus credenciales para acceder a tus planes de estudio y progreso.",
+      "welcomeBack": "Bienvenido de Nuevo",
+      "welcomeBackSubtitle": "Continúa tu camino espiritual con The Holy Beacon.",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "nombre@ejemplo.com",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "signIn": "Iniciar sesión",
+      "signingIn": "Iniciando sesión...",
+      "noAccount": "¿No tienes una cuenta?",
+      "signUp": "Regístrate",
+      "orContinueWith": "O continúa con",
+      "google": "Continuar con Google",
+      "invalidCredentials": "Correo o contraseña inválidos",
+      "emailNotVerified": "Por favor verifica tu correo primero",
+      "additionalVerification": "Verificación adicional requerida"
+    },
+    "signUp": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Comienza tu camino de estudio bíblico personalizado hoy.",
+      "beginJourney": "Comienza Tu Viaje",
+      "beginJourneySubtitle": "Únete a The Holy Beacon y descubre una nueva forma de estudiar las Escrituras.",
+      "name": "Nombre completo",
+      "namePlaceholder": "Juan Pérez",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "nombre@ejemplo.com",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Crea una contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "confirmPasswordPlaceholder": "Confirma tu contraseña",
+      "signUp": "Crear cuenta",
+      "signingUp": "Creando cuenta...",
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Inicia sesión",
+      "orContinueWith": "O continúa con",
+      "google": "Continuar con Google",
+      "passwordMismatch": "Las contraseñas no coinciden",
+      "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
+      "emailInUse": "Este correo ya está en uso",
+      "agreeToTerms": "Al crear una cuenta, aceptas nuestros",
+      "termsOfService": "Términos de Servicio",
+      "and": "y",
+      "privacyPolicy": "Política de Privacidad"
+    },
+    "verification": {
+      "title": "Verifica tu correo",
+      "subtitle": "Enviamos un código de verificación a {email}",
+      "code": "Código de verificación",
+      "codePlaceholder": "Ingresa el código de 6 dígitos",
+      "verify": "Verificar correo",
+      "verifying": "Verificando...",
+      "resendCode": "¿No recibiste el código?",
+      "resend": "Reenviar",
+      "resending": "Reenviando...",
+      "codeSent": "¡Código de verificación enviado!",
+      "invalidCode": "Código de verificación inválido",
+      "codeExpired": "El código de verificación expiró. Por favor solicita uno nuevo."
+    },
+    "forgotPassword": {
+      "title": "Restablecer tu contraseña",
+      "subtitle": "Ingresa tu correo y te enviaremos un enlace de restablecimiento.",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "nombre@ejemplo.com",
+      "sendLink": "Enviar enlace",
+      "sending": "Enviando...",
+      "backToLogin": "Volver al inicio de sesión",
+      "emailSent": "Revisa tu correo para el enlace de restablecimiento.",
+      "emailNotFound": "No se encontró una cuenta con este correo."
+    },
+    "resetPassword": {
+      "title": "Establecer nueva contraseña",
+      "subtitle": "Ingresa tu nueva contraseña abajo.",
+      "newPassword": "Nueva contraseña",
+      "newPasswordPlaceholder": "Ingresa la nueva contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "confirmPasswordPlaceholder": "Confirma la nueva contraseña",
+      "reset": "Restablecer contraseña",
+      "resetting": "Restableciendo...",
+      "success": "¡Contraseña restablecida exitosamente!",
+      "passwordMismatch": "Las contraseñas no coinciden"
+    }
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Ocurrió un error",
@@ -20,14 +115,65 @@
     "english": "Inglés",
     "spanish": "Español",
     "reset": "Reiniciar",
-    "skip": "Saltar"
+    "skip": "Saltar",
+    "saving": "Guardando...",
+    "lightMode": "Modo Claro",
+    "darkMode": "Modo Oscuro",
+    "untitledStudy": "Estudio sin título",
+    "all": "Todos"
+  },
+  "toast": {
+    "success": "Éxito",
+    "error": "Error",
+    "info": "Información",
+    "warning": "Advertencia",
+    "saved": "Guardado exitosamente",
+    "deleted": "Eliminado exitosamente",
+    "created": "Creado exitosamente",
+    "updated": "Actualizado exitosamente",
+    "copied": "Copiado al portapapeles",
+    "failed": "La operación falló",
+    "tryAgain": "Por favor intenta de nuevo",
+    "networkError": "Error de red. Por favor verifica tu conexión.",
+    "sessionExpired": "Tu sesión ha expirado. Por favor inicia sesión de nuevo.",
+    "unauthorized": "No estás autorizado para realizar esta acción.",
+    "retry": "Reintentar",
+    "stepCompleted": "¡Paso completado!"
   },
   "nav": {
     "home": "Inicio",
     "studies": "Estudios",
     "sessions": "Sesiones",
     "newStudy": "Nuevo Estudio",
-    "browseStudies": "Ver Estudios"
+    "browseStudies": "Ver Estudios",
+    "explore": "Explorar"
+  },
+  "bible": {
+    "explorer": "Explorar la Biblia",
+    "explorerDescription": "Lee la Biblia en línea en múltiples traducciones",
+    "selectTranslation": "Selecciona una traducción de la Biblia para comenzar",
+    "oldTestament": "Antiguo Testamento",
+    "newTestament": "Nuevo Testamento",
+    "chapters": "capítulos",
+    "chapter": "Capítulo",
+    "selectChapter": "Selecciona un Capítulo",
+    "backToBooks": "Volver a todos los libros",
+    "allChapters": "Todos los Capítulos",
+    "aboutExplorer": "Acerca del Explorador de la Biblia",
+    "translations": "traducciones",
+    "searchBibles": "Buscar Biblias...",
+    "allLanguages": "Todos los Idiomas",
+    "noResults": "No se encontraron Biblias",
+    "books": "libros",
+    "sortBy": "Ordenar por",
+    "sortName": "Nombre",
+    "sortLanguage": "Idioma",
+    "selectBible": "Seleccionar Biblia",
+    "changeBible": "Cambiar Biblia",
+    "prevChapter": "Capítulo Anterior",
+    "nextChapter": "Capítulo Siguiente",
+    "nextBook": "Siguiente Libro",
+    "noContent": "No hay contenido disponible para este capítulo."
   },
   "home": {
     "welcome": "Bienvenido de nuevo, {name}",
@@ -59,7 +205,9 @@
     "saveChanges": "Guardar Cambios",
     "saving": "Guardando...",
     "studyDetails": "Detalles del Estudio",
-    "backToStudies": "Volver a Estudios"
+    "backToStudies": "Volver a Estudios",
+    "saved": "Estudio guardado exitosamente",
+    "regenerated": "Pasos del estudio regenerados exitosamente"
   },
   "createStudy": {
     "title": "Crear Estudio",
@@ -122,7 +270,10 @@
     "markAsRead": "Marcar como Leído",
     "verse": "Versículo",
     "speed": "Velocidad",
-    "skipStep": "Saltar Paso"
+    "skipStep": "Saltar Paso",
+    "nextChapter": "Siguiente Capítulo",
+    "chapterProgress": "Capítulo {current} de {total}",
+    "speechError": "No se puede reproducir el audio. Tu navegador puede no soportar síntesis de voz."
   },
   "sidebar": {
     "activeSessions": "Sesiones Activas",
@@ -138,5 +289,202 @@
     "languageDesc": "Elige tu idioma preferido",
     "theme": "Tema",
     "themeDesc": "Elige modo claro u oscuro"
+  },
+  "profile": {
+    "title": "Perfil",
+    "subtitle": "Administra tu información personal",
+    "profilePicture": "Foto de Perfil",
+    "profilePictureHint": "Haz clic en el ícono de cámara para cambiar tu foto",
+    "enterImageUrl": "Ingresa la URL de la imagen:",
+    "name": "Nombre",
+    "namePlaceholder": "Tu nombre completo",
+    "username": "Usuario",
+    "usernamePlaceholder": "Tu nombre de usuario",
+    "email": "Correo Electrónico",
+    "emailHint": "El correo es administrado por tu proveedor de autenticación",
+    "country": "País",
+    "selectCountry": "Selecciona tu país",
+    "saveChanges": "Guardar Cambios",
+    "saved": "¡Guardado!",
+    "invalidFileType": "Por favor selecciona un archivo de imagen",
+    "fileTooLarge": "El archivo debe ser menor a 5MB",
+    "uploadError": "Error al subir la imagen. Intenta de nuevo."
+  },
+  "landing": {
+    "nav": {
+      "features": "Funciones",
+      "studyPlans": "Planes de Estudio",
+      "roadmap": "Hoja de Ruta",
+      "pricing": "Precios",
+      "explore": "Explorar"
+    },
+    "auth": {
+      "logIn": "Iniciar Sesión",
+      "signUp": "Registrarse",
+      "goToApp": "Ir a App"
+    },
+    "explore": {
+      "badge": "Disponible Ahora",
+      "title": "Explora la",
+      "titleHighlight": "Biblia",
+      "description": "Lee las Escrituras en múltiples traducciones con nuestro explorador de Biblia gratuito y bellamente diseñado. No se requiere cuenta.",
+      "multipleTranslations": "Múltiples Traducciones",
+      "multipleTranslationsDesc": "Accede a la Biblia en varios idiomas y versiones - NVI, RVR, DHH, y más.",
+      "cleanReading": "Lectura Limpia",
+      "cleanReadingDesc": "Interfaz sin distracciones diseñada para la lectura y estudio enfocado de las Escrituras.",
+      "easyNavigation": "Navegación Fácil",
+      "easyNavigationDesc": "Encuentra rápidamente cualquier libro, capítulo o versículo con navegación intuitiva.",
+      "seoOptimized": "Optimizado para Compartir",
+      "seoOptimizedDesc": "Comparte versículos específicos con amigos - cada capítulo tiene su propio enlace compartible.",
+      "startExploring": "Comenzar a Explorar",
+      "searchBibles": "Buscar Biblias...",
+      "clickToPreview": "Haz clic en cualquier Biblia para ver la vista previa →",
+      "backToBibles": "Volver a Biblias",
+      "oldTestament": "Antiguo Testamento",
+      "translations": "Traducciones",
+      "books": "Libros",
+      "free": "Gratis",
+      "forever": "Para Siempre"
+    },
+    "hero": {
+      "badge": "Estudio Bíblico con IA",
+      "title": "Ilumina Tu Camino",
+      "titleHighlight": "A Través de la Palabra",
+      "description": "The Holy Beacon es una herramienta inteligente y espiritualmente alineada que ayuda a los creyentes a construir una relación más profunda y significativa con las Escrituras—una que se adapta a tu estilo de vida, forma de aprender y madurez espiritual.",
+      "cta": "Comienza Tu Viaje",
+      "viewRoadmap": "Ver Hoja de Ruta",
+      "personalized": "Personalizado",
+      "aiPowered": "Con IA",
+      "booksCovered": "Libros Cubiertos",
+      "yourGuide": "Tu guía hacia las Escrituras",
+      "personalizedPlans": "Planes Personalizados",
+      "smartInsights": "Perspectivas Inteligentes",
+      "dailyGrowth": "Crecimiento Diario"
+    },
+    "studyPlans": {
+      "badge": "¡Próximamente!",
+      "title": "Aprende Con",
+      "titleHighlight": "Propósito",
+      "description": "El corazón de The Holy Beacon es su Generador de Planes de Estudio con IA. Simplemente describe lo que quieres aprender y recibe un plan de estudio personalizado según tus necesidades.",
+      "customDuration": "Duración Personalizable",
+      "customDurationDesc": "Desde devocionales diarios rápidos hasta estudios profundos de varias semanas, adapta tu plan a tu horario.",
+      "adjustableDepth": "Profundidad Ajustable",
+      "adjustableDepthDesc": "Desde introducciones para principiantes hasta inmersiones teológicas profundas para eruditos experimentados.",
+      "thematicExploration": "Exploración Temática",
+      "thematicExplorationDesc": "Enfócate en temas específicos como el perdón, el liderazgo o las profecías del fin de los tiempos.",
+      "aiGenerator": "Generador de Estudios con IA",
+      "personalizedForYou": "Personalizado para ti",
+      "whatToStudy": "¿Qué te gustaría estudiar?",
+      "generatedPlan": "Plan de Estudio Generado",
+      "exampleQuery": "Entendiendo las parábolas de Jesús",
+      "exampleSteps": ["El Sembrador y las Semillas", "El Hijo Pródigo", "El Buen Samaritano", "La Semilla de Mostaza"],
+      "exampleDuration": "4 semanas",
+      "exampleLevel": "Intermedio"
+    },
+    "features": {
+      "badge": "Próximamente",
+      "title": "Vista Previa de",
+      "titleHighlight": "Funciones",
+      "description": "Obtén un adelanto de las emocionantes funciones que estamos desarrollando para futuras versiones.",
+      "learnMore": "Más Información",
+      "expected": "Esperado",
+      "scriptureHD": {
+        "title": "Escrituras en HD",
+        "description": "Enlaces inteligentes, perfiles de personajes y capas contextuales que dan vida a la Biblia.",
+        "timeline": "Q4 2025",
+        "modalTitle": "Escrituras en HD",
+        "modalDescription": "Experimenta la Biblia como nunca antes con contenido rico e interconectado.",
+        "preview1Title": "Conexiones Inteligentes de Versículos",
+        "preview1Desc": "Ve instantáneamente versículos relacionados, referencias cruzadas y conexiones temáticas. Toca cualquier versículo para explorar su relación con otras escrituras.",
+        "preview2Title": "Perfiles de Personajes",
+        "preview2Desc": "Profundiza en las figuras bíblicas con perfiles completos que incluyen su línea de tiempo, eventos clave, relaciones y arco de personaje.",
+        "preview3Title": "Contexto Histórico y Cultural",
+        "preview3Desc": "Comprende el mundo detrás del texto. Accede a mapas, perspectivas culturales, eventos históricos y descubrimientos arqueológicos."
+      },
+      "multiModal": {
+        "title": "Biblia Multi-Modal",
+        "description": "Experimenta las Escrituras a través de lectura, audio y participación visual.",
+        "timeline": "Q1 2026",
+        "modalTitle": "Biblia Multi-Modal",
+        "modalDescription": "Interactúa con la Palabra de Dios de la manera que mejor funcione para ti.",
+        "preview1Title": "Lectura sin Distracciones",
+        "preview1Desc": "Una experiencia de lectura bellamente diseñada que elimina todas las distracciones. Fuentes, temas y diseños personalizables.",
+        "preview2Title": "Audio de Alta Calidad",
+        "preview2Desc": "Escucha las Escrituras narradas profesionalmente. Perfecto para viajes, ejercicio, o cuando quieras cerrar los ojos y dejar que la Palabra te envuelva.",
+        "preview3Title": "Visualización de Versículos con IA",
+        "preview3Desc": "Genera hermosas imágenes compartibles de tus versículos favoritos. Perfecto para redes sociales, reflexión personal o crear regalos significativos."
+      },
+      "community": {
+        "title": "Funciones de Comunidad",
+        "description": "Círculos de estudio, foros de discusión y crecimiento espiritual compartido.",
+        "timeline": "Q2 2026",
+        "modalTitle": "Funciones de Comunidad",
+        "modalDescription": "Crece junto con creyentes de todo el mundo.",
+        "preview1Title": "Círculos de Estudio",
+        "preview1Desc": "Crea o únete a grupos pequeños para estudiar las Escrituras juntos. Comparte ideas, rastrea el progreso y manténganse responsables mutuamente.",
+        "preview2Title": "Foros de Discusión",
+        "preview2Desc": "Participa en discusiones teológicas reflexivas. Haz preguntas, comparte descubrimientos y aprende de perspectivas diversas.",
+        "preview3Title": "Feed de Palabra Diaria",
+        "preview3Desc": "Un feed personalizado de Escrituras, devocionales y perspectivas comunitarias. Comienza cada día con contenido curado para tu camino espiritual."
+      }
+    },
+    "roadmap": {
+      "badge": "Nuestro Camino por Delante",
+      "title": "Hoja de",
+      "titleHighlight": "Ruta",
+      "description": "Estamos construyendo The Holy Beacon paso a paso. Aquí está nuestro plan para hacer realidad todas las funciones prometidas.",
+      "phases": [
+        {
+          "timeline": "¡Próximamente!",
+          "title": "Planes de Estudio Guiados por IA",
+          "description": "Nuestra función principal que te ayuda a crear planes de estudio bíblico personalizados basados en tus intereses, horario y metas espirituales.",
+          "features": ["Duraciones de estudio personalizables", "Ajuste de profundidad para todos los niveles", "Opciones de exploración temática"]
+        },
+        {
+          "timeline": "Fase 2 - Q4 2025",
+          "title": "Escrituras en HD",
+          "description": "Enlaces inteligentes, líneas de tiempo y capas contextuales que dan vida al tapiz interconectado de la Biblia.",
+          "features": ["Conexiones inteligentes de versículos", "Perfiles y líneas de tiempo de personajes", "Capas de contexto histórico y cultural"]
+        },
+        {
+          "timeline": "Fase 3 - Q1 2026",
+          "title": "Consumo Multi-Modal de la Biblia",
+          "description": "Múltiples formas de interactuar con las Escrituras a través de lectura, audio, escritura y experiencias visuales.",
+          "features": ["Modo de lectura sin distracciones", "Narración de audio de alta calidad", "Visualización de versículos con IA"]
+        },
+        {
+          "timeline": "Fase 4 - Q2 2026",
+          "title": "Comunidad y Palabra Diaria",
+          "description": "Funciones de comunión y participación diaria en las Escrituras para ayudar a los creyentes a crecer juntos.",
+          "features": ["Círculos de estudio para aprendizaje grupal", "Foros de discusión teológica", "Feed personalizado de Palabra Diaria"]
+        }
+      ]
+    },
+    "pricing": {
+      "badge": "Planes de Suscripción",
+      "title": "Elige Tu",
+      "titleHighlight": "Camino",
+      "description": "Selecciona el plan que mejor se adapte a tu camino espiritual, con la posibilidad de compartir o regalar cada suscripción.",
+      "mostPopular": "MÁS POPULAR",
+      "canBeGifted": "Puede ser regalado o compartido con un ser querido",
+      "comingSoon": "PRÓXIMAMENTE",
+      "communityProgram": "Programa Comunitario",
+      "sponsorship": "Programa de Patrocinio",
+      "sponsorshipDesc": "Nuestro programa de patrocinio impulsado por la comunidad conecta a quienes quieren apoyar a otros con quienes necesitan acceso a The Holy Beacon.",
+      "simulatedNote": "Nota: Los números a continuación son simulados solo para fines de demostración.",
+      "currentQueue": "Cola Actual: {count} personas esperando",
+      "peopleInQueue": "Personas en Cola",
+      "sponsorshipsGifted": "Patrocinios Regalados",
+      "avgWaitTime": "Días de Espera Promedio",
+      "needSubscription": "¿Necesitas una Suscripción?",
+      "needSubscriptionDesc": "Únete a nuestra cola de patrocinio si no puedes pagar una suscripción. Nuestra comunidad de patrocinadores te ayudará a acceder a The Holy Beacon.",
+      "joinQueue": "Unirse a la Cola de Patrocinio",
+      "becomeSponsor": "Conviértete en Patrocinador",
+      "becomeSponsorDesc": "Regala suscripciones a quienes lo necesitan. Elige cuántas personas quieres patrocinar y ayuda a reducir la cola.",
+      "giftSubscriptions": "Regalar Suscripciones"
+    },
+    "footer": {
+      "allRightsReserved": "Todos los derechos reservados."
+    }
   }
 }

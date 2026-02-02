@@ -3,8 +3,11 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { BookOpen, Sparkles, Compass } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function HeroSection() {
+  const t = useTranslations("landing.hero");
+
   return (
     <section className="relative w-full py-16 md:py-28 lg:py-36 xl:py-48 overflow-hidden">
       {/* Animated background gradient */}
@@ -23,20 +26,18 @@ export function HeroSection() {
               {/* Badge */}
               <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm text-primary border border-primary/20 animate-fade-down opacity-0">
                 <Sparkles className="h-4 w-4" />
-                <span className="font-medium">AI-Powered Bible Study</span>
+                <span className="font-medium">{t("badge")}</span>
               </div>
 
               {/* Heading */}
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none animate-fade-up opacity-0 animation-delay-100">
-                Illuminate Your Path{" "}
-                <span className="gradient-text">Through the Word</span>
+                {t("title")}{" "}
+                <span className="gradient-text">{t("titleHighlight")}</span>
               </h1>
 
               {/* Description */}
               <p className="max-w-[600px] text-muted-foreground text-lg md:text-xl animate-fade-up opacity-0 animation-delay-200">
-                The Holy Beacon is a smart, spiritually-aligned productivity tool that helps believers build a
-                deeper, more meaningful relationship with Scripture—one that adapts to your lifestyle, learning
-                style, and spiritual maturity.
+                {t("description")}
               </p>
             </div>
 
@@ -44,13 +45,13 @@ export function HeroSection() {
             <div className="flex flex-col gap-3 min-[400px]:flex-row animate-fade-up opacity-0 animation-delay-300">
               <Link href="/auth/sign-up">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 glow-sm hover:glow transition-all duration-300 group">
-                  <span>Start Your Journey</span>
+                  <span>{t("cta")}</span>
                   <Compass className="ml-2 h-4 w-4 transition-transform group-hover:rotate-45" />
                 </Button>
               </Link>
               <Link href="#roadmap">
                 <Button size="lg" variant="outline" className="hover-lift">
-                  View Roadmap
+                  {t("viewRoadmap")}
                 </Button>
               </Link>
             </div>
@@ -59,15 +60,15 @@ export function HeroSection() {
             <div className="flex flex-wrap gap-8 pt-4 animate-fade-up opacity-0 animation-delay-400">
               <div className="space-y-1">
                 <p className="text-2xl font-bold gradient-text">100%</p>
-                <p className="text-sm text-muted-foreground">Personalized</p>
+                <p className="text-sm text-muted-foreground">{t("personalized")}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-2xl font-bold gradient-text">AI</p>
-                <p className="text-sm text-muted-foreground">Powered</p>
+                <p className="text-sm text-muted-foreground">{t("aiPowered")}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-2xl font-bold gradient-text">66</p>
-                <p className="text-sm text-muted-foreground">Books Covered</p>
+                <p className="text-sm text-muted-foreground">{t("booksCovered")}</p>
               </div>
             </div>
           </div>
@@ -95,20 +96,20 @@ export function HeroSection() {
                   </div>
                   <div className="text-center">
                     <p className="text-lg font-bold">The Holy Beacon</p>
-                    <p className="text-sm text-muted-foreground">Your guide to Scripture</p>
+                    <p className="text-sm text-muted-foreground">{t("yourGuide")}</p>
                   </div>
                 </div>
               </div>
 
               {/* Floating feature badges */}
               <div className="absolute -top-4 -right-4 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-200">
-                <p className="text-sm font-medium">Personalized Plans</p>
+                <p className="text-sm font-medium">{t("personalizedPlans")}</p>
               </div>
               <div className="absolute -bottom-4 -left-4 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-400">
-                <p className="text-sm font-medium">Smart Insights</p>
+                <p className="text-sm font-medium">{t("smartInsights")}</p>
               </div>
               <div className="absolute top-1/2 -right-8 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-600">
-                <p className="text-sm font-medium">Daily Growth</p>
+                <p className="text-sm font-medium">{t("dailyGrowth")}</p>
               </div>
             </div>
           </div>

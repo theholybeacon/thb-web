@@ -1,4 +1,99 @@
 {
+  "authPanel": {
+    "verses": {
+      "verse1": { "text": "Thy word is a lamp", "ref": "Psalm 119:105" },
+      "verse2": { "text": "The light shines in darkness", "ref": "John 1:5" },
+      "verse3": { "text": "I am the way, the truth", "ref": "John 14:6" },
+      "verse4": { "text": "Be still and know", "ref": "Psalm 46:10" },
+      "verse5": { "text": "Faith, hope, and love", "ref": "1 Cor 13:13" }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to your account",
+      "subtitle": "Enter your credentials to access your study plans and progress.",
+      "welcomeBack": "Welcome Back",
+      "welcomeBackSubtitle": "Continue your spiritual journey with The Holy Beacon.",
+      "email": "Email address",
+      "emailPlaceholder": "name@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign in",
+      "signingIn": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "orContinueWith": "Or continue with",
+      "google": "Continue with Google",
+      "invalidCredentials": "Invalid email or password",
+      "emailNotVerified": "Please verify your email first",
+      "additionalVerification": "Additional verification required"
+    },
+    "signUp": {
+      "title": "Create your account",
+      "subtitle": "Start your personalized Bible study journey today.",
+      "beginJourney": "Begin Your Journey",
+      "beginJourneySubtitle": "Join The Holy Beacon and discover a new way to study Scripture.",
+      "name": "Full name",
+      "namePlaceholder": "John Doe",
+      "email": "Email address",
+      "emailPlaceholder": "name@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Create a password",
+      "confirmPassword": "Confirm password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "signUp": "Create account",
+      "signingUp": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "orContinueWith": "Or continue with",
+      "google": "Continue with Google",
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "emailInUse": "This email is already in use",
+      "agreeToTerms": "By creating an account, you agree to our",
+      "termsOfService": "Terms of Service",
+      "and": "and",
+      "privacyPolicy": "Privacy Policy"
+    },
+    "verification": {
+      "title": "Verify your email",
+      "subtitle": "We sent a verification code to {email}",
+      "code": "Verification code",
+      "codePlaceholder": "Enter the 6-digit code",
+      "verify": "Verify email",
+      "verifying": "Verifying...",
+      "resendCode": "Didn't receive a code?",
+      "resend": "Resend",
+      "resending": "Resending...",
+      "codeSent": "Verification code sent!",
+      "invalidCode": "Invalid verification code",
+      "codeExpired": "Verification code expired. Please request a new one."
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we'll send you a reset link.",
+      "email": "Email address",
+      "emailPlaceholder": "name@example.com",
+      "sendLink": "Send reset link",
+      "sending": "Sending...",
+      "backToLogin": "Back to login",
+      "emailSent": "Check your email for a password reset link.",
+      "emailNotFound": "No account found with this email."
+    },
+    "resetPassword": {
+      "title": "Set new password",
+      "subtitle": "Enter your new password below.",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPassword": "Confirm password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "reset": "Reset password",
+      "resetting": "Resetting...",
+      "success": "Password reset successfully!",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
@@ -20,14 +115,65 @@
     "english": "English",
     "spanish": "Spanish",
     "reset": "Reset",
-    "skip": "Skip"
+    "skip": "Skip",
+    "saving": "Saving...",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "untitledStudy": "Untitled Study",
+    "all": "All"
+  },
+  "toast": {
+    "success": "Success",
+    "error": "Error",
+    "info": "Information",
+    "warning": "Warning",
+    "saved": "Saved successfully",
+    "deleted": "Deleted successfully",
+    "created": "Created successfully",
+    "updated": "Updated successfully",
+    "copied": "Copied to clipboard",
+    "failed": "Operation failed",
+    "tryAgain": "Please try again",
+    "networkError": "Network error. Please check your connection.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "retry": "Retry",
+    "stepCompleted": "Step completed!"
   },
   "nav": {
     "home": "Home",
     "studies": "Studies",
     "sessions": "Sessions",
     "newStudy": "New Study",
-    "browseStudies": "Browse Studies"
+    "browseStudies": "Browse Studies",
+    "explore": "Explore"
+  },
+  "bible": {
+    "explorer": "Explore the Bible",
+    "explorerDescription": "Read the Bible online in multiple translations",
+    "selectTranslation": "Select a Bible translation to begin",
+    "oldTestament": "Old Testament",
+    "newTestament": "New Testament",
+    "chapters": "chapters",
+    "chapter": "Chapter",
+    "selectChapter": "Select a Chapter",
+    "backToBooks": "Back to all books",
+    "allChapters": "All Chapters",
+    "aboutExplorer": "About Bible Explorer",
+    "translations": "translations",
+    "searchBibles": "Search Bibles...",
+    "allLanguages": "All Languages",
+    "noResults": "No Bibles found matching your search",
+    "books": "books",
+    "sortBy": "Sort by",
+    "sortName": "Name",
+    "sortLanguage": "Language",
+    "selectBible": "Select a Bible",
+    "changeBible": "Change Bible",
+    "prevChapter": "Previous Chapter",
+    "nextChapter": "Next Chapter",
+    "nextBook": "Next Book",
+    "noContent": "No content available for this chapter."
   },
   "home": {
     "welcome": "Welcome back, {name}",
@@ -59,7 +205,9 @@
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "studyDetails": "Study Details",
-    "backToStudies": "Back to Studies"
+    "backToStudies": "Back to Studies",
+    "saved": "Study saved successfully",
+    "regenerated": "Study steps regenerated successfully"
   },
   "createStudy": {
     "title": "Create Study",
@@ -122,7 +270,10 @@
     "markAsRead": "Mark as Read",
     "verse": "Verse",
     "speed": "Speed",
-    "skipStep": "Skip Step"
+    "skipStep": "Skip Step",
+    "nextChapter": "Next Chapter",
+    "chapterProgress": "Chapter {current} of {total}",
+    "speechError": "Unable to play audio. Your browser may not support speech synthesis."
   },
   "sidebar": {
     "activeSessions": "Active Sessions",
@@ -138,5 +289,202 @@
     "languageDesc": "Choose your preferred language",
     "theme": "Theme",
     "themeDesc": "Choose light or dark mode"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your personal information",
+    "profilePicture": "Profile Picture",
+    "profilePictureHint": "Click the camera icon to change your picture",
+    "enterImageUrl": "Enter image URL:",
+    "name": "Name",
+    "namePlaceholder": "Your full name",
+    "username": "Username",
+    "usernamePlaceholder": "Your username",
+    "email": "Email",
+    "emailHint": "Email is managed by your authentication provider",
+    "country": "Country",
+    "selectCountry": "Select your country",
+    "saveChanges": "Save Changes",
+    "saved": "Saved!",
+    "invalidFileType": "Please select an image file",
+    "fileTooLarge": "File size must be less than 5MB",
+    "uploadError": "Failed to upload image. Please try again."
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "studyPlans": "Study Plans",
+      "roadmap": "Roadmap",
+      "pricing": "Pricing",
+      "explore": "Explore"
+    },
+    "auth": {
+      "logIn": "Log In",
+      "signUp": "Sign Up",
+      "goToApp": "Go to App"
+    },
+    "explore": {
+      "badge": "Available Now",
+      "title": "Explore the",
+      "titleHighlight": "Bible",
+      "description": "Read Scripture in multiple translations with our free, beautifully designed Bible explorer. No account required.",
+      "multipleTranslations": "Multiple Translations",
+      "multipleTranslationsDesc": "Access the Bible in various languages and versions - NIV, ESV, KJV, Reina-Valera, and more.",
+      "cleanReading": "Clean Reading Experience",
+      "cleanReadingDesc": "Distraction-free interface designed for focused Scripture reading and study.",
+      "easyNavigation": "Easy Navigation",
+      "easyNavigationDesc": "Quickly find any book, chapter, or verse with intuitive navigation and search.",
+      "seoOptimized": "SEO Optimized",
+      "seoOptimizedDesc": "Share specific verses with friends - each chapter has its own shareable link.",
+      "startExploring": "Start Exploring",
+      "searchBibles": "Search Bibles...",
+      "clickToPreview": "Click any Bible to see the reader preview →",
+      "backToBibles": "Back to Bibles",
+      "oldTestament": "Old Testament",
+      "translations": "Translations",
+      "books": "Books",
+      "free": "Free",
+      "forever": "Forever"
+    },
+    "hero": {
+      "badge": "AI-Powered Bible Study",
+      "title": "Illuminate Your Path",
+      "titleHighlight": "Through the Word",
+      "description": "The Holy Beacon is a smart, spiritually-aligned productivity tool that helps believers build a deeper, more meaningful relationship with Scripture—one that adapts to your lifestyle, learning style, and spiritual maturity.",
+      "cta": "Start Your Journey",
+      "viewRoadmap": "View Roadmap",
+      "personalized": "Personalized",
+      "aiPowered": "Powered",
+      "booksCovered": "Books Covered",
+      "yourGuide": "Your guide to Scripture",
+      "personalizedPlans": "Personalized Plans",
+      "smartInsights": "Smart Insights",
+      "dailyGrowth": "Daily Growth"
+    },
+    "studyPlans": {
+      "badge": "Coming soon!",
+      "title": "Learn With",
+      "titleHighlight": "Purpose",
+      "description": "The beating heart of The Holy Beacon is its AI-powered Study Plan Generator. Simply describe what you want to learn, and receive a personalized study plan tailored to your needs.",
+      "customDuration": "Customizable Duration",
+      "customDurationDesc": "From quick daily devotionals to in-depth multi-week studies, tailor your plan to fit your schedule.",
+      "adjustableDepth": "Adjustable Depth",
+      "adjustableDepthDesc": "From beginner-friendly introductions to theological deep dives for seasoned scholars.",
+      "thematicExploration": "Thematic Exploration",
+      "thematicExplorationDesc": "Focus on specific themes like forgiveness, leadership, or end times prophecy.",
+      "aiGenerator": "AI Study Generator",
+      "personalizedForYou": "Personalized for you",
+      "whatToStudy": "What would you like to study?",
+      "generatedPlan": "Generated Study Plan",
+      "exampleQuery": "Understanding the parables of Jesus",
+      "exampleSteps": ["The Sower & Seeds", "The Prodigal Son", "The Good Samaritan", "The Mustard Seed"],
+      "exampleDuration": "4 weeks",
+      "exampleLevel": "Intermediate"
+    },
+    "features": {
+      "badge": "Coming Soon",
+      "title": "Feature",
+      "titleHighlight": "Previews",
+      "description": "Get a sneak peek at the exciting features we're developing for future releases.",
+      "learnMore": "Learn More",
+      "expected": "Expected",
+      "scriptureHD": {
+        "title": "Scripture in HD",
+        "description": "Smart links, character profiles, and contextual layers that bring the Bible to life.",
+        "timeline": "Q4 2025",
+        "modalTitle": "Scripture in HD",
+        "modalDescription": "Experience the Bible like never before with rich, interconnected content.",
+        "preview1Title": "Smart Verse Connections",
+        "preview1Desc": "Instantly see related verses, cross-references, and thematic connections. Tap any verse to explore its relationship with other scriptures throughout the Bible.",
+        "preview2Title": "Character Profiles",
+        "preview2Desc": "Dive deep into biblical figures with comprehensive profiles including their timeline, key events, relationships, and character arc throughout Scripture.",
+        "preview3Title": "Historical & Cultural Context",
+        "preview3Desc": "Understand the world behind the text. Access maps, cultural insights, historical events, and archaeological discoveries that illuminate Scripture's meaning."
+      },
+      "multiModal": {
+        "title": "Multi-Modal Bible",
+        "description": "Experience Scripture through reading, listening, and visual engagement.",
+        "timeline": "Q1 2026",
+        "modalTitle": "Multi-Modal Bible",
+        "modalDescription": "Engage with God's Word in the way that works best for you.",
+        "preview1Title": "Distraction-Free Reading",
+        "preview1Desc": "A beautifully designed reading experience that removes all distractions. Customizable fonts, themes, and layouts to match your reading preferences.",
+        "preview2Title": "High-Quality Audio",
+        "preview2Desc": "Listen to professionally narrated Scripture. Perfect for commutes, workouts, or when you want to close your eyes and let the Word wash over you.",
+        "preview3Title": "AI Verse Visualization",
+        "preview3Desc": "Generate beautiful, shareable images of your favorite verses. Perfect for social media, personal reflection, or creating meaningful gifts."
+      },
+      "community": {
+        "title": "Community Features",
+        "description": "Study circles, discussion boards, and shared spiritual growth.",
+        "timeline": "Q2 2026",
+        "modalTitle": "Community Features",
+        "modalDescription": "Grow together in faith with believers around the world.",
+        "preview1Title": "Study Circles",
+        "preview1Desc": "Create or join small groups to study Scripture together. Share insights, track progress, and hold each other accountable in your spiritual journey.",
+        "preview2Title": "Discussion Boards",
+        "preview2Desc": "Engage in thoughtful theological discussions. Ask questions, share discoveries, and learn from diverse perspectives within a respectful community.",
+        "preview3Title": "Daily Word Feed",
+        "preview3Desc": "A personalized feed of Scripture, devotionals, and community insights. Start each day with curated content tailored to your spiritual journey."
+      }
+    },
+    "roadmap": {
+      "badge": "Our Journey Ahead",
+      "title": "Feature",
+      "titleHighlight": "Roadmap",
+      "description": "We're building The Holy Beacon step by step. Here's our plan for bringing all the promised features to life.",
+      "phases": [
+        {
+          "timeline": "Coming soon!",
+          "title": "AI-Guided Study Plans",
+          "description": "Our core feature that helps you create personalized Bible study plans based on your interests, schedule, and spiritual goals.",
+          "features": ["Customizable study durations", "Depth adjustment for all knowledge levels", "Thematic exploration options"]
+        },
+        {
+          "timeline": "Phase 2 - Q4 2025",
+          "title": "Scripture in HD",
+          "description": "Smart links, timelines, and contextual layers that bring the Bible's interconnected tapestry to life.",
+          "features": ["Smart verse connections", "Character profiles and timelines", "Historical and cultural context layers"]
+        },
+        {
+          "timeline": "Phase 3 - Q1 2026",
+          "title": "Multi-Modal Bible Consumption",
+          "description": "Multiple ways to engage with Scripture through reading, listening, typing, and visual experiences.",
+          "features": ["Distraction-free reading mode", "High-quality audio narration", "AI-generated verse visualization"]
+        },
+        {
+          "timeline": "Phase 4 - Q2 2026",
+          "title": "Community & Daily Word",
+          "description": "Fellowship features and daily Scripture engagement to help believers grow together and maintain consistency.",
+          "features": ["Study circles for group learning", "Theological discussion boards", "Daily Word personalized feed"]
+        }
+      ]
+    },
+    "pricing": {
+      "badge": "Subscription Plans",
+      "title": "Choose Your",
+      "titleHighlight": "Path",
+      "description": "Select the plan that best fits your spiritual journey, with the ability to share or gift each subscription.",
+      "mostPopular": "MOST POPULAR",
+      "canBeGifted": "Can be gifted or shared with a loved one",
+      "comingSoon": "COMING SOON",
+      "communityProgram": "Community Program",
+      "sponsorship": "Sponsorship Program",
+      "sponsorshipDesc": "Our community-driven sponsorship program connects those who want to support others with those who need access to The Holy Beacon.",
+      "simulatedNote": "Note: The numbers below are simulated for demonstration purposes only.",
+      "currentQueue": "Current Queue: {count} people waiting",
+      "peopleInQueue": "People in Queue",
+      "sponsorshipsGifted": "Sponsorships Gifted",
+      "avgWaitTime": "Days Avg. Wait Time",
+      "needSubscription": "Need a Subscription?",
+      "needSubscriptionDesc": "Join our sponsorship queue if you're unable to afford a subscription. Our community of sponsors will help you access The Holy Beacon.",
+      "joinQueue": "Join Sponsorship Queue",
+      "becomeSponsor": "Become a Sponsor",
+      "becomeSponsorDesc": "Gift subscriptions to those in need. Choose how many people you'd like to sponsor and help clear the queue.",
+      "giftSubscriptions": "Gift Subscriptions"
+    },
+    "footer": {
+      "allRightsReserved": "All rights reserved."
+    }
   }
 }

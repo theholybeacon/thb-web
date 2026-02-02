@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AppShell, BibleSelector } from "@/components/app";
 import Link from "next/link";
 import { ArrowLeft, Users, Sparkles, BookOpen } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 export default function CreateStudyPage() {
   const t = useTranslations("createStudy");
@@ -53,10 +54,12 @@ export default function CreateStudyPage() {
       return await studyCreateWithAISS(studyInsert, formData.bibleId);
     },
     onSuccess: () => {
+      toast.success(t("create"));
       router.push("/study");
     },
     onError: (error) => {
       console.error("Error creating study:", error);
+      toast.error(error instanceof Error ? error.message : t("create"));
     },
   });
 

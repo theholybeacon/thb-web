@@ -1,6 +1,7 @@
 import { logger } from "@/app/utils/logger";
 import { Book } from "../model/Book";
 import { randomUUID } from "crypto";
+import { toUrlSlug } from "@/lib/slug";
 
 const API_KEY = process.env.BIBLE_API_KEY;
 const BASE_URL = "https://api.scripture.api.bible/v1/";
@@ -40,7 +41,8 @@ export class BookExternalAPIDao {
 					name: book.name,
 					bookOrder: bookNumber,
 					abbreviation: book.abbreviation,
-					numChapters: book.chapters.length,
+					slug: toUrlSlug(book.abbreviation),
+					numChapters: book.chapters.length - 1, // Subtract 1 to exclude intro chapter (chapter 0)
 					createdAt: new Date(),
 					updatedAt: new Date()
 				});

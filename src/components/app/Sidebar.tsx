@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Home,
   Plus,
+  Book,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     { href: "/home", label: t("nav.home"), icon: Home },
     { href: "/study", label: t("nav.studies"), icon: GraduationCap },
     { href: "/session", label: t("nav.sessions"), icon: Play },
+    { href: "/bible", label: t("nav.explore"), icon: Book },
   ];
 
   const getProgress = (session: SessionFull) => {
@@ -145,7 +147,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {session.study?.name || "Untitled Study"}
+                      {session.study?.name || t("common.untitledStudy")}
                     </p>
                     {session.study?.description && (
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">

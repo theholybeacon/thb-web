@@ -42,6 +42,7 @@ import {
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 
 // Helper function to format bible reference using canonical fields
 function formatBibleReference(step: StudyStep): string {
@@ -125,9 +126,11 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
       queryClient.invalidateQueries({ queryKey: ["study", id] });
       queryClient.invalidateQueries({ queryKey: ["studies"] });
       setIsEditing(false);
+      toast.success(t("saved"));
     },
     onError: (e) => {
       logger.error(e);
+      toast.error(tCommon("error"));
     },
   });
 
@@ -138,10 +141,12 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["studies"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      toast.success(t("deleteStudy"));
       router.push("/study");
     },
     onError: (e) => {
       logger.error(e);
+      toast.error(tCommon("error"));
     },
   });
 
@@ -154,9 +159,11 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
       queryClient.setQueryData(["study", id], newStudy);
       queryClient.invalidateQueries({ queryKey: ["studies"] });
       setRegenerateDialogOpen(false);
+      toast.success(t("regenerated"));
     },
     onError: (e) => {
       logger.error(e);
+      toast.error(tCommon("error"));
     },
   });
 
@@ -171,10 +178,12 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
       return await sessionCreateSS(sessionInsert);
     },
     onSuccess: (session) => {
+      toast.success(t("startSession"));
       router.push(`/session/${session.id}`);
     },
     onError: (e) => {
       logger.error(e);
+      toast.error(tCommon("error"));
     },
   });
 

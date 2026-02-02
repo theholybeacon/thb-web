@@ -6,7 +6,9 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import "./globals.css"
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsightsWrapper } from "@/components/analytics/SpeedInsightsWrapper"
 import { ClerkProvider } from '@clerk/nextjs'
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: "The Holy Beacon",
@@ -29,9 +31,11 @@ export default async function RootLayout({
       <html lang={locale} suppressHydrationWarning>
         <body className={`${inter.variable} ${merriweather.variable} font-sans`}>
           <Analytics />
+          <SpeedInsightsWrapper />
           <NextIntlClientProvider messages={messages}>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
               {children}
+              <Toaster position="top-right" richColors closeButton />
             </ThemeProvider>
           </NextIntlClientProvider>
         </body>

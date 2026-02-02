@@ -24,6 +24,10 @@ export class UserRepository {
         return await this.dao.update(u);
     }
 
+    async updateProfile(id: string, data: { name?: string; username?: string; profilePicture?: string; country?: string }): Promise<User> {
+        return await this.dao.updateProfile(id, data);
+    }
+
     async delete(id: string): Promise<void> {
         return await this.dao.delete(id);
     }

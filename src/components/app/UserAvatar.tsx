@@ -12,8 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User, Moon, Sun } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LogOut, User, Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "@/lib/toast";
 
 interface UserAvatarProps {
   size?: "sm" | "md" | "lg";
@@ -48,16 +50,22 @@ export function UserAvatar({ size = "md", showDropdown = true }: UserAvatarProps
     return "U";
   };
 
+  const getProfilePicture = () => {
+    // Only use dbUser's profile picture, not Clerk's default gradient avatar
+    return dbUser?.profilePicture || null;
+  };
+
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
   const avatarContent = (
-    <div
-      className={`${sizeClasses[size]} rounded-full bg-primary flex items-center justify-center font-semibold text-primary-foreground cursor-pointer ring-2 ring-primary/30 hover:ring-primary/60 transition-all`}
-    >
-      <span>{getInitials()}</span>
-    </div>
+    <Avatar className={`${sizeClasses[size]} cursor-pointer ring-2 ring-primary/30 hover:ring-primary/60 transition-all`}>
+      <AvatarImage src={getProfilePicture() || undefined} alt={dbUser?.name || "User"} />
+      <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+        {getInitials()}
+      </AvatarFallback>
+    </Avatar>
   );
 
   if (!showDropdown) {
@@ -66,7 +74,12 @@ export function UserAvatar({ size = "md", showDropdown = true }: UserAvatarProps
 
   const handleSignOut = async () => {
     await signOut();
+    toast.success(t("signOut"));
     router.push("/");
+  };
+
+  const handleProfile = () => {
+    router.push("/profile");
   };
 
   return (
@@ -84,24 +97,20 @@ export function UserAvatar({ size = "md", showDropdown = true }: UserAvatarProps
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem className="cursor-pointer" onClick={handleProfile}>
           <User className="mr-2 h-4 w-4" />
           {t("profile")}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer">
-          <Settings className="mr-2 h-4 w-4" />
-          {t("settings")}
         </DropdownMenuItem>
         <DropdownMenuItem className="cursor-pointer" onClick={toggleTheme}>
           {theme === "dark" ? (
             <>
               <Sun className="mr-2 h-4 w-4" />
-              Light Mode
+              {t("lightMode")}
             </>
           ) : (
             <>
               <Moon className="mr-2 h-4 w-4" />
-              Dark Mode
+              {t("darkMode")}
             </>
           )}
         </DropdownMenuItem>

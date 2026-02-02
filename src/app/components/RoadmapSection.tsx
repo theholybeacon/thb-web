@@ -1,59 +1,42 @@
 "use client";
 
+import { useMemo } from "react";
 import { CheckCircle2, Clock4, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-const phases = [
-  {
-    status: "current",
-    timeline: "Coming soon!",
-    title: "AI-Guided Study Plans",
-    description: "Our core feature that helps you create personalized Bible study plans based on your interests, schedule, and spiritual goals.",
-    features: [
-      { text: "Customizable study durations", done: true },
-      { text: "Depth adjustment for all knowledge levels", done: true },
-      { text: "Thematic exploration options", done: true },
-    ],
-    side: "left",
-  },
-  {
-    status: "upcoming",
-    timeline: "Phase 2 - Q4 2025",
-    title: "Scripture in HD",
-    description: "Smart links, timelines, and contextual layers that bring the Bible's interconnected tapestry to life.",
-    features: [
-      { text: "Smart verse connections", done: false },
-      { text: "Character profiles and timelines", done: false },
-      { text: "Historical and cultural context layers", done: false },
-    ],
-    side: "right",
-  },
-  {
-    status: "upcoming",
-    timeline: "Phase 3 - Q1 2026",
-    title: "Multi-Modal Bible Consumption",
-    description: "Multiple ways to engage with Scripture through reading, listening, typing, and visual experiences.",
-    features: [
-      { text: "Distraction-free reading mode", done: false },
-      { text: "High-quality audio narration", done: false },
-      { text: "AI-generated verse visualization", done: false },
-    ],
-    side: "left",
-  },
-  {
-    status: "upcoming",
-    timeline: "Phase 4 - Q2 2026",
-    title: "Community & Daily Word",
-    description: "Fellowship features and daily Scripture engagement to help believers grow together and maintain consistency.",
-    features: [
-      { text: "Study circles for group learning", done: false },
-      { text: "Theological discussion boards", done: false },
-      { text: "Daily Word personalized feed", done: false },
-    ],
-    side: "right",
-  },
-];
+interface Phase {
+  status: "current" | "upcoming";
+  timeline: string;
+  title: string;
+  description: string;
+  features: { text: string; done: boolean }[];
+  side: "left" | "right";
+}
 
 export function RoadmapSection() {
+  const t = useTranslations("landing.roadmap");
+
+  const phases: Phase[] = useMemo(() => {
+    const phasesData = t.raw("phases") as Array<{
+      timeline: string;
+      title: string;
+      description: string;
+      features: string[];
+    }>;
+
+    return phasesData.map((phase, index) => ({
+      status: index === 0 ? "current" : "upcoming",
+      timeline: phase.timeline,
+      title: phase.title,
+      description: phase.description,
+      features: phase.features.map((text) => ({
+        text,
+        done: index === 0, // First phase features are done
+      })),
+      side: index % 2 === 0 ? "left" : "right",
+    })) as Phase[];
+  }, [t]);
+
   return (
     <section id="roadmap" className="relative w-full py-16 md:py-24 lg:py-32 bg-secondary/30 overflow-hidden">
       {/* Background decorations */}
@@ -65,14 +48,13 @@ export function RoadmapSection() {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary animate-fade-down opacity-0">
               <Sparkles className="h-4 w-4" />
-              <span className="font-medium">Our Journey Ahead</span>
+              <span className="font-medium">{t("badge")}</span>
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-up opacity-0 animation-delay-100">
-              Feature <span className="gradient-text">Roadmap</span>
+              {t("title")} <span className="gradient-text">{t("titleHighlight")}</span>
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed animate-fade-up opacity-0 animation-delay-200">
-              We&apos;re building The Holy Beacon step by step. Here&apos;s our plan for bringing all the promised features to
-              life.
+              {t("description")}
             </p>
           </div>
         </div>
