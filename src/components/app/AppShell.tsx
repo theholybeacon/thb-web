@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sun, Menu, X } from "lucide-react";
+import { Sun, Menu, X, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "./UserAvatar";
 import { Sidebar } from "./Sidebar";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { cn } from "@/lib/utils";
+import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
+import { useTranslations } from "next-intl";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -17,6 +19,8 @@ interface AppShellProps {
 export function AppShell({ children, hideSidebar = false }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { isPremium } = useLoggedUserContext();
+  const t = useTranslations();
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,6 +65,25 @@ export function AppShell({ children, hideSidebar = false }: AppShellProps) {
 
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
+            {isPremium ? (
+              <Link href="/subscription">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 text-primary"
+                  title={t("subscription.title")}
+                >
+                  <Crown className="h-5 w-5 fill-current" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/subscription">
+                <Button variant="default" size="sm">
+                  <Crown className="h-4 w-4 mr-2" />
+                  {t("premium.upgrade")}
+                </Button>
+              </Link>
+            )}
             <UserAvatar />
           </div>
         </div>

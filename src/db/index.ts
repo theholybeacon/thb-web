@@ -9,6 +9,9 @@ import * as userSchema from "@/db/schema/user";
 import * as studySchema from "@/db/schema/study";
 import * as studyStepSchema from "@/db/schema/studyStep";
 import * as sessionScema from "@/db/schema/session";
+import * as subscriptionSchema from "@/db/schema/subscription";
+import * as giftSubscriptionSchema from "@/db/schema/giftSubscription";
+import * as membershipRequestSchema from "@/db/schema/membershipRequest";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -22,5 +25,8 @@ export const db = drizzle(sql, {
 		...studySchema,
 		...studyStepSchema,
 		...sessionScema,
+		...subscriptionSchema,
+		...giftSubscriptionSchema,
+		...membershipRequestSchema,
 	}
 });

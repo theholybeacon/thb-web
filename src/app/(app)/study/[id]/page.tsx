@@ -43,6 +43,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { PremiumGate } from "@/components/premium";
 
 // Helper function to format bible reference using canonical fields
 function formatBibleReference(step: StudyStep): string {
@@ -225,9 +226,10 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
+      <PremiumGate>
+        <div className="p-6 lg:p-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Link href="/study">
               <Button variant="ghost" size="icon">
@@ -474,6 +476,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </PremiumGate>
     </AppShell>
   );
 }

@@ -31,6 +31,7 @@ import { Play, MoreVertical, Trash2, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { logger } from "@/app/utils/logger";
 import { toast } from "@/lib/toast";
+import { PremiumGate } from "@/components/premium";
 
 // Helper function to format bible reference using canonical fields
 function formatBibleReference(step: StudyStep): string {
@@ -133,7 +134,8 @@ export default function SessionPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-8">
+      <PremiumGate>
+        <div className="p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold">{t("title")}</h1>
@@ -263,6 +265,7 @@ export default function SessionPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </PremiumGate>
     </AppShell>
   );
 }

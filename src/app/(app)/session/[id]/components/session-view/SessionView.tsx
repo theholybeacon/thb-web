@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { AppShell } from "@/components/app";
 import { ReadMode, TypeMode, ListenMode } from "../modes";
+import { PremiumGate } from "@/components/premium";
 
 interface SessionViewParams {
   session: SessionFull;
@@ -283,7 +284,8 @@ export default function SessionView({ session: initialSession }: SessionViewPara
 
   return (
     <AppShell>
-      <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+      <PremiumGate>
+        <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
         {/* Step sidebar - collapsible */}
         <aside
           className={cn(
@@ -609,7 +611,8 @@ export default function SessionView({ session: initialSession }: SessionViewPara
             </div>
           </footer>
         </main>
-      </div>
+        </div>
+      </PremiumGate>
     </AppShell>
   );
 }

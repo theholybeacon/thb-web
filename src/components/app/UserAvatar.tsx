@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Moon, Sun } from "lucide-react";
+import { LogOut, User, Moon, Sun, Crown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
 
@@ -82,6 +82,10 @@ export function UserAvatar({ size = "md", showDropdown = true }: UserAvatarProps
     router.push("/profile");
   };
 
+  const handleSubscription = () => {
+    router.push("/subscription");
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -100,6 +104,10 @@ export function UserAvatar({ size = "md", showDropdown = true }: UserAvatarProps
         <DropdownMenuItem className="cursor-pointer" onClick={handleProfile}>
           <User className="mr-2 h-4 w-4" />
           {t("profile")}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer" onClick={handleSubscription}>
+          <Crown className="mr-2 h-4 w-4" />
+          {t("subscription")}
         </DropdownMenuItem>
         <DropdownMenuItem className="cursor-pointer" onClick={toggleTheme}>
           {theme === "dark" ? (

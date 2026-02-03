@@ -7,10 +7,13 @@ import { userGetByEmailSS } from '../common/user/service/server/userGetByEmailSS
 import { userCreateSS } from '../common/user/service/server/userCreateSS';
 import { userUpdateSS } from '../common/user/service/server/userUpdateSS';
 import { User } from '../common/user/model/User';
+import { subscriptionGetByUserIdSS } from '../common/subscription/service/server/subscriptionGetByUserIdSS';
 
 const LoggedUserContext = createContext<LoggedUserContextType>({
   user: null,
   loading: false,
+  isPremium: false,
+  subscriptionStatus: null,
   setState: () => { },
   reload: () => { },
 });
@@ -22,7 +25,12 @@ interface LoggedUserProviderProps {
 export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children }) => {
   const { user: clerkUser, isLoaded: isClerkLoaded } = useUser();
   const { isSignedIn } = useAuth();
-  const [state, setState] = useState<LoggedUserState>({ user: null, loading: true });
+  const [state, setState] = useState<LoggedUserState>({
+    user: null,
+    loading: true,
+    isPremium: false,
+    subscriptionStatus: null,
+  });
   const syncInProgress = useRef(false);
 
   const reload = useCallback(async () => {
@@ -30,8 +38,10 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
       setState(prev => ({ ...prev, loading: true }));
       try {
         const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
-        setState({ user: dbUser, loading: false });
+        const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id);
+        setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
         localStorage.setItem('user', JSON.stringify(dbUser));
+        localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
       } catch (error) {
         console.error("Error reloading user:", error);
         setState(prev => ({ ...prev, loading: false }));
@@ -42,13 +52,21 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
   useEffect(() => {
     // Load cached user initially
     const cachedUser = localStorage.getItem('user');
+    const cachedSubscription = localStorage.getItem('subscription');
     if (cachedUser) {
       try {
         const parsedUser = JSON.parse(cachedUser);
-        setState({ user: parsedUser, loading: !isClerkLoaded });
+        const parsedSubscription = cachedSubscription ? JSON.parse(cachedSubscription) : { isPremium: false, subscriptionStatus: null };
+        setState({
+          user: parsedUser,
+          loading: !isClerkLoaded,
+          isPremium: parsedSubscription.isPremium || false,
+          subscriptionStatus: parsedSubscription.subscriptionStatus || null,
+        });
       } catch (error) {
         console.error("Error parsing cached user:", error);
         localStorage.removeItem('user');
+        localStorage.removeItem('subscription');
       }
     }
   }, [isClerkLoaded]);
@@ -63,17 +81,20 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
         setState(prev => ({ ...prev, loading: true }));
         try {
           const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
-          setState({ user: dbUser, loading: false });
+          const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id);
+          setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
           localStorage.setItem('user', JSON.stringify(dbUser));
+          localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
         } catch (error) {
           console.error("Error syncing user:", error);
-          setState({ user: null, loading: false });
+          setState({ user: null, loading: false, isPremium: false, subscriptionStatus: null });
         } finally {
           syncInProgress.current = false;
         }
       } else {
-        setState({ user: null, loading: false });
+        setState({ user: null, loading: false, isPremium: false, subscriptionStatus: null });
         localStorage.removeItem('user');
+        localStorage.removeItem('subscription');
       }
     };
 
@@ -95,6 +116,22 @@ interface ClerkUserData {
   firstName?: string | null;
   lastName?: string | null;
   username?: string | null;
+}
+
+async function fetchSubscriptionStatus(userId: string): Promise<{ isPremium: boolean; subscriptionStatus: string | null }> {
+  try {
+    const subscription = await subscriptionGetByUserIdSS(userId);
+    if (subscription && subscription.status === 'active') {
+      return { isPremium: true, subscriptionStatus: subscription.status };
+    }
+    if (subscription) {
+      return { isPremium: false, subscriptionStatus: subscription.status };
+    }
+    return { isPremium: false, subscriptionStatus: null };
+  } catch (error) {
+    console.error("Error fetching subscription:", error);
+    return { isPremium: false, subscriptionStatus: null };
+  }
 }
 
 async function fetchOrCreateUser(clerkUserId: string, clerkUser: ClerkUserData): Promise<User> {

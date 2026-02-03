@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { CheckCircle2, Clock4, Sparkles } from "lucide-react";
+import { CheckCircle2, Clock4, Sparkles, Rocket } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface Phase {
-  status: "current" | "upcoming";
+  status: "live" | "current" | "upcoming";
   timeline: string;
   title: string;
   description: string;
@@ -25,7 +25,8 @@ export function RoadmapSection() {
     }>;
 
     return phasesData.map((phase, index) => ({
-      status: index === 0 ? "current" : "upcoming",
+      // First phase is live, second is current, rest are upcoming
+      status: index === 0 ? "live" : index === 1 ? "current" : "upcoming",
       timeline: phase.timeline,
       title: phase.title,
       description: phase.description,
@@ -70,17 +71,30 @@ export function RoadmapSection() {
               style={{ animationDelay: `${300 + index * 150}ms` }}
             >
               {/* Timeline dot */}
-              <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 -mt-1 w-4 h-4 rounded-full bg-primary/40 border-4 border-background z-10 items-center justify-center">
+              <div className={`hidden md:flex absolute left-1/2 transform -translate-x-1/2 -mt-1 w-4 h-4 rounded-full border-4 border-background z-10 items-center justify-center ${
+                phase.status === "live" ? "bg-green-500" : "bg-primary/40"
+              }`}>
                 {phase.status === "current" && (
                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                )}
+                {phase.status === "live" && (
+                  <div className="w-2 h-2 rounded-full bg-white" />
                 )}
               </div>
 
               <div className={`flex flex-col md:flex-row items-center gap-8 ${phase.side === "right" ? "md:flex-row-reverse" : ""}`}>
                 {/* Content side */}
                 <div className={`w-full md:w-1/2 ${phase.side === "left" ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-secondary border border-border px-3 py-1 text-sm text-secondary-foreground mb-3">
-                    <Clock4 className="h-4 w-4" />
+                  <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm mb-3 ${
+                    phase.status === "live"
+                      ? "bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400"
+                      : "bg-secondary border border-border text-secondary-foreground"
+                  }`}>
+                    {phase.status === "live" ? (
+                      <Rocket className="h-4 w-4" />
+                    ) : (
+                      <Clock4 className="h-4 w-4" />
+                    )}
                     <span>{phase.timeline}</span>
                   </div>
                   <h3 className="text-2xl font-bold mb-2">{phase.title}</h3>

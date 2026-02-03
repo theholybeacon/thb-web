@@ -15,6 +15,8 @@ export const userTable = pgTable("user", {
 	// Profile fields
 	profilePicture: text(),
 	country: varchar({ length: 2 }), // ISO 3166-1 alpha-2 country code
+	// Stripe
+	stripeCustomerId: varchar({ length: 255 }),
 });
 
 export const userRelations = relations(userTable, ({ one, many }) => ({

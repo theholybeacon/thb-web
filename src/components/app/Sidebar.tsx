@@ -15,6 +15,7 @@ import {
   Home,
   Plus,
   Book,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -26,7 +27,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
   const t = useTranslations();
-  const { user: loggedUser } = useLoggedUserContext();
+  const { user: loggedUser, isPremium } = useLoggedUserContext();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -40,10 +41,10 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   });
 
   const navItems = [
-    { href: "/home", label: t("nav.home"), icon: Home },
-    { href: "/study", label: t("nav.studies"), icon: GraduationCap },
-    { href: "/session", label: t("nav.sessions"), icon: Play },
-    { href: "/bible", label: t("nav.explore"), icon: Book },
+    { href: "/home", label: t("nav.home"), icon: Home, premium: false },
+    { href: "/study", label: t("nav.studies"), icon: GraduationCap, premium: true },
+    { href: "/session", label: t("nav.sessions"), icon: Play, premium: true },
+    { href: "/bible", label: t("nav.explore"), icon: Book, premium: false },
   ];
 
   const getProgress = (session: SessionFull) => {
@@ -59,19 +60,26 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     return (
       <aside className="w-16 border-r bg-card h-[calc(100vh-4rem)] sticky top-16 flex flex-col py-4">
         <nav className="flex flex-col items-center gap-2 px-2">
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <Button
-                variant={pathname === item.href ? "secondary" : "ghost"}
-                size="icon"
-                className="h-10 w-10"
-                title={item.label}
-              >
-                <item.icon className="h-5 w-5" />
-              </Button>
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const showLock = item.premium && !isPremium;
+            return (
+              <Link key={item.href} href={item.href}>
+                <Button
+                  variant={pathname === item.href ? "secondary" : "ghost"}
+                  size="icon"
+                  className="h-10 w-10 relative"
+                  title={item.label}
+                >
+                  <item.icon className={cn("h-5 w-5", showLock && "opacity-50")} />
+                  {showLock && (
+                    <Lock className="h-3 w-3 absolute top-1 right-1 text-muted-foreground" />
+                  )}
+                </Button>
+              </Link>
+            );
+          })}
         </nav>
+
       </aside>
     );
   }
@@ -79,17 +87,21 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   return (
     <aside className="w-64 border-r bg-card h-[calc(100vh-4rem)] sticky top-16 flex flex-col">
       <nav className="p-4 space-y-1">
-        {navItems.map((item) => (
-          <Link key={item.href} href={item.href}>
-            <Button
-              variant={pathname === item.href ? "secondary" : "ghost"}
-              className="w-full justify-start gap-3"
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Button>
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          const showLock = item.premium && !isPremium;
+          return (
+            <Link key={item.href} href={item.href}>
+              <Button
+                variant={pathname === item.href ? "secondary" : "ghost"}
+                className="w-full justify-start gap-3"
+              >
+                <item.icon className={cn("h-4 w-4", showLock && "opacity-50")} />
+                <span className={cn(showLock && "opacity-70")}>{item.label}</span>
+                {showLock && <Lock className="h-3 w-3 ml-auto text-muted-foreground" />}
+              </Button>
+            </Link>
+          );
+        })}
       </nav>
 
       <Separator />
@@ -180,6 +192,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
           })}
         </div>
       </div>
+
     </aside>
   );
 }

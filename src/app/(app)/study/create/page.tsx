@@ -16,6 +16,7 @@ import { AppShell, BibleSelector } from "@/components/app";
 import Link from "next/link";
 import { ArrowLeft, Users, Sparkles, BookOpen } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { PremiumGate } from "@/components/premium";
 
 export default function CreateStudyPage() {
   const t = useTranslations("createStudy");
@@ -70,12 +71,13 @@ export default function CreateStudyPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-8">
-        <div className="max-w-2xl mx-auto">
-          <Link
-            href="/study"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-          >
+      <PremiumGate>
+        <div className="p-6 lg:p-8">
+          <div className="max-w-2xl mx-auto">
+            <Link
+              href="/study"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+            >
             <ArrowLeft className="mr-2 h-4 w-4" />
             {t("backToStudies")}
           </Link>
@@ -191,8 +193,9 @@ export default function CreateStudyPage() {
               {createProgramMutation.isPending ? t("creating") : t("create")}
             </Button>
           </form>
+          </div>
         </div>
-      </div>
+      </PremiumGate>
     </AppShell>
   );
 }
