@@ -38,7 +38,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
       setState(prev => ({ ...prev, loading: true }));
       try {
         const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
-        const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id);
+        const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id, dbUser.createdAt);
         setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
         localStorage.setItem('user', JSON.stringify(dbUser));
         localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
@@ -81,7 +81,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
         setState(prev => ({ ...prev, loading: true }));
         try {
           const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
-          const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id);
+          const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id, dbUser.createdAt);
           setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
           localStorage.setItem('user', JSON.stringify(dbUser));
           localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
@@ -118,7 +118,17 @@ interface ClerkUserData {
   username?: string | null;
 }
 
-async function fetchSubscriptionStatus(userId: string): Promise<{ isPremium: boolean; subscriptionStatus: string | null }> {
+const PREMIUM_CUTOFF = new Date('2026-02-12T00:00:00Z');
+
+async function fetchSubscriptionStatus(
+  userId: string,
+  createdAt?: Date | null
+): Promise<{ isPremium: boolean; subscriptionStatus: string | null }> {
+  // Early adopters get lifetime premium
+  if (createdAt && new Date(createdAt) < PREMIUM_CUTOFF) {
+    return { isPremium: true, subscriptionStatus: 'active' };
+  }
+
   try {
     const subscription = await subscriptionGetByUserIdSS(userId);
     if (subscription && subscription.status === 'active') {
