@@ -34,6 +34,13 @@ export class BiblePostgreSQLDao {
 		});
 	}
 
+	async getBySlug(slug: string): Promise<Bible | undefined> {
+		log.trace("getBySlug");
+		return await db.query.bibleTable.findFirst({
+			where: eq(bibleTable.slug, slug),
+		});
+	}
+
 	async updateBookNumber(n: number, bibleId: string): Promise<void> {
 		log.trace("updateBookNumber");
 

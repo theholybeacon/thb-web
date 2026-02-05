@@ -1,268 +1,269 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Calendar, Check, CheckCircle2, Eye, FlameIcon as Fire, Footprints, Gift, Lightbulb, Users, X } from "lucide-react";
+import { Check, Gift, Users, Sparkles, Crown, Book } from "lucide-react";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+
+interface PriceData {
+  id: string;
+  amount: number | null;
+  currency: string;
+}
+
+interface PricesResponse {
+  monthly: PriceData | null;
+  yearly: PriceData | null;
+}
 
 export function PricingSection() {
+  const t = useTranslations("landing.pricing");
+  const tPremium = useTranslations("premium");
+  const [billingInterval, setBillingInterval] = useState<"month" | "year">("year");
+  const [prices, setPrices] = useState<PricesResponse | null>(null);
+  const [pricesLoading, setPricesLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPrices() {
+      try {
+        const response = await fetch("/api/stripe/prices");
+        const data = await response.json();
+        setPrices(data);
+      } catch (error) {
+        console.error("Error fetching prices:", error);
+      } finally {
+        setPricesLoading(false);
+      }
+    }
+    fetchPrices();
+  }, []);
+
+  const selectedPrice = billingInterval === "year" ? prices?.yearly : prices?.monthly;
+
+  const formatPrice = (price: PriceData | null | undefined) => {
+    if (!price || price.amount === null) return "...";
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: price.currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price.amount / 100);
+  };
+
+  const freeFeatures = [
+    t("freeFeatures.explore"),
+    t("freeFeatures.translations"),
+    t("freeFeatures.noAccount"),
+  ];
+
+  const premiumFeatures = [
+    tPremium("features.studies"),
+    tPremium("features.sessions"),
+    tPremium("features.explore"),
+    t("premiumFeatures.gift"),
+  ];
+
   return (
-    <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-holyBlue-50/30 dark:bg-holyDark-200/10" >
-      <div className="container px-4 md:px-6">
+    <section id="pricing" className="relative w-full py-16 md:py-24 lg:py-32 bg-secondary/30 overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+
+      <div className="container relative px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
-            <div className="inline-block rounded-lg bg-holyGold-100 px-3 py-1 text-sm text-holyTan-800">
-              Subscription Plans
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary animate-fade-down opacity-0">
+              <Sparkles className="h-4 w-4" />
+              <span className="font-medium">{t("badge")}</span>
             </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Choose Your Path</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Select the plan that best fits your spiritual journey, with the ability to share or gift each
-              subscription.
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-up opacity-0 animation-delay-100">
+              {t("title")} <span className="gradient-text">{t("titleHighlight")}</span>
+            </h2>
+            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed animate-fade-up opacity-0 animation-delay-200">
+              {t("description")}
             </p>
           </div>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
-          {/* Free Tier - "The Glimpse" */}
-          <div className="flex flex-col rounded-xl border bg-white dark:bg-holyDark-100/20 shadow-sm transition-all hover:shadow-md">
-            <div className="p-6 pt-8">
-              <div className="flex items-center justify-center mb-4">
-                <div className="rounded-full bg-holyBlue-100/50 p-2 dark:bg-holyBlue-900/20">
-                  <Eye className="h-8 w-8 text-holyBlue-600 dark:text-holyBlue-400" />
-                </div>
-              </div>
-              <h3 className="text-center text-2xl font-bold">The Glimpse</h3>
-              <div className="mt-1 text-center text-sm text-muted-foreground italic">
-                "Taste and see..." — Psalm 34:8
-              </div>
-              <div className="mt-6 text-center text-4xl font-bold">Free</div>
-              <ul className="mt-6 space-y-3">
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Read-only access to the Chronological Bible (text only)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <X className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground">No AI Study Plans</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <X className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground">No Smart Links or Contextual Layers</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <X className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground">No Audio or Typing Mode</span>
-                </li>
-              </ul>
-            </div>
-            <div className="mt-auto p-6 pt-0">
-              <Button className="w-full" variant="outline">
-                Sign Up Free
-              </Button>
-            </div>
-          </div>
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8 max-w-4xl mx-auto">
+          {/* Free Plan */}
+          <div
+            className="group relative flex flex-col rounded-2xl border bg-card shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-2 animate-fade-up opacity-0"
+            style={{ animationDelay: "300ms" }}
+          >
+            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/5 to-transparent" />
 
-          {/* Standard Tier - "The Walk" */}
-          <div className="flex flex-col rounded-xl border bg-white dark:bg-holyDark-100/20 shadow-sm transition-all hover:shadow-md relative">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="bg-holyTan-600 text-white text-xs font-bold px-3 py-1 rounded-full">MOST POPULAR</div>
-            </div>
-            <div className="p-6 pt-8">
+            <div className="relative p-6 pt-8">
               <div className="flex items-center justify-center mb-4">
-                <div className="rounded-full bg-holyTan-100 p-2 dark:bg-holyTan-900/20">
-                  <Footprints className="h-8 w-8 text-holyTan-600 dark:text-holyTan-400" />
+                <div className="rounded-2xl p-3 bg-secondary transition-all duration-300 group-hover:scale-110">
+                  <Book className="h-8 w-8 text-muted-foreground" />
                 </div>
               </div>
-              <h3 className="text-center text-2xl font-bold">The Walk</h3>
-              <div className="mt-1 text-center text-sm text-muted-foreground italic">
-                "Walk in the way of love..." — Ephesians 5:2
-              </div>
-              <div className="mt-6 text-center">
-                <span className="text-4xl font-bold">$9</span>
-                <span className="text-muted-foreground">/month</span>
-                <div className="mt-1 text-sm text-muted-foreground">or $90/year (save $18)</div>
-              </div>
-              <ul className="mt-6 space-y-3">
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Full access to AI Study Plans (up to 3 active)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Entire Chronological Bible with Smart Links</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Reading, Typing, and Audio Modes</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>20 Monthly Verse Images via AI</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Join Study Circles & Community Discussions</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Gift className="h-5 w-5 text-holyGold-500 shrink-0 mt-0.5" />
-                  <span className="font-medium">Add 1 person to your subscription</span>
-                </li>
-              </ul>
-            </div>
-            <div className="mt-auto p-6 pt-0">
-              <div className="mt-3 text-center text-xs text-muted-foreground">
-                <span className="flex items-center justify-center gap-1 mb-2">
-                  <Gift className="h-3 w-3" />
-                  <span>Can be gifted or shared with a loved one</span>
-                </span>
-              </div>
-              <Button className="w-full bg-holyTan-600 hover:bg-holyTan-700 text-white">Subscribe Now</Button>
-            </div>
-          </div>
 
-          {/* Premium Tier - "The Fire" */}
-          <div className="flex flex-col rounded-xl border bg-gradient-to-b from-holyGold-50 to-white dark:from-holyDark-200 dark:to-holyDark-100/20 shadow-sm transition-all hover:shadow-md">
-            <div className="p-6 pt-8">
-              <div className="flex items-center justify-center mb-4">
-                <div className="rounded-full bg-holyGold-100 p-2 dark:bg-holyGold-900/20">
-                  <Fire className="h-8 w-8 text-holyGold-600 dark:text-holyGold-400" />
-                </div>
-              </div>
-              <h3 className="text-center text-2xl font-bold">The Fire</h3>
+              <h3 className="text-center text-2xl font-bold">{t("freePlan.name")}</h3>
               <div className="mt-1 text-center text-sm text-muted-foreground italic">
-                "His Word burns in my heart like a fire..." — Jeremiah 20:9
+                {t("freePlan.quote")}
               </div>
+
               <div className="mt-6 text-center">
-                <span className="text-4xl font-bold">$39</span>
-                <span className="text-muted-foreground">/month</span>
-                <div className="mt-1 text-sm text-muted-foreground">or $399/year (save $69)</div>
+                <span className="text-4xl font-bold">{t("freePlan.price")}</span>
+                <div className="mt-1 text-sm text-muted-foreground">{t("freePlan.forever")}</div>
               </div>
+
               <ul className="mt-6 space-y-3">
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Unlimited AI Study Plans with deep-dive options</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Creator Mode – Build & publish custom Study Plans</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Multiple Bible versions & translation comparisons</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Unlimited AI Image Generation</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Lead your own Study Circles & track engagement</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Gift className="h-5 w-5 text-holyGold-500 shrink-0 mt-0.5" />
-                  <span className="font-medium">Add 1 person to your subscription</span>
-                </li>
+                {freeFeatures.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
               </ul>
             </div>
-            <div className="mt-auto p-6 pt-0">
-              <div className="mt-3 text-center text-xs text-muted-foreground">
-                <span className="flex items-center justify-center gap-4 mb-2">
-                  <Gift className="h-3 w-3 " />
-                  <span>Can be gifted or shared with a loved one</span>
-                </span>
-                <Button className="w-full bg-gradient-to-r from-holyGold-500 to-holyTan-600 hover:from-holyGold-600 hover:to-holyTan-700 text-white">
-                  Upgrade to Premium
+
+            <div className="relative mt-auto p-6 pt-0">
+              <Link href="/bible">
+                <Button className="w-full" variant="outline">
+                  {t("freePlan.cta")}
                 </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Premium Plan */}
+          <div
+            className="group relative flex flex-col rounded-2xl border border-primary/50 bg-card shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-2 md:scale-105 animate-fade-up opacity-0"
+            style={{ animationDelay: "400ms" }}
+          >
+            {/* Popular badge */}
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+              <div className="bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-full shadow-lg glow-sm">
+                {t("mostPopular")}
               </div>
+            </div>
+
+            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/10 to-accent/10" />
+
+            <div className="relative p-6 pt-8">
+              <div className="flex items-center justify-center mb-4">
+                <div className="rounded-2xl p-3 bg-primary/10 transition-all duration-300 group-hover:scale-110">
+                  <Crown className="h-8 w-8 text-primary" />
+                </div>
+              </div>
+
+              <h3 className="text-center text-2xl font-bold">{t("premiumPlan.name")}</h3>
+              <div className="mt-1 text-center text-sm text-muted-foreground italic">
+                {t("premiumPlan.quote")}
+              </div>
+
+              {/* Billing interval toggle */}
+              <div className="flex gap-2 p-1 bg-muted rounded-lg mt-6">
+                <button
+                  onClick={() => setBillingInterval("month")}
+                  className={cn(
+                    "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors",
+                    billingInterval === "month"
+                      ? "bg-background shadow-sm"
+                      : "hover:bg-background/50"
+                  )}
+                >
+                  {tPremium("monthly")}
+                </button>
+                <button
+                  onClick={() => setBillingInterval("year")}
+                  className={cn(
+                    "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors relative",
+                    billingInterval === "year"
+                      ? "bg-background shadow-sm"
+                      : "hover:bg-background/50"
+                  )}
+                >
+                  {tPremium("yearly")}
+                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                    {tPremium("save")}
+                  </span>
+                </button>
+              </div>
+
+              <div className="mt-4 text-center">
+                <span className="text-4xl font-bold">
+                  {pricesLoading ? "..." : formatPrice(selectedPrice)}
+                </span>
+                <span className="text-muted-foreground">
+                  /{billingInterval === "year" ? t("premiumPlan.year") : t("premiumPlan.month")}
+                </span>
+              </div>
+
+              <ul className="mt-6 space-y-3">
+                {premiumFeatures.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="relative mt-auto p-6 pt-0">
+              <div className="text-center text-xs text-muted-foreground mb-3">
+                <span className="flex items-center justify-center gap-1">
+                  <Gift className="h-3 w-3" />
+                  <span>{t("canBeGifted")}</span>
+                </span>
+              </div>
+              <Link href="/sign-up">
+                <Button className="w-full bg-primary hover:bg-primary/90 glow-sm hover:glow transition-all duration-300">
+                  {t("premiumPlan.cta")}
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Sponsorship Queue Section */}
-        <div className="mt-16 bg-white dark:bg-holyDark-100/20 rounded-xl p-8 border shadow-sm relative overflow-hidden">
-          {/* Coming Soon Ribbon */}
-          <div className="absolute -right-12 top-6 bg-holyGold-500 text-holyDark-900 font-bold py-1 px-10 transform rotate-45 shadow-md z-10">
-            COMING SOON
-          </div>
-
+        {/* Sponsorship Section */}
+        <div className="mt-16 glass rounded-2xl p-8 shadow-xl relative overflow-hidden animate-fade-up opacity-0 animation-delay-600">
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold mb-2">Sponsorship Program</h3>
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary mb-4">
+              <Gift className="h-4 w-4" />
+              <span className="font-medium">{t("communityProgram")}</span>
+            </div>
+            <h3 className="text-2xl font-bold mb-2">{t("sponsorship")}</h3>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              Our community-driven sponsorship program connects those who want to support others with those who need
-              access to The Holy Beacon.
+              {t("sponsorshipDesc")}
             </p>
-            <p className="text-xs text-muted-foreground mt-2 italic">
-              Note: The numbers below are simulated for demonstration purposes only.
-            </p>
-          </div>
-
-          {/* Queue Visualization */}
-          <div className="mb-10 relative">
-            <div className="h-4 bg-holyBlue-100 dark:bg-holyBlue-900/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-holyTan-400 to-holyGold-500 rounded-full"
-                style={{ width: "65%" }}
-              ></div>
-            </div>
-            <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-              <span>0</span>
-              <span>Current Queue: 42 people waiting</span>
-              <span>100</span>
-            </div>
-
-            {/* Queue Stats */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-              <div className="bg-holyBlue-50 dark:bg-holyDark-200/30 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-holyBlue-700 dark:text-holyBlue-300">42</div>
-                <div className="text-sm text-muted-foreground">People in Queue</div>
-              </div>
-              <div className="bg-holyTan-50 dark:bg-holyDark-200/30 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-holyTan-700 dark:text-holyTan-300">128</div>
-                <div className="text-sm text-muted-foreground">Sponsorships Gifted</div>
-              </div>
-              <div className="bg-holyGold-50 dark:bg-holyDark-200/30 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-holyGold-700 dark:text-holyGold-300">14</div>
-                <div className="text-sm text-muted-foreground">Days Avg. Wait Time</div>
-              </div>
-            </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col md:flex-row gap-6 justify-between">
-            <div className="flex-1 max-w-md bg-holyBlue-50/50 dark:bg-holyDark-300/20 p-6 rounded-xl border border-holyBlue-100 dark:border-holyBlue-900/20">
-              <h4 className="text-xl font-bold mb-2">Need a Subscription?</h4>
+          <div className="flex flex-col md:flex-row gap-6 justify-center">
+            <div className="flex-1 max-w-md bg-background/50 p-6 rounded-xl border border-border/50 hover-lift transition-all duration-300">
+              <h4 className="text-xl font-bold mb-2">{t("needSubscription")}</h4>
               <p className="text-muted-foreground mb-4">
-                Join our sponsorship queue if you're unable to afford a subscription. Our community of sponsors will
-                help you access The Holy Beacon.
+                {t("needSubscriptionDesc")}
               </p>
-              <Button className="w-full bg-holyBlue-600 hover:bg-holyBlue-700 text-white">
-                <Users className="mr-2 h-5 w-5" />
-                <span>Join Sponsorship Queue</span>
-              </Button>
+              <Link href="/sponsorship">
+                <Button className="w-full" variant="outline">
+                  <Users className="mr-2 h-5 w-5" />
+                  <span>{t("joinQueue")}</span>
+                </Button>
+              </Link>
             </div>
 
-            <div className="flex flex-col justify-between max-w-md bg-holyGold-50/50 dark:bg-holyDark-300/20 p-6 rounded-xl border border-holyGold-100 dark:border-holyGold-900/20">
-              <h4 className="text-xl font-bold mb-2">Become a Sponsor</h4>
+            <div className="flex-1 max-w-md bg-primary/5 p-6 rounded-xl border border-primary/20 hover-lift transition-all duration-300">
+              <h4 className="text-xl font-bold mb-2">{t("becomeSponsor")}</h4>
               <p className="text-muted-foreground mb-4">
-                Gift subscriptions to those in need. Choose how many people you'd like to sponsor and help clear the
-                queue.
+                {t("becomeSponsorDesc")}
               </p>
-              <Button className="w-full bg-gradient-to-r from-holyGold-500 to-holyTan-600 hover:from-holyGold-600 hover:to-holyTan-700 text-white">
-                <Gift className="mr-2 h-5 w-5" />
-                <span>Gift Subscriptions</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Testimonials */}
-          <div className="mt-8 pt-6 border-t border-border">
-            <div className="flex items-center gap-4 italic text-sm text-muted-foreground">
-              <span>
-                "Here is where your awesome testimonial will appear after you've experienced The Holy Beacon's
-                sponsorship program."
-              </span>
-              <span>—</span>
-              <span>Future Sponsored Member</span>
+              <Link href="/gift">
+                <Button className="w-full bg-primary hover:bg-primary/90 glow-sm hover:glow transition-all duration-300">
+                  <Gift className="mr-2 h-5 w-5" />
+                  <span>{t("giftSubscriptions")}</span>
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </div>
-    </section >
+    </section>
   );
 }

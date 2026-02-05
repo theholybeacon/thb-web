@@ -1,10 +1,7 @@
-import { AnyPgColumn, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { AnyPgColumn, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { userTable } from "./user";
 import { studyTable } from "./study";
 import { studyStepTable } from "./studyStep";
-import { bookTable } from "./book";
-import { chapterTable } from "./chapter";
-import { verseTable } from "./verse";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
@@ -15,16 +12,16 @@ export const sessionTable = pgTable("session", {
 
 	currentStepId: uuid().references((): AnyPgColumn => studyStepTable.id).notNull(),
 
-	currentBookId: uuid().references((): AnyPgColumn => bookTable.id),
-	currentChapterId: uuid().references((): AnyPgColumn => chapterTable.id),
-	currentVerseId: uuid().references((): AnyPgColumn => verseTable.id),
+	// Progress tracking using canonical references (works across translations)
+	currentBookAbbreviation: varchar({ length: 10 }),
+	currentChapter: integer(),
+	currentVerse: integer(),
 
 	progressDetail: text(),
 
 	startedAt: timestamp().defaultNow(),
 	updatedAt: timestamp().defaultNow(),
 });
-
 
 export const sessionRelations = relations(sessionTable, ({ one }) => ({
 	user: one(userTable, {
@@ -38,18 +35,6 @@ export const sessionRelations = relations(sessionTable, ({ one }) => ({
 	currentStep: one(studyStepTable, {
 		fields: [sessionTable.currentStepId],
 		references: [studyStepTable.id],
-	}),
-	currentBook: one(bookTable, {
-		fields: [sessionTable.currentBookId],
-		references: [bookTable.id],
-	}),
-	currentChapter: one(chapterTable, {
-		fields: [sessionTable.currentChapterId],
-		references: [chapterTable.id],
-	}),
-	currentVerse: one(verseTable, {
-		fields: [sessionTable.currentBookId],
-		references: [verseTable.id],
 	}),
 }));
 

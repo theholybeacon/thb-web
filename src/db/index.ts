@@ -1,7 +1,5 @@
-import { drizzle } from 'drizzle-orm/vercel-postgres';
-import { config } from 'dotenv';
-config({ path: '.env.local' }); // or .env
-
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 
 import * as bibleSchema from "@/db/schema/bible";
 import * as bookSchema from "@/db/schema/book";
@@ -11,19 +9,24 @@ import * as userSchema from "@/db/schema/user";
 import * as studySchema from "@/db/schema/study";
 import * as studyStepSchema from "@/db/schema/studyStep";
 import * as sessionScema from "@/db/schema/session";
+import * as subscriptionSchema from "@/db/schema/subscription";
+import * as giftSubscriptionSchema from "@/db/schema/giftSubscription";
+import * as membershipRequestSchema from "@/db/schema/membershipRequest";
 
-export const db = drizzle(
-	{
-		schema:
-		{
-			...bibleSchema,
-			...bookSchema,
-			...chapterSchema,
-			...verseSchema,
-			...userSchema,
-			...studySchema,
-			...studyStepSchema,
-			...sessionScema,
-		}
+const sql = neon(process.env.DATABASE_URL!);
+
+export const db = drizzle(sql, {
+	schema: {
+		...bibleSchema,
+		...bookSchema,
+		...chapterSchema,
+		...verseSchema,
+		...userSchema,
+		...studySchema,
+		...studyStepSchema,
+		...sessionScema,
+		...subscriptionSchema,
+		...giftSubscriptionSchema,
+		...membershipRequestSchema,
 	}
-);
+});

@@ -9,11 +9,11 @@ export const bibleTable = pgTable("bible", {
 	name: varchar({ length: 255 }).notNull(),
 	language: varchar({ length: 50 }).notNull(),
 	version: varchar({ length: 50 }).notNull(),
-	description: text().notNull(),
-	numBooks: integer().notNull().default(0),
-	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
-
+	slug: varchar({ length: 100 }).notNull().unique(),
+	description: text().default(""),
+	numBooks: integer().default(0),
+	createdAt: timestamp().defaultNow(),
+	updatedAt: timestamp().defaultNow(),
 });
 
 export const bibleRelations = relations(bibleTable, ({ many }) => ({

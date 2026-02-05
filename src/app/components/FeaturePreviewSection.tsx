@@ -1,94 +1,307 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Bookmark, Clock4, Headphones, Users } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { ArrowRight, Bookmark, Clock4, Headphones, Users, ChevronLeft, ChevronRight, Link2, User, Globe, BookOpen, Mic, Image, MessageCircle, Rss, LucideIcon } from "lucide-react";
+
+interface PreviewSlide {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}
+
+interface Feature {
+  key: string;
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  timeline: string;
+  modalTitle: string;
+  modalDescription: string;
+  previews: PreviewSlide[];
+}
+
+function FeatureModal({
+  feature,
+  open,
+  onOpenChange,
+  expectedText
+}: {
+  feature: Feature | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  expectedText: string;
+}) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  if (!feature) return null;
+
+  const previews = feature.previews;
+  const current = previews[currentSlide];
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % previews.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + previews.length) % previews.length);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      onOpenChange(isOpen);
+      if (!isOpen) setCurrentSlide(0);
+    }}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="rounded-xl bg-primary/10 p-2">
+              <feature.icon className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-left">{feature.modalTitle}</DialogTitle>
+              <DialogDescription className="text-left">
+                {feature.modalDescription}
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        {/* Carousel */}
+        <div className="mt-4">
+          {/* Slide content */}
+          <div className="relative bg-secondary/30 rounded-xl p-6 min-h-[200px]">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="rounded-2xl bg-primary/10 p-4">
+                <current.icon className="h-10 w-10 text-primary" />
+              </div>
+              <h4 className="text-lg font-bold">{current.title}</h4>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {current.description}
+              </p>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between mt-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={prevSlide}
+              className="hover:bg-secondary"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+
+            {/* Dots */}
+            <div className="flex gap-2">
+              {previews.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === currentSlide
+                      ? "bg-primary w-6"
+                      : "bg-primary/30 hover:bg-primary/50"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextSlide}
+              className="hover:bg-secondary"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Timeline badge */}
+          <div className="flex justify-center mt-4">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+              <Clock4 className="h-3 w-3" />
+              <span>{expectedText} {feature.timeline}</span>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function FeaturePreviewSection() {
+  const t = useTranslations("landing.features");
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const features: Feature[] = useMemo(() => [
+    {
+      key: "scriptureHD",
+      icon: Bookmark,
+      title: t("scriptureHD.title"),
+      description: t("scriptureHD.description"),
+      timeline: t("scriptureHD.timeline"),
+      modalTitle: t("scriptureHD.modalTitle"),
+      modalDescription: t("scriptureHD.modalDescription"),
+      previews: [
+        {
+          title: t("scriptureHD.preview1Title"),
+          description: t("scriptureHD.preview1Desc"),
+          icon: Link2,
+        },
+        {
+          title: t("scriptureHD.preview2Title"),
+          description: t("scriptureHD.preview2Desc"),
+          icon: User,
+        },
+        {
+          title: t("scriptureHD.preview3Title"),
+          description: t("scriptureHD.preview3Desc"),
+          icon: Globe,
+        },
+      ],
+    },
+    {
+      key: "multiModal",
+      icon: Headphones,
+      title: t("multiModal.title"),
+      description: t("multiModal.description"),
+      timeline: t("multiModal.timeline"),
+      modalTitle: t("multiModal.modalTitle"),
+      modalDescription: t("multiModal.modalDescription"),
+      previews: [
+        {
+          title: t("multiModal.preview1Title"),
+          description: t("multiModal.preview1Desc"),
+          icon: BookOpen,
+        },
+        {
+          title: t("multiModal.preview2Title"),
+          description: t("multiModal.preview2Desc"),
+          icon: Mic,
+        },
+        {
+          title: t("multiModal.preview3Title"),
+          description: t("multiModal.preview3Desc"),
+          icon: Image,
+        },
+      ],
+    },
+    {
+      key: "community",
+      icon: Users,
+      title: t("community.title"),
+      description: t("community.description"),
+      timeline: t("community.timeline"),
+      modalTitle: t("community.modalTitle"),
+      modalDescription: t("community.modalDescription"),
+      previews: [
+        {
+          title: t("community.preview1Title"),
+          description: t("community.preview1Desc"),
+          icon: Users,
+        },
+        {
+          title: t("community.preview2Title"),
+          description: t("community.preview2Desc"),
+          icon: MessageCircle,
+        },
+        {
+          title: t("community.preview3Title"),
+          description: t("community.preview3Desc"),
+          icon: Rss,
+        },
+      ],
+    },
+  ], [t]);
+
+  const handleLearnMore = (feature: Feature) => {
+    setSelectedFeature(feature);
+    setModalOpen(true);
+  };
+
   return (
-    <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-holyDark-100/5" >
-      <div className="container px-4 md:px-6">
+    <section id="features" className="relative w-full py-16 md:py-24 lg:py-32 bg-card overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
+
+      <div className="container relative px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-lg bg-holyBlue-100 px-3 py-1 text-sm text-holyBlue-800">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-secondary border border-border px-4 py-1.5 text-sm text-secondary-foreground animate-fade-down opacity-0">
               <Clock4 className="h-4 w-4" />
-              <span>Coming Soon</span>
+              <span className="font-medium">{t("badge")}</span>
             </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Feature Previews</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Get a sneak peek at the exciting features we're developing for future releases.
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-up opacity-0 animation-delay-100">
+              {t("title")} <span className="gradient-text">{t("titleHighlight")}</span>
+            </h2>
+            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed animate-fade-up opacity-0 animation-delay-200">
+              {t("description")}
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 mt-12">
-          {/* Scripture in HD Preview */}
-          <div className="flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm bg-white/80 dark:bg-holyDark-100/20 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-holyBlue-900/10 dark:bg-holyDark-400/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Button variant="outline" className="bg-white/80 dark:bg-holyDark-200/80">
-                <span className="mr-2">Learn More</span>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="rounded-full bg-holyGold-100 p-3 dark:bg-holyGold-100/20">
-              <Bookmark className="h-8 w-8 text-holyTan-700 dark:text-holyGold-300" />
-            </div>
-            <div className="absolute top-2 right-2">
-              <div className="inline-flex items-center gap-1 rounded-full bg-holyBlue-100 px-2 py-1 text-xs text-holyBlue-800 dark:bg-holyBlue-900/20 dark:text-holyBlue-300">
-                <Clock4 className="h-3 w-3" />
-                <span>Q4 2025</span>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold">Scripture in HD</h3>
-            <p className="text-center text-muted-foreground">
-              Smart links, character profiles, and contextual layers that bring the Bible to life.
-            </p>
-          </div>
 
-          {/* Multi-Modal Preview */}
-          <div className="flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm bg-white/80 dark:bg-holyDark-100/20 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-holyBlue-900/10 dark:bg-holyDark-400/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Button variant="outline" className="bg-white/80 dark:bg-holyDark-200/80">
-                <span className="mr-2">Learn More</span>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="rounded-full bg-holyGold-100 p-3 dark:bg-holyGold-100/20">
-              <Headphones className="h-8 w-8 text-holyTan-700 dark:text-holyGold-300" />
-            </div>
-            <div className="absolute top-2 right-2">
-              <div className="inline-flex items-center gap-1 rounded-full bg-holyBlue-100 px-2 py-1 text-xs text-holyBlue-800 dark:bg-holyBlue-900/20 dark:text-holyBlue-300">
-                <Clock4 className="h-3 w-3" />
-                <span>Q1 2026</span>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold">Multi-Modal Bible</h3>
-            <p className="text-center text-muted-foreground">
-              Experience Scripture through reading, listening, and visual engagement.
-            </p>
-          </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mt-12">
+          {features.map((feature, index) => (
+            <div
+              key={feature.key}
+              className="group relative flex flex-col items-center space-y-4 rounded-2xl border bg-background/50 p-8 shadow-sm transition-all duration-500 hover:shadow-xl hover:border-primary/30 hover:-translate-y-2 animate-fade-up opacity-0"
+              style={{ animationDelay: `${300 + index * 100}ms` }}
+            >
+              {/* Hover glow effect */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-          {/* Community Preview */}
-          <div className="flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm bg-white/80 dark:bg-holyDark-100/20 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-holyBlue-900/10 dark:bg-holyDark-400/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Button variant="outline" className="bg-white/80 dark:bg-holyDark-200/80">
-                <span className="mr-2">Learn More</span>
-                <ArrowRight className="h-4 w-4" />
+              {/* Timeline badge */}
+              <div className="absolute top-4 right-4">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+                  <Clock4 className="h-3 w-3" />
+                  <span>{feature.timeline}</span>
+                </div>
+              </div>
+
+              {/* Icon */}
+              <div className="relative rounded-2xl bg-primary/10 p-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                <feature.icon className="h-8 w-8 text-primary" />
+              </div>
+
+              {/* Content */}
+              <h3 className="relative text-xl font-bold">{feature.title}</h3>
+              <p className="relative text-center text-muted-foreground">
+                {feature.description}
+              </p>
+
+              {/* CTA */}
+              <Button
+                variant="ghost"
+                className="relative mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                onClick={() => handleLearnMore(feature)}
+              >
+                <span className="mr-2">{t("learnMore")}</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </div>
-            <div className="rounded-full bg-holyGold-100 p-3 dark:bg-holyGold-100/20">
-              <Users className="h-8 w-8 text-holyTan-700 dark:text-holyGold-300" />
-            </div>
-            <div className="absolute top-2 right-2">
-              <div className="inline-flex items-center gap-1 rounded-full bg-holyBlue-100 px-2 py-1 text-xs text-holyBlue-800 dark:bg-holyBlue-900/20 dark:text-holyBlue-300">
-                <Clock4 className="h-3 w-3" />
-                <span>Q2 2026</span>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold">Community Features</h3>
-            <p className="text-center text-muted-foreground">
-              Study circles, discussion boards, and shared spiritual growth.
-            </p>
-          </div>
+          ))}
         </div>
       </div>
-    </section >
 
+      {/* Feature Modal */}
+      <FeatureModal
+        feature={selectedFeature}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        expectedText={t("expected")}
+      />
+    </section>
   );
 }

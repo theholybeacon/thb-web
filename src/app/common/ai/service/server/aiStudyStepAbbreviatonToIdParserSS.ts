@@ -1,65 +1,58 @@
 "use server";
 
-import { bookGetByAbbreviationAndBibleIdSS } from "@/app/common/book/service/server/bookGetByAbbreviationAndBibleIdSS";
-import { chapterGetByBookIdAndChapterNumberSS } from "@/app/common/chapter/service/chapterGetByBookIdAndChapterNumberSS";
-import { StudyStep, StudyStepInsert } from "@/app/common/studyStep/model/StudyStep";
+import { StudyStepInsert } from "@/app/common/studyStep/model/StudyStep";
 import { StudyStepFromAIDTO } from "@/app/common/studyStep/model/StudyStepFromAIDTO";
 import { StudyStepType } from "@/app/common/studyStep/model/StudyStepType";
-import { verseGetByChapterIdAndVerseNumberSS } from "@/app/common/verse/service/verseGetByChapterIdAndVerseNumberSS";
 
-
+/**
+ * Converts AI-generated study step data into a StudyStepInsert with canonical references.
+ * No database lookups needed - just parses the string formats into structured data.
+ */
 export async function aiStudyStepAbbreviatonToIdParserSS(input: StudyStepFromAIDTO): Promise<StudyStepInsert> {
-    let out: StudyStepInsert = {
+    // Ensure required fields have fallback values
+    const title = input.title || `Step ${input.stepNumber}`;
+    const explanation = input.explanation || `Read and meditate on ${input.bookAbbreviation}${input.chapterNumber ? ` ${input.chapterNumber}` : ''}${input.verseNumber ? `:${input.verseNumber}` : ''}.`;
+
+    const out: StudyStepInsert = {
         studyId: "",
-        title: input.title,
+        title,
         stepType: input.stepType,
         stepNumber: input.stepNumber,
-        explanation: input.explanation,
-        bibleId: input.bibleId
+        explanation,
+        bookAbbreviation: input.bookAbbreviation,
     };
-
-    const book = await bookGetByAbbreviationAndBibleIdSS(input.bibleId, input.bookAbbreviation);
-    const chapter = await chapterGetByBookIdAndChapterNumberSS(book.id, Number(input.chapterNumber!));
-
 
     switch (input.stepType) {
         case StudyStepType.FullBook:
-            out.startBookId = book.id;
+            // Just the book, no chapter/verse needed
             break;
+
         case StudyStepType.ChapterRange:
             const chapterRangeSplit = input.chapterNumber.split("-");
-            const startChapterNumber = Number(chapterRangeSplit.at(0));
-            const endChapterNumber = Number(chapterRangeSplit.at(1));
-
-            const startChapter = await chapterGetByBookIdAndChapterNumberSS(book.id, startChapterNumber);
-            out.startChapterId = startChapter.id;
-
-            const endChapter = await chapterGetByBookIdAndChapterNumberSS(book.id, endChapterNumber);
-            out.endChapterId = endChapter.id;
-
+            out.startChapter = Number(chapterRangeSplit[0]);
+            out.endChapter = Number(chapterRangeSplit[1]);
             break;
+
         case StudyStepType.SingleChapter:
-            out.startChapterId = chapter.id;
+            out.startChapter = Number(input.chapterNumber);
+            out.endChapter = Number(input.chapterNumber);
             break;
 
         case StudyStepType.VerseRange:
+            out.startChapter = Number(input.chapterNumber);
+            out.endChapter = Number(input.chapterNumber);
             const verseRangeSplit = input.verseNumber.split("-");
-            const startVerseNumber = Number(verseRangeSplit.at(0));
-            const endVerseNumber = Number(verseRangeSplit.at(1));
-
-            const startVerse = await verseGetByChapterIdAndVerseNumberSS(chapter.id, startVerseNumber);
-            out.startVerseId = startVerse.id;
-            const endVerse = await verseGetByChapterIdAndVerseNumberSS(chapter.id, endVerseNumber);
-            out.endVerseId = endVerse.id;
+            out.startVerse = Number(verseRangeSplit[0]);
+            out.endVerse = Number(verseRangeSplit[1]);
             break;
+
         case StudyStepType.SingleVerse:
-            const verse = await verseGetByChapterIdAndVerseNumberSS(chapter.id, Number(input.verseNumber));
-            out.startVerseId = verse.id;
+            out.startChapter = Number(input.chapterNumber);
+            out.endChapter = Number(input.chapterNumber);
+            out.startVerse = Number(input.verseNumber);
+            out.endVerse = Number(input.verseNumber);
             break;
     }
 
-    console.log(out);
-
     return out;
-
 }

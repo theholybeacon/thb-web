@@ -20,10 +20,10 @@ export class BookRepository {
 		if (output.length === 0) {
 			const bibleToFetch = await this._bibleRepository.getById(bibleId);
 			output = await this.externalDao.getAllByBibleId(bibleToFetch!.apiId);
-			output.map(async (actual) => {
+			await Promise.all(output.map(async (actual) => {
 				actual.bibleId = bibleId;
 				await this.internalDao.create(actual);
-			});
+			}));
 			await this._bibleRepository.updateBookNumber(output.length, bibleId);
 		}
 		return output;
@@ -37,10 +37,16 @@ export class BookRepository {
 		return await this.internalDao.create(book);
 	}
 
-	async getByAbbreviationAndBibleId(bibleId: string, abbreviation: string): Promise<Book> {
-		return await this.internalDao.getByAbbreviationAndBibleId(bibleId, abbreviation)!;
+	async getByAbbreviationAndBibleId(bibleId: string, abbreviation: string): Promise<Book | null> {
+		return await this.internalDao.getByAbbreviationAndBibleId(bibleId, abbreviation);
 	}
 
+	async getBySlugAndBibleId(bibleId: string, slug: string): Promise<Book | null> {
+		return await this.internalDao.getBySlugAndBibleId(bibleId, slug);
+	}
 
+	async getNextByOrder(bibleId: string, currentBookOrder: number): Promise<Book | null> {
+		return await this.internalDao.getNextByOrder(bibleId, currentBookOrder);
+	}
 }
 

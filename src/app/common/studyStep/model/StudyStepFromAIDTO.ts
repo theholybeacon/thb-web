@@ -7,9 +7,7 @@ export interface StudyStepFromAIDTO {
 
     stepType: StudyStepType;
 
-    bibleId: string;
     bookAbbreviation: string;
-    chapterNumber: string;
-    verseNumber: string;
+    chapterNumber: string;  // e.g., "1" or "1-3" for ranges
+    verseNumber: string;    // e.g., "1" or "1-5" for ranges
 }
-
