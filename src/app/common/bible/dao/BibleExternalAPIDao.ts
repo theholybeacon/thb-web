@@ -1,5 +1,4 @@
 import { logger } from "@/app/utils/logger";
-import { randomUUID } from "crypto";
 import { selectBibleSchema } from "@/db/schema/bible";
 import { Bible } from "../model/Bible";
 import { toUrlSlug, makeUniqueSlug } from "@/lib/slug";
@@ -51,8 +50,8 @@ export class BibleExternalAPIDao {
 				usedSlugs.add(slug);
 
 				output.push(selectBibleSchema.parse({
-					id: String(randomUUID()),
-					bibleId: String(randomUUID()),
+					id: crypto.randomUUID(),
+					bibleId: crypto.randomUUID(),
 					apiId: bible.id,
 					name: bible.name,
 					language: bible.language.name,
