@@ -29,6 +29,9 @@ export const subscriptionTable = pgTable("subscription", {
 	currentPeriodEnd: timestamp().notNull(),
 	cancelAtPeriodEnd: boolean().notNull().default(false),
 	canceledAt: timestamp(),
+	gifterId: uuid().references((): AnyPgColumn => userTable.id),
+	giftSubscriptionId: uuid(),
+	membershipRequestId: uuid(),
 	createdAt: timestamp().defaultNow(),
 	updatedAt: timestamp().defaultNow(),
 });
@@ -37,6 +40,12 @@ export const subscriptionRelations = relations(subscriptionTable, ({ one }) => (
 	user: one(userTable, {
 		fields: [subscriptionTable.userId],
 		references: [userTable.id],
+		relationName: "subscriptionUser",
+	}),
+	gifter: one(userTable, {
+		fields: [subscriptionTable.gifterId],
+		references: [userTable.id],
+		relationName: "subscriptionGifter",
 	}),
 }));
 

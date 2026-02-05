@@ -15,12 +15,26 @@ interface ListenModeProps {
 	endVerse?: number | null;
 	bookName?: string;
 	chapterNumber?: number;
+	bibleLanguage?: string;
 	isLastChapter?: boolean;
 	showCompletion?: boolean;
 	onComplete?: (stats: { timeSpentSeconds: number }) => void;
 }
 
-export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumber, isLastChapter = true, showCompletion = true, onComplete }: ListenModeProps) {
+function toBcp47(language?: string): string {
+	const map: Record<string, string> = {
+		english: "en-US",
+		spanish: "es-ES",
+		portuguese: "pt-BR",
+		french: "fr-FR",
+		german: "de-DE",
+		italian: "it-IT",
+		chinese: "zh-CN",
+	};
+	return map[language?.toLowerCase() ?? ""] ?? "en-US";
+}
+
+export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumber, bibleLanguage, isLastChapter = true, showCompletion = true, onComplete }: ListenModeProps) {
 	const t = useTranslations();
 
 	// Filter verses to only those in range
@@ -70,13 +84,13 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 			}
 
 			const verse = filteredVerses[index];
-			const text = `${verse.verseNumber}. ${verse.content}`;
+			const text = verse.content;
 
 			synthRef.current.cancel();
 
 			const utterance = new SpeechSynthesisUtterance(text);
 			utterance.rate = speechRate;
-			utterance.lang = "es-ES"; // TODO: Make this dynamic based on Bible language
+			utterance.lang = toBcp47(bibleLanguage);
 
 			utterance.onend = () => {
 				if (index < filteredVerses.length - 1) {
@@ -97,7 +111,7 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 			utteranceRef.current = utterance;
 			synthRef.current.speak(utterance);
 		},
-		[filteredVerses, speechRate]
+		[filteredVerses, speechRate, bibleLanguage]
 	);
 
 	const handlePlay = () => {

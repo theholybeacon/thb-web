@@ -505,6 +505,7 @@ export default function SessionView({ session: initialSession }: SessionViewPara
                       endVerse={currentStep?.endVerse}
                       bookName={chapterData.bookName}
                       chapterNumber={actualChapterNumber}
+                      bibleLanguage={(initialSession.study as any)?.bible?.language}
                       isLastChapter={isLastChapterInStep}
                       onComplete={(stats) => handleCompleteChapter(stats)}
                     />

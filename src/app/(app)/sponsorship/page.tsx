@@ -15,6 +15,7 @@ import { membershipRequestGetAllPendingSS } from "@/app/common/membershipRequest
 import { membershipRequestGetPendingByRequesterIdSS } from "@/app/common/membershipRequest/service/server/membershipRequestGetPendingByRequesterIdSS";
 import { membershipRequestCreateSS } from "@/app/common/membershipRequest/service/server/membershipRequestCreateSS";
 import { membershipRequestUpdateSS } from "@/app/common/membershipRequest/service/server/membershipRequestUpdateSS";
+import { subscriptionGetSponsorshipInfoSS } from "@/app/common/subscription/service/server/subscriptionGetSponsorshipInfoSS";
 
 export default function SponsorshipPage() {
 	const t = useTranslations("sponsorship");
@@ -38,6 +39,17 @@ export default function SponsorshipPage() {
 		},
 		enabled: Boolean(user?.id) && !isPremium,
 	});
+
+	const { data: sponsorshipInfo } = useQuery({
+		queryKey: ["sponsorshipInfo", user?.id],
+		queryFn: async () => {
+			if (!user?.id) return null;
+			return await subscriptionGetSponsorshipInfoSS(user.id);
+		},
+		enabled: Boolean(user?.id) && !isPremium,
+	});
+
+	const hasSponsor = (sponsorshipInfo?.sponsors?.length ?? 0) > 0;
 
 	const createRequestMutation = useMutation({
 		mutationFn: async () => {
@@ -122,8 +134,8 @@ export default function SponsorshipPage() {
 
 					<p className="text-muted-foreground mb-8 max-w-2xl">{t("description")}</p>
 
-					{/* Request sponsorship section - only for non-premium users */}
-					{!isPremium && !myRequest && (
+					{/* Request sponsorship section - only for non-premium users without a sponsor */}
+					{!isPremium && !myRequest && !hasSponsor && (
 						<div className="rounded-lg border bg-card p-6 mb-8">
 							<div className="flex items-center gap-2 mb-4">
 								<Heart className="h-5 w-5 text-primary" />
@@ -160,8 +172,8 @@ export default function SponsorshipPage() {
 						</div>
 					)}
 
-					{/* Current request status */}
-					{!isPremium && myRequest && (
+					{/* Current request status - hide if already has a sponsor */}
+					{!isPremium && myRequest && !hasSponsor && (
 						<div className="rounded-lg border border-primary/50 bg-primary/5 p-6 mb-8">
 							<div className="flex items-center gap-2 mb-4">
 								<Check className="h-5 w-5 text-primary" />

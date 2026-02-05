@@ -62,19 +62,17 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-	log.info({ sessionId: session.id }, "Handling checkout.session.completed");
-
 	const userId = session.metadata?.userId;
 	const giftRecipientEmail = session.metadata?.giftRecipientEmail;
 	const membershipRequestId = session.metadata?.membershipRequestId;
 	const isGift = session.metadata?.isGift === "true";
 
+	log.info({ isGift, userId, membershipRequestId }, "handleCheckoutSessionCompleted");
+
 	if (isGift) {
-		// Handle gift purchase
 		await handleGiftCheckout(session, giftRecipientEmail, membershipRequestId);
 	} else if (userId) {
-		// Regular subscription purchase - handled by subscription.created webhook
-		log.info({ userId }, "Regular subscription checkout completed");
+		log.info({ userId }, "Regular subscription checkout");
 	}
 }
 
@@ -95,15 +93,12 @@ async function handleGiftCheckout(
 	const giftSubscriptionRepository = new GiftSubscriptionRepository();
 	const userRepository = new UserRepository();
 
-	// Get gifter info for emails
 	const gifter = await userRepository.getById(gifterId);
 	const gifterName = gifter?.name || "A generous member";
 
-	// Generate unique claim token
 	const claimToken = crypto.randomUUID();
 
-	// Create gift subscription record
-	await giftSubscriptionRepository.create({
+	const giftRecord = await giftSubscriptionRepository.create({
 		gifterId,
 		recipientEmail: recipientEmail || null,
 		membershipRequestId: membershipRequestId || null,
@@ -114,7 +109,8 @@ async function handleGiftCheckout(
 		claimToken,
 	});
 
-	// If this fulfills a membership request, update the request and send email
+	log.info({ giftRecordId: giftRecord.id }, "Gift subscription record created");
+
 	if (membershipRequestId) {
 		const membershipRequestRepository = new MembershipRequestRepository();
 		const request = await membershipRequestRepository.getById(membershipRequestId);
@@ -126,24 +122,29 @@ async function handleGiftCheckout(
 				fulfilledAt: new Date(),
 			});
 
-			// Auto-claim for the requester
 			const requester = await userRepository.getById(request.requesterId);
 
 			if (requester) {
-				// Create subscription for the requester directly
-				await createSubscriptionForUser(requester.id, stripePriceId, billingInterval, gifterId);
-
-				// Update gift subscription as claimed
-				const gift = await giftSubscriptionRepository.getByMembershipRequestId(membershipRequestId);
-				if (gift) {
-					await giftSubscriptionRepository.update(gift.id, {
-						recipientId: request.requesterId,
-						status: "claimed",
-						claimedAt: new Date(),
-					});
+				try {
+					await createSubscriptionForUser(
+						requester.id,
+						stripePriceId,
+						billingInterval,
+						gifterId,
+						giftRecord.id,
+						membershipRequestId
+					);
+					log.info({ userId: requester.id }, "createSubscriptionForUser succeeded");
+				} catch (subError) {
+					log.error({ error: subError, userId: requester.id }, "createSubscriptionForUser failed");
 				}
 
-				// Send email to the requester that they are now premium
+				await giftSubscriptionRepository.update(giftRecord.id, {
+					recipientId: request.requesterId,
+					status: "claimed",
+					claimedAt: new Date(),
+				});
+
 				if (requester.email) {
 					try {
 						await sendSponsorshipFulfilledEmail({
@@ -156,14 +157,13 @@ async function handleGiftCheckout(
 					} catch (emailError) {
 						log.error(
 							{ error: emailError, recipientEmail: requester.email },
-							"Failed to send sponsorship fulfilled email, but subscription was created successfully"
+							"Failed to send sponsorship fulfilled email"
 						);
 					}
 				}
 			}
 		}
 	} else if (recipientEmail) {
-		// Send email to the recipient about their gift (email-based gift)
 		try {
 			await sendGiftReceivedEmail({
 				recipientEmail,
@@ -173,28 +173,26 @@ async function handleGiftCheckout(
 			});
 			log.info({ recipientEmail }, "Sent gift received email");
 		} catch (emailError) {
-			log.error(
-				{ error: emailError, recipientEmail },
-				"Failed to send gift received email, but gift subscription was created successfully"
-			);
+			log.error({ error: emailError, recipientEmail }, "Failed to send gift received email");
 		}
 	}
 
-	log.info({ claimToken, membershipRequestId }, "Gift subscription created");
+	log.info({ giftRecordId: giftRecord.id }, "handleGiftCheckout finished");
 }
 
 async function createSubscriptionForUser(
 	userId: string,
 	stripePriceId: string,
 	billingInterval: string,
-	gifterId?: string
+	gifterId?: string,
+	giftSubscriptionId?: string,
+	membershipRequestId?: string
 ) {
 	const userRepository = new UserRepository();
 	const subscriptionRepository = new SubscriptionRepository();
 
 	const user = await userRepository.getById(userId);
 
-	// Create or get Stripe customer
 	let stripeCustomerId = user.stripeCustomerId;
 	if (!stripeCustomerId) {
 		const customer = await stripe.customers.create({
@@ -206,33 +204,45 @@ async function createSubscriptionForUser(
 		await userRepository.update({ ...user, stripeCustomerId });
 	}
 
-	// Create subscription in Stripe
 	const stripeSubscription = await stripe.subscriptions.create({
 		customer: stripeCustomerId,
 		items: [{ price: stripePriceId }],
+		collection_method: 'send_invoice',
+		days_until_due: 0,
 		metadata: {
 			userId,
 			gifterId: gifterId || "",
 		},
 	});
 
-	// Create subscription record
-	const periodStart = (stripeSubscription as unknown as { current_period_start: number }).current_period_start;
-	const periodEnd = (stripeSubscription as unknown as { current_period_end: number }).current_period_end;
+	const latestInvoice = stripeSubscription.latest_invoice;
+	const invoiceId = typeof latestInvoice === "string" ? latestInvoice : latestInvoice?.id;
+	if (invoiceId) {
+		await stripe.invoices.pay(invoiceId, { paid_out_of_band: true });
+		log.info({ invoiceId, subscriptionId: stripeSubscription.id }, "Marked gift subscription invoice as paid out-of-band");
+	}
 
-	await subscriptionRepository.create({
+	const updatedSubscription = await stripe.subscriptions.retrieve(stripeSubscription.id);
+
+	const periodStart = (updatedSubscription as unknown as { current_period_start: number }).current_period_start;
+	const periodEnd = (updatedSubscription as unknown as { current_period_end: number }).current_period_end;
+
+	await subscriptionRepository.upsertByUserId({
 		userId,
 		stripeCustomerId,
-		stripeSubscriptionId: stripeSubscription.id,
+		stripeSubscriptionId: updatedSubscription.id,
 		stripePriceId,
-		status: "active",
+		status: mapStripeStatus(updatedSubscription.status),
 		billingInterval: billingInterval as "month" | "year",
 		currentPeriodStart: new Date(periodStart * 1000),
 		currentPeriodEnd: new Date(periodEnd * 1000),
 		cancelAtPeriodEnd: false,
+		gifterId: gifterId || null,
+		giftSubscriptionId: giftSubscriptionId || null,
+		membershipRequestId: membershipRequestId || null,
 	});
 
-	log.info({ userId, stripeSubscriptionId: stripeSubscription.id }, "Created subscription for user");
+	log.info({ userId, stripeSubscriptionId: updatedSubscription.id, status: updatedSubscription.status }, "Upserted subscription for gifted user");
 }
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
@@ -245,12 +255,6 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 	}
 
 	const subscriptionRepository = new SubscriptionRepository();
-	const existingSub = await subscriptionRepository.getByStripeSubscriptionId(subscription.id);
-
-	if (existingSub) {
-		log.info({ subscriptionId: subscription.id }, "Subscription already exists");
-		return;
-	}
 
 	const customerId =
 		typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
@@ -258,7 +262,9 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 	const interval = subscription.items.data[0]?.price.recurring?.interval || "month";
 	const subAny = subscription as unknown as { current_period_start: number; current_period_end: number };
 
-	await subscriptionRepository.create({
+	const gifterId = subscription.metadata?.gifterId || null;
+
+	await subscriptionRepository.upsertByUserId({
 		userId,
 		stripeCustomerId: customerId,
 		stripeSubscriptionId: subscription.id,
@@ -268,9 +274,10 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 		currentPeriodStart: new Date(subAny.current_period_start * 1000),
 		currentPeriodEnd: new Date(subAny.current_period_end * 1000),
 		cancelAtPeriodEnd: subscription.cancel_at_period_end,
+		gifterId: gifterId || null,
 	});
 
-	log.info({ userId, subscriptionId: subscription.id }, "Created subscription record");
+	log.info({ userId, subscriptionId: subscription.id }, "Upserted subscription record");
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {

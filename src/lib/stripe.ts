@@ -23,6 +23,8 @@ export const stripe = {
 	get checkout() { return getStripe().checkout; },
 	get billingPortal() { return getStripe().billingPortal; },
 	get webhooks() { return getStripe().webhooks; },
+	get prices() { return getStripe().prices; },
+	get invoices() { return getStripe().invoices; },
 };
 
 export const STRIPE_PRODUCT_ID = process.env.STRIPE_PRODUCT_ID!;

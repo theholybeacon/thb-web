@@ -14,18 +14,33 @@ export async function POST(request: NextRequest) {
 		const body = await request.json();
 		const { priceId, billingInterval, isGift, giftRecipientEmail, membershipRequestId } = body;
 
-		if (!priceId) {
+		const stripeClient = getStripe();
+		let resolvedPriceId = priceId;
+
+		// For gift checkout without a priceId, resolve it from the product + billing interval
+		if (!resolvedPriceId && isGift && billingInterval) {
+			const prices = await stripeClient.prices.list({
+				product: STRIPE_PRODUCT_ID,
+				active: true,
+				recurring: { interval: billingInterval },
+				limit: 1,
+			});
+			if (prices.data.length > 0) {
+				resolvedPriceId = prices.data[0].id;
+			}
+		}
+
+		if (!resolvedPriceId) {
 			return NextResponse.json({ error: "Price ID is required" }, { status: 400 });
 		}
 
 		// Validate price belongs to our product
-		const stripeClient = getStripe();
-		const price = await stripeClient.prices.retrieve(priceId);
+		const price = await stripeClient.prices.retrieve(resolvedPriceId);
 		if (!price || price.product !== STRIPE_PRODUCT_ID) {
 			return NextResponse.json({ error: "Invalid price ID" }, { status: 400 });
 		}
 
-		const validPriceId = priceId;
+		const validPriceId = resolvedPriceId;
 
 		const userRepository = new UserRepository();
 		const user = await userRepository.getByAuthId(authId);

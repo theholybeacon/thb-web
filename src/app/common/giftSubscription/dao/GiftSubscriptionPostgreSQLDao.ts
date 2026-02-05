@@ -29,30 +29,6 @@ export class GiftSubscriptionPostgreSQLDao {
 		return response || null;
 	}
 
-	async getByGifterId(gifterId: string): Promise<GiftSubscription[]> {
-		log.trace("getByGifterId");
-		const response = await db.query.giftSubscriptionTable.findMany({
-			where: eq(giftSubscriptionTable.gifterId, gifterId),
-		});
-		return response;
-	}
-
-	async getByRecipientId(recipientId: string): Promise<GiftSubscription[]> {
-		log.trace("getByRecipientId");
-		const response = await db.query.giftSubscriptionTable.findMany({
-			where: eq(giftSubscriptionTable.recipientId, recipientId),
-		});
-		return response;
-	}
-
-	async getByMembershipRequestId(membershipRequestId: string): Promise<GiftSubscription | null> {
-		log.trace("getByMembershipRequestId");
-		const response = await db.query.giftSubscriptionTable.findFirst({
-			where: eq(giftSubscriptionTable.membershipRequestId, membershipRequestId),
-		});
-		return response || null;
-	}
-
 	async update(id: string, data: Partial<GiftSubscriptionInsert>): Promise<GiftSubscription> {
 		log.trace("update");
 		const result = await db

@@ -13,6 +13,40 @@ export class SubscriptionPostgreSQLDao {
 		return response[0];
 	}
 
+	async upsertByUserId(s: SubscriptionInsert): Promise<Subscription> {
+		log.trace("upsertByUserId");
+		const response = await db
+			.insert(subscriptionTable)
+			.values(s)
+			.onConflictDoUpdate({
+				target: subscriptionTable.userId,
+				set: {
+					stripeCustomerId: s.stripeCustomerId,
+					stripeSubscriptionId: s.stripeSubscriptionId,
+					stripePriceId: s.stripePriceId,
+					status: s.status,
+					billingInterval: s.billingInterval,
+					currentPeriodStart: s.currentPeriodStart,
+					currentPeriodEnd: s.currentPeriodEnd,
+					cancelAtPeriodEnd: s.cancelAtPeriodEnd,
+					gifterId: s.gifterId,
+					giftSubscriptionId: s.giftSubscriptionId,
+					membershipRequestId: s.membershipRequestId,
+					updatedAt: new Date(),
+				},
+			})
+			.returning();
+		return response[0];
+	}
+
+	async getByGifterId(gifterId: string): Promise<Subscription[]> {
+		log.trace("getByGifterId");
+		const response = await db.query.subscriptionTable.findMany({
+			where: eq(subscriptionTable.gifterId, gifterId),
+		});
+		return response;
+	}
+
 	async getById(id: string): Promise<Subscription | null> {
 		log.trace("getById");
 		const response = await db.query.subscriptionTable.findFirst({

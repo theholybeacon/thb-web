@@ -16,18 +16,6 @@ export class GiftSubscriptionRepository {
 		return await this.dao.getByClaimToken(claimToken);
 	}
 
-	async getByGifterId(gifterId: string): Promise<GiftSubscription[]> {
-		return await this.dao.getByGifterId(gifterId);
-	}
-
-	async getByRecipientId(recipientId: string): Promise<GiftSubscription[]> {
-		return await this.dao.getByRecipientId(recipientId);
-	}
-
-	async getByMembershipRequestId(membershipRequestId: string): Promise<GiftSubscription | null> {
-		return await this.dao.getByMembershipRequestId(membershipRequestId);
-	}
-
 	async update(id: string, data: Partial<GiftSubscriptionInsert>): Promise<GiftSubscription> {
 		return await this.dao.update(id, data);
 	}

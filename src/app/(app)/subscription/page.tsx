@@ -9,7 +9,7 @@ import { Crown, CreditCard, Gift, Users, Check, Heart, Clock, Hash } from "lucid
 import Link from "next/link";
 import { PremiumBadge } from "@/components/premium";
 import { cn } from "@/lib/utils";
-import { giftSubscriptionGetSponsorshipInfoSS, SponsorshipInfo } from "@/app/common/giftSubscription/service/server/giftSubscriptionGetSponsorshipInfoSS";
+import { subscriptionGetSponsorshipInfoSS, SponsorshipInfo } from "@/app/common/subscription/service/server/subscriptionGetSponsorshipInfoSS";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { membershipRequestGetPendingByRequesterIdSS } from "@/app/common/membershipRequest/service/server/membershipRequestGetPendingByRequesterIdSS";
 import { membershipRequestGetQueuePositionSS } from "@/app/common/membershipRequest/service/server/membershipRequestGetQueuePositionSS";
@@ -66,7 +66,7 @@ export default function SubscriptionPage() {
 				return;
 			}
 			try {
-				const info = await giftSubscriptionGetSponsorshipInfoSS(user.id);
+				const info = await subscriptionGetSponsorshipInfoSS(user.id);
 				setSponsorshipInfo(info);
 			} catch (error) {
 				console.error("Error fetching sponsorship info:", error);
@@ -354,8 +354,8 @@ export default function SubscriptionPage() {
 								</div>
 							)}
 
-							{/* Queue Status Section */}
-							{!queueLoading && pendingRequest && queuePosition && (
+							{/* Queue Status Section - hide if user already has a sponsor */}
+							{!queueLoading && pendingRequest && queuePosition && !(sponsorshipInfo && sponsorshipInfo.sponsors.length > 0) && (
 								<div className="rounded-lg border border-primary/30 bg-primary/5 p-6">
 									<div className="flex items-center gap-2 mb-4">
 										<Clock className="h-5 w-5 text-primary" />
@@ -420,8 +420,8 @@ export default function SubscriptionPage() {
 								</div>
 							)}
 
-							{/* Need help card - only show if not already in queue */}
-							{!pendingRequest && (
+							{/* Need help card - hide if already in queue or already has a sponsor */}
+							{!pendingRequest && !(sponsorshipInfo && sponsorshipInfo.sponsors.length > 0) && (
 								<div className="rounded-lg border border-dashed p-6 text-center">
 									<Users className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
 									<h3 className="font-medium mb-2">{t("needHelp")}</h3>

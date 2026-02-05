@@ -63,6 +63,8 @@ export async function POST(request: NextRequest) {
 		const stripeSubscription = await stripe.subscriptions.create({
 			customer: stripeCustomerId,
 			items: [{ price: gift.stripePriceId }],
+			collection_method: 'send_invoice',
+			days_until_due: 0,
 			metadata: {
 				userId: user.id,
 				gifterId: gift.gifterId,
@@ -70,9 +72,17 @@ export async function POST(request: NextRequest) {
 			},
 		});
 
-		// Create subscription record
+		// Mark the invoice as paid out-of-band (gifter already paid)
+		const latestInvoice = stripeSubscription.latest_invoice;
+		const invoiceId = typeof latestInvoice === "string" ? latestInvoice : latestInvoice?.id;
+		if (invoiceId) {
+			await stripe.invoices.pay(invoiceId, { paid_out_of_band: true });
+			log.info({ invoiceId, subscriptionId: stripeSubscription.id }, "Marked gift claim invoice as paid out-of-band");
+		}
+
+		// Create or update subscription record (upsert to handle race with webhook)
 		const subAny = stripeSubscription as unknown as { current_period_start: number; current_period_end: number };
-		await subscriptionRepository.create({
+		await subscriptionRepository.upsertByUserId({
 			userId: user.id,
 			stripeCustomerId,
 			stripeSubscriptionId: stripeSubscription.id,
@@ -82,6 +92,9 @@ export async function POST(request: NextRequest) {
 			currentPeriodStart: new Date(subAny.current_period_start * 1000),
 			currentPeriodEnd: new Date(subAny.current_period_end * 1000),
 			cancelAtPeriodEnd: false,
+			gifterId: gift.gifterId,
+			giftSubscriptionId: gift.id,
+			membershipRequestId: gift.membershipRequestId,
 		});
 
 		// Update gift subscription as claimed

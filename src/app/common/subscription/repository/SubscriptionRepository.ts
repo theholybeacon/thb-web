@@ -8,6 +8,14 @@ export class SubscriptionRepository {
 		return await this.dao.create(s);
 	}
 
+	async upsertByUserId(s: SubscriptionInsert): Promise<Subscription> {
+		return await this.dao.upsertByUserId(s);
+	}
+
+	async getByGifterId(gifterId: string): Promise<Subscription[]> {
+		return await this.dao.getByGifterId(gifterId);
+	}
+
 	async getById(id: string): Promise<Subscription | null> {
 		return await this.dao.getById(id);
 	}
