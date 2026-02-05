@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { studyGetByIdSS } from "@/app/common/study/service/server/studyGetByIdSS";
 import { studyUpdateSS } from "@/app/common/study/service/server/studyUpdateSS";
 import { studyDeleteSS } from "@/app/common/study/service/server/studyDeleteSS";
-import { studyRegenerateSS } from "@/app/common/study/service/server/studyRegenerateSS";
+import { studyRegenerateSaveSS } from "@/app/common/study/service/server/studyRegenerateSaveSS";
 import { sessionCreateSS } from "@/app/common/session/service/sessionCreateSS";
 import { logger } from "@/app/utils/logger";
 import { SessionInsert } from "@/app/common/session/model/Session";
@@ -153,7 +153,20 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
 
   const regenerateMutation = useMutation({
     mutationFn: async () => {
-      return await studyRegenerateSS(id);
+      // Phase 1: Generate AI steps (edge runtime, 25s limit)
+      const res = await fetch('/api/study/regenerate-steps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studyId: id }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to regenerate study steps');
+      }
+      const steps = await res.json();
+
+      // Phase 2: Delete old + save new (server action, fast)
+      return await studyRegenerateSaveSS(id, steps);
     },
     onSuccess: (newStudy) => {
       // Update the cache with the new study data immediately

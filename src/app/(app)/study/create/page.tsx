@@ -1,7 +1,7 @@
 "use client";
 
 import { StudyInsert } from "@/app/common/study/model/Study";
-import { studyCreateWithAISS } from "@/app/common/study/service/server/studyCreateWithAISS";
+import { studyCreateSS } from "@/app/common/study/service/server/studyCreateSS";
 import { bibleGetAllSS } from "@/app/common/bible/service/bibleGetAllSS";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -52,7 +52,20 @@ export default function CreateStudyPage() {
         length: formData.length,
         depth: formData.depth,
       };
-      return await studyCreateWithAISS(studyInsert, formData.bibleId);
+      // Phase 1: Generate AI steps (edge runtime, 25s limit)
+      const res = await fetch('/api/study/generate-steps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studyInsert, bibleId: formData.bibleId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to generate study steps');
+      }
+      const steps = await res.json();
+
+      // Phase 2: Save to DB (server action, fast)
+      return await studyCreateSS({ ...studyInsert, bibleId: formData.bibleId, steps });
     },
     onSuccess: () => {
       toast.success(t("create"));
