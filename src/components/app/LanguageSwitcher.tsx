@@ -2,7 +2,6 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +14,6 @@ import { setLocale } from "@/app/actions/locale";
 import { type Locale } from "@/i18n/request";
 
 export function LanguageSwitcher() {
-  const t = useTranslations("common");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -35,10 +33,10 @@ export function LanguageSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => handleLocaleChange("en")}>
-          {t("english")}
+          English
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleLocaleChange("es")}>
-          {t("spanish")}
+          Español
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
