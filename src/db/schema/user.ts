@@ -1,4 +1,4 @@
-import { AnyPgColumn, pgTable, uuid, varchar, boolean, text } from 'drizzle-orm/pg-core';
+import { AnyPgColumn, pgTable, uuid, varchar, boolean, text, timestamp } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { studyTable } from './study';
 import { relations } from 'drizzle-orm';
@@ -17,6 +17,7 @@ export const userTable = pgTable("user", {
 	country: varchar({ length: 2 }), // ISO 3166-1 alpha-2 country code
 	// Stripe
 	stripeCustomerId: varchar({ length: 255 }),
+	createdAt: timestamp().defaultNow(),
 });
 
 export const userRelations = relations(userTable, ({ one, many }) => ({
