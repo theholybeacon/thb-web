@@ -116,14 +116,12 @@ export function ExplorerView({
                   verses={verses}
                   bookName={bookName}
                   chapterNumber={chapterNumber}
-                  showCompletion={false}
                 />
               )}
 
               {currentMode === "type" && (
                 <TypeMode
                   verses={verses}
-                  showCompletion={false}
                 />
               )}
 
@@ -132,7 +130,6 @@ export function ExplorerView({
                   verses={verses}
                   bookName={bookName}
                   chapterNumber={chapterNumber}
-                  showCompletion={false}
                 />
               )}
             </>

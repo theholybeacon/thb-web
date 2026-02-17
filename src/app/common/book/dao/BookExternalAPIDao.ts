@@ -6,12 +6,17 @@ import { toUrlSlug } from "@/lib/slug";
 const API_KEY = process.env.BIBLE_API_KEY;
 const BASE_URL = "https://api.scripture.api.bible/v1/";
 
+interface ChapterRef {
+	id: string;
+	number: string;
+}
+
 interface BookAPI {
 	id: string;
 	name: string;
 	language: { name: string };
 	abbreviation: string;
-	chapters: object[];
+	chapters: ChapterRef[];
 }
 
 
@@ -42,7 +47,7 @@ export class BookExternalAPIDao {
 					bookOrder: bookNumber,
 					abbreviation: book.abbreviation,
 					slug: toUrlSlug(book.abbreviation),
-					numChapters: book.chapters.length - 1, // Subtract 1 to exclude intro chapter (chapter 0)
+					numChapters: book.chapters.filter((c) => c.number !== "intro").length,
 					createdAt: new Date(),
 					updatedAt: new Date()
 				});
