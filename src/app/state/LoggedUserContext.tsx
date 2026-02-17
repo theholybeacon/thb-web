@@ -118,7 +118,7 @@ interface ClerkUserData {
   username?: string | null;
 }
 
-const PREMIUM_CUTOFF = new Date('2026-02-12T00:00:00Z');
+const PREMIUM_CUTOFF = new Date('2026-03-01T00:00:00Z');
 
 async function fetchSubscriptionStatus(
   userId: string,
@@ -130,9 +130,6 @@ async function fetchSubscriptionStatus(
   }
 
   try {
-    if (createdAt && new Date(createdAt) < PREMIUM_CUTOFF) {
-      return { isPremium: true, subscriptionStatus: 'early_adopter' };
-    }
     const subscription = await subscriptionGetByUserIdSS(userId);
     if (subscription && subscription.status === 'active') {
       return { isPremium: true, subscriptionStatus: subscription.status };
