@@ -274,7 +274,10 @@
     "skipStep": "Saltar Paso",
     "nextChapter": "Siguiente Capítulo",
     "chapterProgress": "Capítulo {current} de {total}",
-    "speechError": "No se puede reproducir el audio. Tu navegador puede no soportar síntesis de voz."
+    "speechError": "No se puede reproducir el audio. Tu navegador puede no soportar síntesis de voz.",
+    "aiInsight": "Perspectiva IA",
+    "hideControls": "Ocultar Controles",
+    "showControls": "Mostrar Controles"
   },
   "sidebar": {
     "activeSessions": "Sesiones Activas",

@@ -1,19 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
+import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, CheckCircle2, ChevronRight } from "lucide-react";
+import { RotateCcw, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TypeModeProps {
 	verses: Verse[];
 	startVerse?: number | null;
 	endVerse?: number | null;
-	isLastChapter?: boolean;
-	showCompletion?: boolean;
-	onComplete?: (stats: { accuracy: number; wpm: number; timeSpentSeconds: number }) => void;
+	explanation?: string | null;
 }
 
 interface CharState {
@@ -21,17 +20,21 @@ interface CharState {
 	state: "pending" | "correct" | "incorrect";
 }
 
-export function TypeMode({ verses, startVerse, endVerse, isLastChapter = true, showCompletion = true, onComplete }: TypeModeProps) {
+export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeModeProps) {
 	const t = useTranslations();
+	const sessionProgress = useOptionalSessionProgress();
 	const inputRef = useRef<HTMLInputElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	// Filter verses to only those in range
-	const filteredVerses = verses.filter((v) => {
-		if (!startVerse) return true;
-		const end = endVerse ?? startVerse;
-		return v.verseNumber >= startVerse && v.verseNumber <= end;
-	});
+	// Filter verses to only those in range, sorted by verse number
+	const filteredVerses = useMemo(() => {
+		const filtered = verses.filter((v) => {
+			if (!startVerse) return true;
+			const end = endVerse ?? startVerse;
+			return v.verseNumber >= startVerse && v.verseNumber <= end;
+		});
+		return filtered.sort((a, b) => a.verseNumber - b.verseNumber);
+	}, [verses, startVerse, endVerse]);
 
 	// Build the full text to type with verse numbers
 	const fullText = filteredVerses
@@ -61,6 +64,11 @@ export function TypeMode({ verses, startVerse, endVerse, isLastChapter = true, s
 	useEffect(() => {
 		inputRef.current?.focus();
 	}, []);
+
+	// Report mode progress to context
+	useEffect(() => {
+		sessionProgress?.reportModeProgress(currentIndex, charStates.length, isComplete);
+	}, [currentIndex, charStates.length, isComplete, sessionProgress]);
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -136,10 +144,6 @@ export function TypeMode({ verses, startVerse, endVerse, isLastChapter = true, s
 		inputRef.current?.focus();
 	};
 
-	const handleComplete = () => {
-		onComplete?.(stats);
-	};
-
 	// Auto-scroll to keep cursor visible
 	useEffect(() => {
 		if (containerRef.current) {
@@ -167,18 +171,27 @@ export function TypeMode({ verses, startVerse, endVerse, isLastChapter = true, s
 
 	return (
 		<div className="space-y-6">
+			{explanation && (
+				<div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
+					<div className="flex items-start gap-2">
+						<Sparkles className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+						<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
+					</div>
+				</div>
+			)}
+
 			{/* Stats bar */}
 			<div className="flex items-center justify-between px-4 py-2 bg-muted/50 rounded-lg">
 				<div className="flex items-center gap-6 text-sm">
 					<div>
 						<span className="text-muted-foreground">{t("session.accuracy")}: </span>
 						<span className={cn("font-mono font-medium", currentAccuracy < 90 ? "text-destructive" : "text-primary")}>
-							{currentAccuracy}%
+							{isComplete ? stats.accuracy : currentAccuracy}%
 						</span>
 					</div>
 					<div>
 						<span className="text-muted-foreground">{t("session.wpm")}: </span>
-						<span className="font-mono font-medium text-primary">{currentWpm}</span>
+						<span className="font-mono font-medium text-primary">{isComplete ? stats.wpm : currentWpm}</span>
 					</div>
 					<div>
 						<span className="text-muted-foreground">{t("session.progress")}: </span>
@@ -189,7 +202,7 @@ export function TypeMode({ verses, startVerse, endVerse, isLastChapter = true, s
 				</div>
 				<Button variant="ghost" size="sm" onClick={handleReset}>
 					<RotateCcw className="h-4 w-4 mr-2" />
-					{t("common.reset")}
+					{isComplete ? t("session.tryAgain") : t("common.reset")}
 				</Button>
 			</div>
 
@@ -268,47 +281,20 @@ export function TypeMode({ verses, startVerse, endVerse, isLastChapter = true, s
 				)}
 			</div>
 
-			{/* Completion overlay */}
+			{/* Completion stats */}
 			{isComplete && (
-				<div className="p-6 bg-primary/10 rounded-lg border border-primary/30">
-					<div className="flex items-center gap-3 mb-4">
-						<CheckCircle2 className="h-8 w-8 text-primary" />
-						<h3 className="text-xl font-semibold">{t("session.typeComplete")}</h3>
+				<div className="grid grid-cols-3 gap-4">
+					<div className="text-center p-4 bg-primary/10 rounded-lg">
+						<p className="text-2xl font-bold text-primary">{stats.accuracy}%</p>
+						<p className="text-sm text-muted-foreground">{t("session.accuracy")}</p>
 					</div>
-					<div className="grid grid-cols-3 gap-4 mb-6">
-						<div className="text-center p-4 bg-background rounded-lg">
-							<p className="text-2xl font-bold text-primary">{stats.accuracy}%</p>
-							<p className="text-sm text-muted-foreground">{t("session.accuracy")}</p>
-						</div>
-						<div className="text-center p-4 bg-background rounded-lg">
-							<p className="text-2xl font-bold text-primary">{stats.wpm}</p>
-							<p className="text-sm text-muted-foreground">{t("session.wpm")}</p>
-						</div>
-						<div className="text-center p-4 bg-background rounded-lg">
-							<p className="text-2xl font-bold text-primary">{stats.timeSpentSeconds}s</p>
-							<p className="text-sm text-muted-foreground">{t("session.timeSpent")}</p>
-						</div>
+					<div className="text-center p-4 bg-primary/10 rounded-lg">
+						<p className="text-2xl font-bold text-primary">{stats.wpm}</p>
+						<p className="text-sm text-muted-foreground">{t("session.wpm")}</p>
 					</div>
-					<div className="flex gap-3">
-						<Button variant="outline" onClick={handleReset}>
-							<RotateCcw className="h-4 w-4 mr-2" />
-							{t("session.tryAgain")}
-						</Button>
-						{showCompletion && onComplete && (
-							<Button onClick={handleComplete}>
-								{isLastChapter ? (
-									<>
-										<CheckCircle2 className="h-4 w-4 mr-2" />
-										{t("session.completeStep")}
-									</>
-								) : (
-									<>
-										{t("session.nextChapter")}
-										<ChevronRight className="h-4 w-4 ml-2" />
-									</>
-								)}
-							</Button>
-						)}
+					<div className="text-center p-4 bg-primary/10 rounded-lg">
+						<p className="text-2xl font-bold text-primary">{stats.timeSpentSeconds}s</p>
+						<p className="text-sm text-muted-foreground">{t("session.timeSpent")}</p>
 					</div>
 				</div>
 			)}

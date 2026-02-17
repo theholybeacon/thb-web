@@ -274,7 +274,10 @@
     "skipStep": "Skip Step",
     "nextChapter": "Next Chapter",
     "chapterProgress": "Chapter {current} of {total}",
-    "speechError": "Unable to play audio. Your browser may not support speech synthesis."
+    "speechError": "Unable to play audio. Your browser may not support speech synthesis.",
+    "aiInsight": "AI Insight",
+    "hideControls": "Hide Controls",
+    "showControls": "Show Controls"
   },
   "sidebar": {
     "activeSessions": "Active Sessions",

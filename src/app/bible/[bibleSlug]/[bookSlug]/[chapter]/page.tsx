@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { bibleGetByVersionSS } from "@/app/common/bible/service/server/bibleGetByVersionSS";
 import { bookGetByAbbreviationAndBibleIdSS } from "@/app/common/book/service/server/bookGetByAbbreviationAndBibleIdSS";
-import { chapterGetByCanonicalRefSS } from "@/app/common/chapter/service/chapterGetByCanonicalRefSS";
+import { chapterGetByBookIdSS } from "@/app/common/chapter/service/chapterGetByBookIdSS";
 import { ExplorerView } from "../../../components/ExplorerView";
 import { BookRepository } from "@/app/common/book/repository/BookRepository";
 
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: "Not Found | The Holy Beacon" };
   }
 
-  const chapterData = await chapterGetByCanonicalRefSS(bible.id, bookSlug, chapterNum);
+  const chapterData = await chapterGetByBookIdSS(book.id, book.name, chapterNum);
 
   // Get first verse for description
   const firstVerseText = chapterData?.verses?.[0]?.content?.slice(0, 150) || "";
@@ -76,7 +76,7 @@ export default async function ChapterPage({ params }: PageProps) {
     notFound();
   }
 
-  const chapterData = await chapterGetByCanonicalRefSS(bible.id, bookSlug, chapterNum);
+  const chapterData = await chapterGetByBookIdSS(book.id, book.name, chapterNum);
 
   const hasPrevChapter = chapterNum > 1;
   const hasNextChapter = chapterNum < (book.numChapters || 1);

@@ -31,10 +31,10 @@ export class ChapterRepository {
 				bibleToFetch!.apiId,
 				bookToFetch.apiId
 			);
-			output.map(async (actual) => {
+			await Promise.all(output.map(async (actual) => {
 				actual.bookId = bookToFetch.id;
 				await this.chapterInternalDao.create(actual);
-			});
+			}));
 		}
 		return output;
 	}
