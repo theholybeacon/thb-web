@@ -229,28 +229,29 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 	const progress = filteredVerses.length > 0 ? ((currentVerseIndex + 1) / filteredVerses.length) * 100 : 0;
 
 	return (
-		<div className="space-y-6">
-			{explanation && (
-				<div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
-					<div className="flex items-start gap-2">
-						<Sparkles className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-						<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
+		<div className="flex flex-col min-h-full">
+			<div className="flex-1 max-w-4xl mx-auto w-full space-y-6">
+				{explanation && (
+					<div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
+						<div className="flex items-start gap-2">
+							<Sparkles className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+							<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
+						</div>
 					</div>
-				</div>
-			)}
+				)}
 
-			{/* Header with reference */}
-			{bookName && chapterNumber && (
-				<div className="text-center pb-4 border-b">
-					<h2 className="text-2xl font-serif font-semibold">
-						{bookName} {chapterNumber}
-						{startVerse && `:${startVerse}${endVerse && endVerse !== startVerse ? `-${endVerse}` : ""}`}
-					</h2>
-				</div>
-			)}
+				{/* Header with reference */}
+				{bookName && chapterNumber && (
+					<div className="text-center pb-4 border-b">
+						<h2 className="text-2xl font-serif font-semibold">
+							{bookName} {chapterNumber}
+							{startVerse && `:${startVerse}${endVerse && endVerse !== startVerse ? `-${endVerse}` : ""}`}
+						</h2>
+					</div>
+				)}
 
-			{/* Verses display */}
-			<div ref={versesContainerRef} className="space-y-4 overflow-y-auto p-4 pb-32">
+				{/* Verses display */}
+				<div ref={versesContainerRef} className="space-y-4 p-4 pb-32">
 				{filteredVerses.map((verse, index) => (
 					<p
 						key={verse.id}
@@ -272,11 +273,12 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 						<span>{verse.content}</span>
 					</p>
 				))}
+				</div>
 			</div>
 
 			{/* Fixed controls panel */}
 			{showControls ? (
-				<div className="fixed bottom-[73px] left-0 right-0 z-20 bg-card border-t shadow-lg p-4">
+				<div className="sticky bottom-0 -mx-3 md:-mx-6 -mb-3 md:-mb-6 bg-card border-t shadow-lg p-4">
 					<div className="max-w-4xl mx-auto space-y-3">
 						{/* Progress bar + collapse button */}
 						<div className="flex items-center gap-2">
@@ -349,7 +351,7 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 					</div>
 				</div>
 			) : (
-				<div className="fixed bottom-[73px] left-0 right-0 z-20 bg-card border-t px-4 py-2">
+				<div className="sticky bottom-0 -mx-3 md:-mx-6 -mb-3 md:-mb-6 bg-card border-t px-4 py-2">
 					<div className="max-w-4xl mx-auto flex items-center justify-between">
 						<span className="text-xs text-muted-foreground">
 							{t("session.verse")} {currentVerseIndex + 1} / {filteredVerses.length}

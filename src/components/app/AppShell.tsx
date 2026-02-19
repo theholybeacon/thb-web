@@ -34,7 +34,7 @@ export function AppShell({ children, hideSidebar = false }: AppShellProps) {
                 variant="ghost"
                 size="icon"
                 className="lg:hidden"
-                onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+                onClick={() => setMobileSidebarOpen(prev => !prev)}
               >
                 {mobileSidebarOpen ? (
                   <X className="h-5 w-5" />
@@ -50,7 +50,7 @@ export function AppShell({ children, hideSidebar = false }: AppShellProps) {
                 variant="ghost"
                 size="icon"
                 className="hidden lg:flex"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
+                onClick={() => setSidebarOpen(prev => !prev)}
               >
                 <Menu className="h-5 w-5" />
               </Button>

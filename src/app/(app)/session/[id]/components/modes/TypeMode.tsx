@@ -20,6 +20,17 @@ interface CharState {
 	state: "pending" | "correct" | "incorrect";
 }
 
+function normalizeForTyping(text: string): string {
+	return text
+		.replace(/[\u2018\u2019\u02BC]/g, "'")   // curly single quotes → straight
+		.replace(/[\u201C\u201D]/g, '"')          // curly double quotes → straight
+		.replace(/[\u2013\u2014]/g, '-')          // en/em dash → hyphen
+		.replace(/\u2026/g, '...')                // ellipsis → three dots
+		.replace(/^\s+/gm, '')                   // remove leading whitespace (indentation)
+		.replace(/\s+/g, ' ')                    // collapse multiple spaces
+		.trim();
+}
+
 export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeModeProps) {
 	const t = useTranslations();
 	const sessionProgress = useOptionalSessionProgress();
@@ -38,7 +49,7 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 
 	// Build the full text to type with verse numbers
 	const fullText = filteredVerses
-		.map((v) => `${v.verseNumber} ${v.content}`)
+		.map((v) => `${v.verseNumber} ${normalizeForTyping(v.content)}`)
 		.join(" ");
 
 	const [charStates, setCharStates] = useState<CharState[]>([]);
@@ -170,7 +181,7 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 			: 0;
 
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6 h-full">
 			{explanation && (
 				<div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
 					<div className="flex items-start gap-2">
@@ -209,7 +220,7 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 			{/* Typing area */}
 			<div
 				ref={containerRef}
-				className="relative p-6 bg-card rounded-lg border min-h-[300px] cursor-text overflow-hidden"
+				className="relative p-6 bg-card rounded-lg border flex-1 min-h-0 cursor-text overflow-y-auto"
 				onClick={() => inputRef.current?.focus()}
 			>
 				{/* Hidden input for capturing keystrokes */}

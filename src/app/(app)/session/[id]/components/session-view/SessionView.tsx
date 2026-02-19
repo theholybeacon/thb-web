@@ -295,8 +295,8 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
     return completedSteps.get(stepId) || [];
   };
 
-  // Sidebar content extracted for reuse in desktop and mobile
-  const StepsSidebarContent = () => (
+  // Sidebar content as JSX variable (not a component) to preserve React reconciliation
+  const stepsSidebarContent = (
     <>
       {/* Header */}
       <div className="p-4 border-b">
@@ -428,7 +428,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
             showStepsSidebar ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <StepsSidebarContent />
+          {stepsSidebarContent}
         </aside>
 
         {/* Desktop sidebar */}
@@ -438,7 +438,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
             showStepsSidebar ? "w-72" : "w-0"
           )}
         >
-          {showStepsSidebar && <StepsSidebarContent />}
+          {showStepsSidebar && stepsSidebarContent}
         </aside>
 
         {/* Main content */}
@@ -507,7 +507,12 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
 
           {/* Scripture content - Mode dependent */}
           <div className="flex-1 overflow-y-auto">
-            <div className="max-w-4xl mx-auto px-3 py-3 md:px-6 md:py-6">
+            <div className={cn(
+              "px-3 py-3 md:px-6 md:py-6",
+              currentMode === "listen" && "min-h-full",
+              currentMode === "type" && "h-full max-w-4xl mx-auto",
+              currentMode === "read" && "max-w-4xl mx-auto"
+            )}>
               {isChapterLoading ? (
                 <div className="flex flex-col items-center justify-center py-16">
                   <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />

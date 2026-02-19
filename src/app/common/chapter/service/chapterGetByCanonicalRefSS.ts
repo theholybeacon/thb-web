@@ -33,16 +33,16 @@ export async function chapterGetByCanonicalRefSS(
         const allBooks = await bookRepository.getAllByBibleId(bibleId);
         log.debug(`Found ${allBooks.length} books for Bible`);
 
-        // Find the book by abbreviation in the specified Bible (case-insensitive)
-        const book = await bookRepository.getByAbbreviationAndBibleId(bibleId, bookAbbreviation);
+        // Find the book by abbreviation, apiId, or slug (case-insensitive)
+        const abbrevLower = bookAbbreviation.toLowerCase();
+        const book = allBooks.find(b =>
+            b.abbreviation.toLowerCase() === abbrevLower ||
+            b.apiId.toLowerCase() === abbrevLower ||
+            b.slug === abbrevLower
+        ) ?? null;
 
         if (!book) {
-            // Try to find a matching book for debugging
-            const matchingBooks = allBooks.filter(b =>
-                b.abbreviation.toLowerCase().includes(bookAbbreviation.toLowerCase()) ||
-                bookAbbreviation.toLowerCase().includes(b.abbreviation.toLowerCase())
-            );
-            log.warn(`Book not found: ${bookAbbreviation}. Similar books: ${matchingBooks.map(b => b.abbreviation).join(', ')}`);
+            log.warn(`Book not found: ${bookAbbreviation}. Available: ${allBooks.map(b => `${b.abbreviation}/${b.apiId}`).join(', ')}`);
             return null;
         }
 

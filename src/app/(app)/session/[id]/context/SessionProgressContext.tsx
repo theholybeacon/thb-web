@@ -87,7 +87,12 @@ export function SessionProgressProvider({
 
   const reportModeProgress = useCallback(
     (current: number, total: number, isComplete: boolean) => {
-      setModeProgress({ current, total, isComplete });
+      setModeProgress((prev) => {
+        if (prev && prev.current === current && prev.total === total && prev.isComplete === isComplete) {
+          return prev;
+        }
+        return { current, total, isComplete };
+      });
     },
     []
   );
