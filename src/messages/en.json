@@ -271,6 +271,7 @@
     "markAsRead": "Mark as Read",
     "verse": "Verse",
     "speed": "Speed",
+    "volume": "Volume",
     "skipStep": "Skip Step",
     "nextChapter": "Next Chapter",
     "chapterProgress": "Chapter {current} of {total}",

@@ -506,10 +506,10 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
           </header>
 
           {/* Scripture content - Mode dependent */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto flex flex-col">
             <div className={cn(
               "px-3 py-3 md:px-6 md:py-6",
-              currentMode === "listen" && "min-h-full",
+              currentMode === "listen" && "flex-1",
               currentMode === "type" && "h-full max-w-4xl mx-auto",
               currentMode === "read" && "max-w-4xl mx-auto"
             )}>

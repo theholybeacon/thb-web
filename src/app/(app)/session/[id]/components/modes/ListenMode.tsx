@@ -6,7 +6,7 @@ import { Verse } from "@/app/common/verse/model/Verse";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Pause, SkipBack, SkipForward, Volume2, RotateCcw, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, RotateCcw, ChevronDown, ChevronUp, Sparkles, Gauge } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 
@@ -48,8 +48,10 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 	}, [verses, startVerse, endVerse]);
 
 	const [isPlaying, setIsPlaying] = useState(false);
+	const [isPaused, setIsPaused] = useState(false);
 	const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
 	const [speechRate, setSpeechRate] = useState(1);
+	const [volume, setVolume] = useState(1);
 	const [isComplete, setIsComplete] = useState(false);
 	const [startTime, setStartTime] = useState<number | null>(null);
 	const [timeSpent, setTimeSpent] = useState(0);
@@ -59,6 +61,8 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 
 	const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 	const synthRef = useRef<SpeechSynthesis | null>(null);
+	const isPlayingRef = useRef(false);
+	const keepAliveRef = useRef<NodeJS.Timeout | null>(null);
 	const versesContainerRef = useRef<HTMLDivElement>(null);
 
 	// Initialize speech synthesis
@@ -68,6 +72,7 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 		}
 		return () => {
 			synthRef.current?.cancel();
+			if (keepAliveRef.current) clearInterval(keepAliveRef.current);
 		};
 	}, []);
 
@@ -94,10 +99,38 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 		sessionProgress?.reportModeProgress(currentVerseIndex, filteredVerses.length, isComplete);
 	}, [currentVerseIndex, filteredVerses.length, isComplete, sessionProgress]);
 
+	// Chrome pause keepalive: Chrome auto-stops speech after ~15s of pause.
+	// Workaround: periodically resume+pause to reset the timer. Skip on Android where this breaks.
+	useEffect(() => {
+		if (!isPaused || !synthRef.current) {
+			if (keepAliveRef.current) {
+				clearInterval(keepAliveRef.current);
+				keepAliveRef.current = null;
+			}
+			return;
+		}
+		const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+		if (isAndroid) return;
+
+		keepAliveRef.current = setInterval(() => {
+			if (synthRef.current?.paused) {
+				synthRef.current.resume();
+				synthRef.current.pause();
+			}
+		}, 10_000);
+		return () => {
+			if (keepAliveRef.current) {
+				clearInterval(keepAliveRef.current);
+				keepAliveRef.current = null;
+			}
+		};
+	}, [isPaused]);
+
 	const speakVerse = useCallback(
 		(index: number) => {
 			if (!synthRef.current || index >= filteredVerses.length) {
 				setIsPlaying(false);
+				isPlayingRef.current = false;
 				setIsComplete(true);
 				return;
 			}
@@ -105,18 +138,25 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 			const verse = filteredVerses[index];
 			const text = verse.content;
 
+			// Temporarily clear the playing flag so the cancelled utterance's onend doesn't advance
+			const wasPlaying = isPlayingRef.current;
+			isPlayingRef.current = false;
 			synthRef.current.cancel();
+			isPlayingRef.current = wasPlaying;
 
 			const utterance = new SpeechSynthesisUtterance(text);
 			utterance.rate = speechRate;
+			utterance.volume = volume;
 			utterance.lang = toBcp47(bibleLanguage);
 
 			utterance.onend = () => {
+				if (!isPlayingRef.current) return;
 				if (index < filteredVerses.length - 1) {
 					setCurrentVerseIndex(index + 1);
 					speakVerse(index + 1);
 				} else {
 					setIsPlaying(false);
+					isPlayingRef.current = false;
 					setIsComplete(true);
 				}
 			};
@@ -124,13 +164,14 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 			utterance.onerror = (e) => {
 				console.error("Speech error:", e);
 				setIsPlaying(false);
+				isPlayingRef.current = false;
 				toast.error(t("session.speechError"));
 			};
 
 			utteranceRef.current = utterance;
 			synthRef.current.speak(utterance);
 		},
-		[filteredVerses, speechRate, bibleLanguage]
+		[filteredVerses, speechRate, volume, bibleLanguage]
 	);
 
 	const speakTitle = useCallback(() => {
@@ -144,8 +185,10 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 			}
 			const titleUtterance = new SpeechSynthesisUtterance(titleText);
 			titleUtterance.rate = speechRate;
+			titleUtterance.volume = volume;
 			titleUtterance.lang = toBcp47(bibleLanguage);
 			titleUtterance.onend = () => {
+				if (!isPlayingRef.current) return;
 				setTitleSpoken(true);
 				speakVerse(0);
 			};
@@ -157,21 +200,25 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 		} else {
 			speakVerse(0);
 		}
-	}, [titleSpoken, bookName, chapterNumber, startVerse, endVerse, speechRate, bibleLanguage, speakVerse]);
+	}, [titleSpoken, bookName, chapterNumber, startVerse, endVerse, speechRate, volume, bibleLanguage, speakVerse]);
 
 	const handlePlay = () => {
 		if (!startTime) {
 			setStartTime(Date.now());
 		}
 		setIsPlaying(true);
+		isPlayingRef.current = true;
+		setIsPaused(false);
 
 		// Order: AI insight (explanation) → chapter title → verses
 		if (currentVerseIndex === 0 && !explanationSpoken && explanation) {
 			synthRef.current?.cancel();
 			const explUtterance = new SpeechSynthesisUtterance(explanation);
 			explUtterance.rate = speechRate;
+			explUtterance.volume = volume;
 			explUtterance.lang = toBcp47(bibleLanguage);
 			explUtterance.onend = () => {
+				if (!isPlayingRef.current) return;
 				setExplanationSpoken(true);
 				speakTitle();
 			};
@@ -190,13 +237,28 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 
 	const handlePause = () => {
 		setIsPlaying(false);
-		synthRef.current?.cancel();
+		isPlayingRef.current = false;
+		setIsPaused(true);
+		synthRef.current?.pause();
+	};
+
+	const handleResume = () => {
+		if (!startTime) {
+			setStartTime(Date.now());
+		}
+		setIsPlaying(true);
+		isPlayingRef.current = true;
+		setIsPaused(false);
+		synthRef.current?.resume();
 	};
 
 	const handlePrevious = () => {
 		const newIndex = Math.max(0, currentVerseIndex - 1);
 		setCurrentVerseIndex(newIndex);
-		if (isPlaying) {
+		if (isPlaying || isPaused) {
+			setIsPaused(false);
+			setIsPlaying(true);
+			isPlayingRef.current = true;
 			synthRef.current?.cancel();
 			speakVerse(newIndex);
 		}
@@ -205,20 +267,95 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 	const handleNext = () => {
 		const newIndex = Math.min(filteredVerses.length - 1, currentVerseIndex + 1);
 		setCurrentVerseIndex(newIndex);
-		if (isPlaying) {
+		if (isPlaying || isPaused) {
+			setIsPaused(false);
+			setIsPlaying(true);
+			isPlayingRef.current = true;
 			synthRef.current?.cancel();
 			speakVerse(newIndex);
 		}
 	};
 
 	const handleRateChange = (value: number[]) => {
-		setSpeechRate(value[0]);
+		const newRate = value[0];
+		setSpeechRate(newRate);
+		// Restart current verse with new rate if playing
+		if (isPlayingRef.current && synthRef.current) {
+			const wasPlaying = isPlayingRef.current;
+			isPlayingRef.current = false;
+			synthRef.current.cancel();
+			isPlayingRef.current = wasPlaying;
+			const verse = filteredVerses[currentVerseIndex];
+			if (verse) {
+				const utterance = new SpeechSynthesisUtterance(verse.content);
+				utterance.rate = newRate;
+				utterance.volume = volume;
+				utterance.lang = toBcp47(bibleLanguage);
+				utterance.onend = () => {
+					if (!isPlayingRef.current) return;
+					if (currentVerseIndex < filteredVerses.length - 1) {
+						setCurrentVerseIndex(currentVerseIndex + 1);
+						speakVerse(currentVerseIndex + 1);
+					} else {
+						setIsPlaying(false);
+						isPlayingRef.current = false;
+						setIsComplete(true);
+					}
+				};
+				utterance.onerror = (e) => {
+					console.error("Speech error:", e);
+					setIsPlaying(false);
+					isPlayingRef.current = false;
+				};
+				utteranceRef.current = utterance;
+				synthRef.current.speak(utterance);
+			}
+		}
+	};
+
+	const handleVolumeChange = (value: number[]) => {
+		const newVolume = value[0];
+		setVolume(newVolume);
+		// Restart current verse with new volume if playing
+		if (isPlayingRef.current && synthRef.current) {
+			const wasPlaying = isPlayingRef.current;
+			isPlayingRef.current = false;
+			synthRef.current.cancel();
+			isPlayingRef.current = wasPlaying;
+			const verse = filteredVerses[currentVerseIndex];
+			if (verse) {
+				const utterance = new SpeechSynthesisUtterance(verse.content);
+				utterance.rate = speechRate;
+				utterance.volume = newVolume;
+				utterance.lang = toBcp47(bibleLanguage);
+				utterance.onend = () => {
+					if (!isPlayingRef.current) return;
+					if (currentVerseIndex < filteredVerses.length - 1) {
+						setCurrentVerseIndex(currentVerseIndex + 1);
+						speakVerse(currentVerseIndex + 1);
+					} else {
+						setIsPlaying(false);
+						isPlayingRef.current = false;
+						setIsComplete(true);
+					}
+				};
+				utterance.onerror = (e) => {
+					console.error("Speech error:", e);
+					setIsPlaying(false);
+					isPlayingRef.current = false;
+				};
+				utteranceRef.current = utterance;
+				synthRef.current.speak(utterance);
+			}
+		}
 	};
 
 	const handleReset = () => {
 		synthRef.current?.cancel();
 		setCurrentVerseIndex(0);
 		setIsPlaying(false);
+		isPlayingRef.current = false;
+		setIsPaused(false);
 		setIsComplete(false);
 		setStartTime(null);
 		setTimeSpent(0);
@@ -257,7 +394,7 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 						key={verse.id}
 						className={cn(
 							"leading-relaxed text-base md:text-lg transition-all duration-300",
-							index === currentVerseIndex && isPlaying
+							index === currentVerseIndex && (isPlaying || isPaused)
 								? "text-foreground scale-[1.02] bg-primary/10 p-3 rounded-lg -mx-3"
 								: index < currentVerseIndex
 									? "text-foreground"
@@ -318,6 +455,10 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 								<Button size="lg" className="h-14 w-14 rounded-full" variant="outline" onClick={handleReset}>
 									<RotateCcw className="h-6 w-6" />
 								</Button>
+							) : isPaused ? (
+								<Button size="lg" className="h-14 w-14 rounded-full" onClick={handleResume}>
+									<Play className="h-6 w-6 ml-1" />
+								</Button>
 							) : (
 								<Button size="lg" className="h-14 w-14 rounded-full" onClick={handlePlay}>
 									<Play className="h-6 w-6 ml-1" />
@@ -336,17 +477,32 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 
 						{/* Speed control */}
 						<div className="flex items-center gap-4 px-4">
-							<Volume2 className="h-4 w-4 text-muted-foreground" />
+							<Gauge className="h-4 w-4 text-muted-foreground" />
 							<span className="text-sm text-muted-foreground min-w-[60px]">{t("session.speed")}</span>
 							<Slider
 								value={[speechRate]}
 								onValueChange={handleRateChange}
-								min={0.5}
-								max={2}
-								step={0.1}
+								min={0.25}
+								max={3}
+								step={0.05}
 								className="flex-1"
 							/>
 							<span className="text-sm font-mono min-w-[40px]">{speechRate.toFixed(1)}x</span>
+						</div>
+
+						{/* Volume control */}
+						<div className="flex items-center gap-4 px-4">
+							<Volume2 className="h-4 w-4 text-muted-foreground" />
+							<span className="text-sm text-muted-foreground min-w-[60px]">{t("session.volume")}</span>
+							<Slider
+								value={[volume]}
+								onValueChange={handleVolumeChange}
+								min={0}
+								max={1}
+								step={0.05}
+								className="flex-1"
+							/>
+							<span className="text-sm font-mono min-w-[40px]">{Math.round(volume * 100)}%</span>
 						</div>
 					</div>
 				</div>
@@ -360,7 +516,7 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 							variant="ghost"
 							size="icon"
 							className="h-8 w-8"
-							onClick={isPlaying ? handlePause : isComplete ? handleReset : handlePlay}
+							onClick={isPlaying ? handlePause : isComplete ? handleReset : isPaused ? handleResume : handlePlay}
 						>
 							{isPlaying ? <Pause className="h-4 w-4" /> : isComplete ? <RotateCcw className="h-4 w-4" /> : <Play className="h-4 w-4" />}
 						</Button>
