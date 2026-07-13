@@ -9,6 +9,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsightsWrapper } from "@/components/analytics/SpeedInsightsWrapper"
 import { ClerkProvider } from '@clerk/nextjs'
 import { Toaster } from "@/components/ui/sonner"
+import { PostHogProvider } from "@/app/layout/components/PostHogProvider"
 
 export const metadata: Metadata = {
   title: "The Holy Beacon",
@@ -32,12 +33,14 @@ export default async function RootLayout({
         <body className={`${inter.variable} ${merriweather.variable} font-sans`}>
           <Analytics />
           <SpeedInsightsWrapper />
-          <NextIntlClientProvider messages={messages}>
-            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-              {children}
-              <Toaster position="top-right" richColors closeButton />
-            </ThemeProvider>
-          </NextIntlClientProvider>
+          <PostHogProvider>
+            <NextIntlClientProvider messages={messages}>
+              <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+                {children}
+                <Toaster position="top-right" richColors closeButton />
+              </ThemeProvider>
+            </NextIntlClientProvider>
+          </PostHogProvider>
         </body>
       </html>
     </ClerkProvider>

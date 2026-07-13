@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import posthog from "posthog-js";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
 import { Crown, Sparkles, BookOpen, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +36,7 @@ interface UpgradeModalProps {
 export function UpgradeModal({ open, onOpenChange, inline = false }: UpgradeModalProps) {
 	const t = useTranslations("premium");
 	const router = useRouter();
+	const { isSignedIn } = useAuth();
 	const [billingInterval, setBillingInterval] = useState<"month" | "year">("year");
 	const [isLoading, setIsLoading] = useState(false);
 	const [prices, setPrices] = useState<PricesResponse | null>(null);
@@ -58,6 +61,12 @@ export function UpgradeModal({ open, onOpenChange, inline = false }: UpgradeModa
 
 	const handleUpgrade = async () => {
 		if (!selectedPrice) return;
+		// Anonymous users (e.g. from the public reader) must sign in before checkout.
+		if (!isSignedIn) {
+			router.push("/sign-in");
+			return;
+		}
+		posthog.capture("checkout_started", { billingInterval, source: "upgrade_modal" });
 		setIsLoading(true);
 		try {
 			const response = await fetch("/api/stripe/checkout", {

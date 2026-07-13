@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Sparkles } from "lucide-react";
+import { AiContent } from "@/components/entity/AiContent";
+import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TypeModeProps {
@@ -183,12 +184,9 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 	return (
 		<div className="flex flex-col gap-6 h-full">
 			{explanation && (
-				<div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
-					<div className="flex items-start gap-2">
-						<Sparkles className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-						<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
-					</div>
-				</div>
+				<AiContent>
+					<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
+				</AiContent>
 			)}
 
 			{/* Stats bar */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import posthog from "posthog-js";
 import { useSearchParams } from "next/navigation";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useTranslations } from "next-intl";
@@ -19,7 +20,13 @@ export default function SubscriptionSuccessPage() {
 	useEffect(() => {
 		// Reload user context to get updated subscription status
 		reload();
-	}, [reload]);
+		// Client-side funnel signal (server webhook is the authoritative source).
+		// Dedupe per checkout session so a page refresh doesn't double-count.
+		if (_sessionId && !sessionStorage.getItem(`sub_success_${_sessionId}`)) {
+			posthog.capture("subscription_success", { sessionId: _sessionId });
+			sessionStorage.setItem(`sub_success_${_sessionId}`, "1");
+		}
+	}, [reload, _sessionId]);
 
 	return (
 		<AppShell>

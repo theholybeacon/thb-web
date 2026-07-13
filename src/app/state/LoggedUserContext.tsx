@@ -8,6 +8,8 @@ import { userCreateSS } from '../common/user/service/server/userCreateSS';
 import { userUpdateSS } from '../common/user/service/server/userUpdateSS';
 import { User } from '../common/user/model/User';
 import { subscriptionGetByUserIdSS } from '../common/subscription/service/server/subscriptionGetByUserIdSS';
+import { isPremiumStatus } from '@/lib/premium';
+import posthog from 'posthog-js';
 
 const LoggedUserContext = createContext<LoggedUserContextType>({
   user: null,
@@ -38,7 +40,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
       setState(prev => ({ ...prev, loading: true }));
       try {
         const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
-        const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id, dbUser.createdAt);
+        const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id);
         setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
         localStorage.setItem('user', JSON.stringify(dbUser));
         localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
@@ -81,10 +83,11 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
         setState(prev => ({ ...prev, loading: true }));
         try {
           const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
-          const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id, dbUser.createdAt);
+          const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id);
           setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
           localStorage.setItem('user', JSON.stringify(dbUser));
           localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
+          posthog.identify(dbUser.id, { email: dbUser.email, name: dbUser.name });
         } catch (error) {
           console.error("Error syncing user:", error);
           setState({ user: null, loading: false, isPremium: false, subscriptionStatus: null });
@@ -95,6 +98,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
         setState({ user: null, loading: false, isPremium: false, subscriptionStatus: null });
         localStorage.removeItem('user');
         localStorage.removeItem('subscription');
+        posthog.reset();
       }
     };
 
@@ -118,26 +122,13 @@ interface ClerkUserData {
   username?: string | null;
 }
 
-const PREMIUM_CUTOFF = new Date('2026-03-01T00:00:00Z');
-
 async function fetchSubscriptionStatus(
-  userId: string,
-  createdAt?: Date | null
+  userId: string
 ): Promise<{ isPremium: boolean; subscriptionStatus: string | null }> {
-  // Early adopters get lifetime premium
-  if (createdAt && new Date(createdAt) < PREMIUM_CUTOFF) {
-    return { isPremium: true, subscriptionStatus: 'active' };
-  }
-
   try {
     const subscription = await subscriptionGetByUserIdSS(userId);
-    if (subscription && subscription.status === 'active') {
-      return { isPremium: true, subscriptionStatus: subscription.status };
-    }
-    if (subscription) {
-      return { isPremium: false, subscriptionStatus: subscription.status };
-    }
-    return { isPremium: false, subscriptionStatus: null };
+    const status = subscription?.status ?? null;
+    return { isPremium: isPremiumStatus(status), subscriptionStatus: status };
   } catch (error) {
     console.error("Error fetching subscription:", error);
     return { isPremium: false, subscriptionStatus: null };
@@ -176,6 +167,8 @@ async function fetchOrCreateUser(clerkUserId: string, clerkUser: ClerkUserData):
     authId: clerkUserId,
     isEmailVerified: true, // Clerk handles email verification
   });
+
+  posthog.capture('signed_up');
 
   return newUser;
 }

@@ -66,7 +66,7 @@ export default function SessionPage() {
   const t = useTranslations("session");
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
-  const { user: loggedUser, loading } = useLoggedUserContext();
+  const { user: loggedUser, loading, isPremium } = useLoggedUserContext();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -79,7 +79,7 @@ export default function SessionPage() {
       if (!loggedUser?.id) return [];
       return await sessionGetAllByOwnerId(loggedUser.id);
     },
-    enabled: Boolean(loggedUser?.id),
+    enabled: Boolean(loggedUser?.id) && isPremium,
   });
 
   const deleteMutation = useMutation({

@@ -6,7 +6,8 @@ import { Verse } from "@/app/common/verse/model/Verse";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Pause, SkipBack, SkipForward, Volume2, RotateCcw, ChevronDown, ChevronUp, Sparkles, Gauge } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, RotateCcw, ChevronDown, ChevronUp, Gauge } from "lucide-react";
+import { AiContent } from "@/components/entity/AiContent";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 
@@ -369,12 +370,9 @@ export function ListenMode({ verses, startVerse, endVerse, bookName, chapterNumb
 		<div className="flex flex-col min-h-full">
 			<div className="flex-1 max-w-4xl mx-auto w-full space-y-6">
 				{explanation && (
-					<div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
-						<div className="flex items-start gap-2">
-							<Sparkles className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-							<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
-						</div>
-					</div>
+					<AiContent>
+						<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
+					</AiContent>
 				)}
 
 				{/* Header with reference */}

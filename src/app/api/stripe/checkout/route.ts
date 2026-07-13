@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { stripe, getStripe, STRIPE_PRODUCT_ID, getAppUrl } from "@/lib/stripe";
 import { UserRepository } from "@/app/common/user/repository/UserRepository";
+import { SubscriptionRepository } from "@/app/common/subscription/repository/SubscriptionRepository";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -98,10 +99,25 @@ export async function POST(request: NextRequest) {
 
 			return NextResponse.json({ url: session.url });
 		} else {
-			// Regular subscription
+			// Regular subscription — grant a card-less 7-day trial to first-time
+			// subscribers only (no prior subscription row), to prevent trial farming.
+			const priorSubscription = await new SubscriptionRepository().getByUserId(user.id);
+			const trialData: {
+				trial_period_days?: number;
+				trial_settings?: { end_behavior: { missing_payment_method: "cancel" } };
+			} = priorSubscription
+				? {}
+				: {
+					trial_period_days: 7,
+					trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
+				};
+
 			const session = await stripe.checkout.sessions.create({
 				customer: stripeCustomerId,
 				payment_method_types: ["card"],
+				// "if_required" means no card is collected during a $0 trial, but a
+				// card is still required when payment is due (returning, non-trial users).
+				payment_method_collection: "if_required",
 				line_items: [
 					{
 						price: validPriceId,
@@ -112,6 +128,7 @@ export async function POST(request: NextRequest) {
 				success_url: `${appUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
 				cancel_url: `${appUrl}/subscription?canceled=true`,
 				subscription_data: {
+					...trialData,
 					metadata: {
 						userId: user.id,
 					},

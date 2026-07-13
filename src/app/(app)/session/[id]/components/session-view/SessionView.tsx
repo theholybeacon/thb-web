@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import posthog from "posthog-js";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -25,12 +26,13 @@ import {
   Eye,
   Keyboard,
   Headphones,
-  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { AppShell } from "@/components/app";
-import { ReadMode, TypeMode, ListenMode } from "../modes";
+import { ReaderEngine, ReaderMode } from "@/components/reader/ReaderEngine";
+import { entityMentionsGetForChapterSS } from "@/app/common/entity/service/server/entityMentionsGetForChapterSS";
+import { recordActivity } from "@/lib/activityClient";
 import { PremiumGate } from "@/components/premium";
 import { SessionProgressProvider, useSessionProgress } from "../../context/SessionProgressContext";
 
@@ -79,12 +81,6 @@ function formatBibleReference(step: StudyStep | undefined, bookName?: string, cu
 
   return `${book} ${startChapter}`;
 }
-
-const STUDY_MODES: { id: StudyMode; icon: typeof Eye; labelKey: string }[] = [
-  { id: "read", icon: Eye, labelKey: "session.modeRead" },
-  { id: "type", icon: Keyboard, labelKey: "session.modeType" },
-  { id: "listen", icon: Headphones, labelKey: "session.modeListen" },
-];
 
 export default function SessionView({ session: initialSession }: SessionViewParams) {
   const steps = (initialSession.study?.steps || []) as StudyStep[];
@@ -196,6 +192,16 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
     enabled: Boolean(bibleId && currentStep?.bookAbbreviation && actualChapterNumber),
   });
 
+  // Character mentions for the current chapter (powers reader linking in Study).
+  const { data: mentions } = useQuery({
+    queryKey: ["entityMentions", currentStep?.bookAbbreviation, actualChapterNumber],
+    queryFn: async () => {
+      if (!currentStep?.bookAbbreviation) return undefined;
+      return await entityMentionsGetForChapterSS(currentStep.bookAbbreviation, actualChapterNumber);
+    },
+    enabled: Boolean(currentStep?.bookAbbreviation && actualChapterNumber),
+  });
+
   // Mutation to update current step
   const updateStepMutation = useMutation({
     mutationFn: async (stepId: string) => {
@@ -211,6 +217,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
     mutationFn: sessionStepCompletionCreateSS,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stepCompletions", initialSession.id] });
+      void recordActivity("study");
       toast.success(t("toast.stepCompleted"));
     },
     onError: () => {
@@ -223,6 +230,14 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
     if (isLastChapterInStep) {
       // Optimistic update via context
       markStepCompleted(currentStep.id, currentMode);
+
+      posthog.capture("step_completed", {
+        sessionId: initialSession.id,
+        stepId: currentStep.id,
+        mode: currentMode,
+        stepIndex: currentStepIndex,
+        isFirstStep: currentStepIndex === 0,
+      });
 
       // Persist to DB
       saveCompletionMutation.mutate({
@@ -481,25 +496,6 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                     </>
                   )}
                 </div>
-
-                {/* Mode selector */}
-                <div className="flex items-center gap-1 bg-muted rounded-lg p-1 overflow-x-auto">
-                  {STUDY_MODES.map((mode) => (
-                    <Button
-                      key={mode.id}
-                      variant={currentMode === mode.id ? "secondary" : "ghost"}
-                      size="sm"
-                      className={cn(
-                        "h-8 px-3",
-                        currentMode === mode.id && "bg-background shadow-sm"
-                      )}
-                      onClick={() => setCurrentMode(mode.id)}
-                    >
-                      <mode.icon className="h-4 w-4 mr-1.5" />
-                      <span className="hidden sm:inline">{t(mode.labelKey)}</span>
-                    </Button>
-                  ))}
-                </div>
               </div>
               <h1 className="text-xl md:text-2xl font-bold">{currentStep?.title || t("session.untitledStep")}</h1>
             </div>
@@ -513,65 +509,20 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
               currentMode === "type" && "h-full max-w-4xl mx-auto",
               currentMode === "read" && "max-w-4xl mx-auto"
             )}>
-              {isChapterLoading ? (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
-                </div>
-              ) : chapterData?.verses && chapterData.verses.length > 0 ? (
-                <>
-                  {currentMode === "read" && (
-                    <ReadMode
-                      verses={chapterData.verses}
-                      startVerse={currentStep?.startVerse}
-                      endVerse={currentStep?.endVerse}
-                      bookName={chapterData.bookName}
-                      chapterNumber={actualChapterNumber}
-                      explanation={currentStep?.explanation}
-                    />
-                  )}
-
-                  {currentMode === "type" && (
-                    <TypeMode
-                      verses={chapterData.verses}
-                      startVerse={currentStep?.startVerse}
-                      endVerse={currentStep?.endVerse}
-                      explanation={currentStep?.explanation}
-                    />
-                  )}
-
-                  {currentMode === "listen" && (
-                    <ListenMode
-                      verses={chapterData.verses}
-                      startVerse={currentStep?.startVerse}
-                      endVerse={currentStep?.endVerse}
-                      bookName={chapterData.bookName}
-                      chapterNumber={actualChapterNumber}
-                      bibleLanguage={(initialSession.study as any)?.bible?.language}
-                      explanation={currentStep?.explanation}
-                    />
-                  )}
-                </>
-              ) : (
-                <div className="text-center py-12">
-                  {currentReference && (
-                    <div className="mb-6 pb-4 border-b">
-                      <h2 className="text-2xl md:text-3xl font-serif font-semibold text-center text-foreground">
-                        {currentReference}
-                      </h2>
-                    </div>
-                  )}
-                  <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-                  <p className="text-muted-foreground">{t("session.noContent")}</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {currentStep?.bookAbbreviation && currentStep?.startChapter ? (
-                      <>Reading: {currentStep.bookAbbreviation} Chapter {currentStep.startChapter}</>
-                    ) : (
-                      <>Step reference not set</>
-                    )}
-                  </p>
-                </div>
-              )}
+              <ReaderEngine
+                verses={chapterData?.verses ?? []}
+                mode={currentMode as ReaderMode}
+                onModeChange={setCurrentMode}
+                bookName={chapterData?.bookName}
+                chapterNumber={actualChapterNumber}
+                startVerse={currentStep?.startVerse}
+                endVerse={currentStep?.endVerse}
+                explanation={currentStep?.explanation}
+                mentions={mentions}
+                isPremium
+                bibleLanguage={(initialSession.study as { bible?: { language?: string } })?.bible?.language}
+                isLoading={isChapterLoading}
+              />
             </div>
           </div>
 
@@ -616,7 +567,13 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
               {/* Right side: Next/Finish button */}
               {isLastStep && isLastChapterInStep ? (
                 <Button
-                  onClick={() => router.push("/session")}
+                  onClick={() => {
+                    posthog.capture("session_completed", {
+                      sessionId: initialSession.id,
+                      studyId: initialSession.study?.id,
+                    });
+                    router.push("/session");
+                  }}
                   className="bg-primary hover:bg-primary/90"
                 >
                   <CheckCircle2 className="mr-2 h-4 w-4" />

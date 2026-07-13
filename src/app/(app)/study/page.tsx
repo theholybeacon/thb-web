@@ -68,7 +68,7 @@ function formatBibleReference(step: StudyStep): string {
 export default function StudyPage() {
   const t = useTranslations("study");
   const tCommon = useTranslations("common");
-  const { user: loggedUser, loading } = useLoggedUserContext();
+  const { user: loggedUser, loading, isPremium } = useLoggedUserContext();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -84,7 +84,7 @@ export default function StudyPage() {
       if (!loggedUser?.id) return [];
       return await studyGetAllByOwnerIdSS(loggedUser.id);
     },
-    enabled: Boolean(loggedUser?.id),
+    enabled: Boolean(loggedUser?.id) && isPremium,
   });
 
   const createSessionMutation = useMutation({

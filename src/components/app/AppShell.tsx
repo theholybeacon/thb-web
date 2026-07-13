@@ -6,6 +6,7 @@ import { Sun, Menu, X, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "./UserAvatar";
 import { Sidebar } from "./Sidebar";
+import { TrialBanner } from "./TrialBanner";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { cn } from "@/lib/utils";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
@@ -88,6 +89,8 @@ export function AppShell({ children, hideSidebar = false }: AppShellProps) {
           </div>
         </div>
       </header>
+
+      <TrialBanner />
 
       <div className="flex">
         {/* Desktop Sidebar */}

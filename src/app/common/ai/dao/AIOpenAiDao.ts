@@ -16,8 +16,6 @@ export class AIOpenAiDao {
 
 		var messagesToSend: any[] = [];
 
-		console.log(bible);
-
 		messagesToSend.push({
 			role: "system", content: `
 				Create a comprehensive Bible study plan for the bible version "${bible.name}" (ID: ${bible.id}).

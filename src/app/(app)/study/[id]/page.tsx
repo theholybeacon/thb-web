@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import posthog from "posthog-js";
 import { useTranslations } from "next-intl";
 import { studyGetByIdSS } from "@/app/common/study/service/server/studyGetByIdSS";
 import { studyUpdateSS } from "@/app/common/study/service/server/studyUpdateSS";
@@ -79,7 +80,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
   const t = useTranslations("study");
   const tCreate = useTranslations("createStudy");
   const tCommon = useTranslations("common");
-  const { user: loggedUser, loading: userLoading } = useLoggedUserContext();
+  const { user: loggedUser, loading: userLoading, isPremium } = useLoggedUserContext();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -99,7 +100,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
     queryFn: async () => {
       return await studyGetByIdSS(id);
     },
-    enabled: Boolean(id),
+    enabled: Boolean(id) && isPremium,
   });
 
   // Initialize form when study loads
@@ -192,6 +193,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
       return await sessionCreateSS(sessionInsert);
     },
     onSuccess: (session) => {
+      posthog.capture("session_started", { studyId: study?.id, sessionId: session.id });
       toast.success(t("startSession"));
       router.push(`/session/${session.id}`);
     },

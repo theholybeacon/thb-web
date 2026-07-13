@@ -8,6 +8,7 @@ import { GiftSubscriptionRepository } from "@/app/common/giftSubscription/reposi
 import { MembershipRequestRepository } from "@/app/common/membershipRequest/repository/MembershipRequestRepository";
 import { logger } from "@/app/utils/logger";
 import { sendGiftReceivedEmail, sendSponsorshipFulfilledEmail } from "@/lib/email";
+import { getPostHogServer } from "@/lib/posthog-server";
 
 const log = logger.child({ module: "StripeWebhook" });
 
@@ -278,6 +279,21 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 	});
 
 	log.info({ userId, subscriptionId: subscription.id }, "Upserted subscription record");
+
+	// Authoritative funnel event (server-side truth, not spoofable by the client).
+	const posthog = getPostHogServer();
+	if (posthog) {
+		posthog.capture({
+			distinctId: userId,
+			event: subscription.status === "trialing" ? "trial_started" : "subscription_activated",
+			properties: {
+				status: subscription.status,
+				billingInterval: interval,
+				stripeSubscriptionId: subscription.id,
+			},
+		});
+		await posthog.shutdown();
+	}
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { bibleGetByVersionSS } from "@/app/common/bible/service/server/bibleGetByVersionSS";
 import { bookGetByAbbreviationAndBibleIdSS } from "@/app/common/book/service/server/bookGetByAbbreviationAndBibleIdSS";
 import { chapterGetByBookIdSS } from "@/app/common/chapter/service/chapterGetByBookIdSS";
+import { entityMentionsGetForChapterSS } from "@/app/common/entity/service/server/entityMentionsGetForChapterSS";
+import { isPremiumUserSS } from "@/app/common/subscription/service/server/isPremiumUserSS";
 import { ExplorerView } from "../../../components/ExplorerView";
 import { BookRepository } from "@/app/common/book/repository/BookRepository";
 
@@ -78,6 +80,12 @@ export default async function ChapterPage({ params }: PageProps) {
 
   const chapterData = await chapterGetByBookIdSS(book.id, book.name, chapterNum);
 
+  // Character mentions for this chapter (canonical book id → USFM abbreviation).
+  const mentions = await entityMentionsGetForChapterSS(book.apiId, chapterNum);
+
+  // Character names are visible to all but only clickable for premium users.
+  const isPremium = await isPremiumUserSS();
+
   const hasPrevChapter = chapterNum > 1;
   const hasNextChapter = chapterNum < (book.numChapters || 1);
 
@@ -121,6 +129,8 @@ export default async function ChapterPage({ params }: PageProps) {
         hasPrevChapter={hasPrevChapter}
         hasNextChapter={hasNextChapter}
         nextBook={nextBook}
+        mentions={mentions}
+        isPremium={isPremium}
       />
 
       {/* JSON-LD Structured Data */}

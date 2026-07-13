@@ -3,8 +3,12 @@
 import { useEffect, useRef, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
+import { EntityLite } from "@/app/common/entity/model/Entity";
+import { renderVerseContent } from "@/components/entity/VerseText";
+import { CharacterName } from "@/components/entity/CharacterName";
+import { AiContent } from "@/components/entity/AiContent";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
-import { BookOpen, Sparkles } from "lucide-react";
+import { BookOpen, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ReadModeProps {
@@ -14,9 +18,16 @@ interface ReadModeProps {
 	bookName?: string;
 	chapterNumber?: number;
 	explanation?: string | null;
+	/** People mentioned in this chapter (for inline links + the people list). */
+	people?: EntityLite[];
+	mentionsByVerse?: Record<number, EntityLite[]>;
+	/** When true, character names link to their page; otherwise they're locked. */
+	charactersInteractive?: boolean;
+	/** Invoked when a non-premium user clicks a locked character name. */
+	onLockedCharacterClick?: () => void;
 }
 
-export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, explanation }: ReadModeProps) {
+export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, explanation, people, mentionsByVerse, charactersInteractive = true, onLockedCharacterClick }: ReadModeProps) {
 	const t = useTranslations();
 	const progress = useOptionalSessionProgress();
 	const firstVerseRef = useRef<HTMLParagraphElement>(null);
@@ -48,12 +59,9 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 	return (
 		<div className="space-y-6">
 			{explanation && (
-				<div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
-					<div className="flex items-start gap-2">
-						<Sparkles className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-						<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
-					</div>
-				</div>
+				<AiContent>
+					<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
+				</AiContent>
 			)}
 
 			{reference && (
@@ -61,6 +69,28 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 					<h2 className="text-2xl md:text-3xl font-serif font-semibold text-center">
 						{reference}
 					</h2>
+				</div>
+			)}
+
+			{people && people.length > 0 && (
+				<div className="rounded-lg border bg-card/50 p-3">
+					<div className="flex items-center gap-2 mb-2 text-sm font-medium text-muted-foreground">
+						<Users className="h-4 w-4" />
+						People in this chapter
+					</div>
+					<div className="flex flex-wrap gap-2">
+						{people.map((p) => (
+							<CharacterName
+								key={p.id}
+								slug={p.slug}
+								variant="chip"
+								interactive={charactersInteractive}
+								onLockedClick={onLockedCharacterClick}
+							>
+								{p.name}
+							</CharacterName>
+						))}
+					</div>
 				</div>
 			)}
 
@@ -91,7 +121,10 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 									{verse.verseNumber}
 								</sup>
 								<span className={isHighlighted ? "text-foreground" : "text-muted-foreground"}>
-									{verse.content}
+									{renderVerseContent(verse.content, mentionsByVerse?.[verse.verseNumber], {
+										interactive: charactersInteractive,
+										onLockedClick: onLockedCharacterClick,
+									})}
 								</span>
 							</p>
 						);

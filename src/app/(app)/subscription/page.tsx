@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import posthog from "posthog-js";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -159,6 +160,7 @@ export default function SubscriptionPage() {
 
 	const handleSubscribe = async () => {
 		if (!selectedPrice) return;
+		posthog.capture("checkout_started", { source: "subscription_page" });
 		setIsLoadingCheckout(true);
 		try {
 			const response = await fetch("/api/stripe/checkout", {

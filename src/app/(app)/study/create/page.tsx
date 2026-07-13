@@ -5,6 +5,7 @@ import { studyCreateSS } from "@/app/common/study/service/server/studyCreateSS";
 import { bibleGetAllSS } from "@/app/common/bible/service/bibleGetAllSS";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import posthog from "posthog-js";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
@@ -68,6 +69,11 @@ export default function CreateStudyPage() {
       return await studyCreateSS({ ...studyInsert, bibleId: formData.bibleId, steps });
     },
     onSuccess: () => {
+      posthog.capture("study_created", {
+        topic: formData.topic,
+        length: formData.length,
+        depth: formData.depth,
+      });
       toast.success(t("create"));
       router.push("/study");
     },

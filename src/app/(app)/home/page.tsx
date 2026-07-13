@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { AppShell } from "@/components/app";
 import Link from "next/link";
 import { BookOpen, Clock, Sun } from "lucide-react";
+import { DailyHomeWidget } from "@/components/home/DailyHomeWidget";
 
 export default function HomePage() {
   const t = useTranslations("home");
@@ -31,6 +32,8 @@ export default function HomePage() {
             </h1>
             <p className="text-muted-foreground mt-2">{t("subtitle")}</p>
           </div>
+
+          <DailyHomeWidget />
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Link href="/study" className="group">

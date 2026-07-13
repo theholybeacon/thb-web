@@ -4,22 +4,10 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
+import { ChapterMentions } from "@/app/common/entity/model/Entity";
 import { Button } from "@/components/ui/button";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  Keyboard,
-  Headphones,
-  BookOpen,
-  Loader2,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ReadMode } from "@/app/(app)/session/[id]/components/modes/ReadMode";
-import { TypeMode } from "@/app/(app)/session/[id]/components/modes/TypeMode";
-import { ListenMode } from "@/app/(app)/session/[id]/components/modes/ListenMode";
-
-type ExploreMode = "read" | "type" | "listen";
+import { ChevronLeft, ChevronRight, BookOpen, Loader2 } from "lucide-react";
+import { ReaderEngine, ReaderMode } from "@/components/reader/ReaderEngine";
 
 interface ExplorerViewProps {
   verses: Verse[];
@@ -30,13 +18,9 @@ interface ExplorerViewProps {
   hasPrevChapter: boolean;
   hasNextChapter: boolean;
   nextBook?: { name: string; slug: string } | null;
+  mentions?: ChapterMentions;
+  isPremium?: boolean;
 }
-
-const EXPLORE_MODES: { id: ExploreMode; icon: typeof Eye; labelKey: string }[] = [
-  { id: "read", icon: Eye, labelKey: "session.modeRead" },
-  { id: "type", icon: Keyboard, labelKey: "session.modeType" },
-  { id: "listen", icon: Headphones, labelKey: "session.modeListen" },
-];
 
 export function ExplorerView({
   verses,
@@ -47,11 +31,13 @@ export function ExplorerView({
   hasPrevChapter,
   hasNextChapter,
   nextBook,
+  mentions,
+  isPremium = false,
 }: ExplorerViewProps) {
   const t = useTranslations();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [currentMode, setCurrentMode] = useState<ExploreMode>("read");
+  const [currentMode, setCurrentMode] = useState<ReaderMode>("read");
   const [navigatingDirection, setNavigatingDirection] = useState<"prev" | "next" | null>(null);
 
   const handleNavigation = (direction: "prev" | "next") => {
@@ -72,73 +58,28 @@ export function ExplorerView({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with mode selector */}
+      {/* Header with chapter info */}
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between">
-            {/* Chapter info */}
-            <div className="flex items-center gap-2 text-sm">
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">
-                {bookName} {chapterNumber}
-              </span>
-            </div>
-
-            {/* Mode selector */}
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-              {EXPLORE_MODES.map((mode) => (
-                <Button
-                  key={mode.id}
-                  variant={currentMode === mode.id ? "secondary" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "h-8 px-3",
-                    currentMode === mode.id && "bg-background shadow-sm"
-                  )}
-                  onClick={() => setCurrentMode(mode.id)}
-                >
-                  <mode.icon className="h-4 w-4 mr-1.5" />
-                  <span className="hidden sm:inline">{t(mode.labelKey)}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
+        <div className="max-w-4xl mx-auto flex items-center gap-2 text-sm">
+          <BookOpen className="h-4 w-4 text-muted-foreground" />
+          <span className="font-medium">
+            {bookName} {chapterNumber}
+          </span>
         </div>
       </header>
 
       {/* Content area - scrollable */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-4 md:p-6">
-          {verses.length > 0 ? (
-            <>
-              {currentMode === "read" && (
-                <ReadMode
-                  verses={verses}
-                  bookName={bookName}
-                  chapterNumber={chapterNumber}
-                />
-              )}
-
-              {currentMode === "type" && (
-                <TypeMode
-                  verses={verses}
-                />
-              )}
-
-              {currentMode === "listen" && (
-                <ListenMode
-                  verses={verses}
-                  bookName={bookName}
-                  chapterNumber={chapterNumber}
-                />
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground">{t("bible.noContent")}</p>
-            </div>
-          )}
+          <ReaderEngine
+            verses={verses}
+            mode={currentMode}
+            onModeChange={setCurrentMode}
+            bookName={bookName}
+            chapterNumber={chapterNumber}
+            mentions={mentions}
+            isPremium={isPremium}
+          />
         </div>
       </div>
 
