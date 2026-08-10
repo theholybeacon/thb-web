@@ -23,6 +23,7 @@ import * as communityFlagSchema from "@/db/schema/communityFlag";
 import * as userDailyActivitySchema from "@/db/schema/userDailyActivity";
 import * as emailSendLogSchema from "@/db/schema/emailSendLog";
 import * as audioAssetSchema from "@/db/schema/audioAsset";
+import * as noteSchema from "@/db/schema/note";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -50,5 +51,6 @@ export const db = drizzle(sql, {
 		...userDailyActivitySchema,
 		...emailSendLogSchema,
 		...audioAssetSchema,
+		...noteSchema,
 	}
 });

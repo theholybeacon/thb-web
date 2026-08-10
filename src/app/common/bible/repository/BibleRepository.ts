@@ -27,6 +27,10 @@ export class BibleRepository {
 		return await this.internalBibleDao.getById(id);
 	}
 
+	async getBasicById(id: string): Promise<Bible | undefined> {
+		return await this.internalBibleDao.getBasicById(id);
+	}
+
 	async getByApiId(apiId: string): Promise<Bible | undefined> {
 		return await this.internalBibleDao.getByApiId(apiId);
 	}

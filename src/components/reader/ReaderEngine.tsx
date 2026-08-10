@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { recordActivity } from "@/lib/activityClient";
-import { Eye, Keyboard, Headphones, BookOpen, Loader2 } from "lucide-react";
+import { Eye, Keyboard, Headphones, BookOpen, Loader2, NotebookPen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { ChapterMentions } from "@/app/common/entity/model/Entity";
+import { Note } from "@/app/common/note/model/Note";
+import { noteGetForChapterSS } from "@/app/common/note/service/server/noteGetForChapterSS";
+import { NotesPanel, NoteComposeRequest } from "@/components/notes";
 import { ReadMode, TypeMode, ListenMode } from "@/app/(app)/session/[id]/components/modes";
 import { UpgradeModal } from "@/components/premium/UpgradeModal";
 
@@ -33,6 +36,8 @@ interface ReaderEngineProps {
 	/** Characters are clickable when premium; otherwise locked with an upgrade prompt. */
 	isPremium?: boolean;
 	bibleLanguage?: string;
+	/** Shown in the notes scope picker, e.g. "This Bible (KJV)". */
+	bibleName?: string;
 	isLoading?: boolean;
 
 	/** Audio context. Without bibleId/bookAbbreviation, Listen narrates our own content only. */
@@ -63,6 +68,7 @@ export function ReaderEngine({
 	mentions,
 	isPremium = true,
 	bibleLanguage,
+	bibleName,
 	isLoading = false,
 	bibleId,
 	bookAbbreviation,
@@ -74,15 +80,89 @@ export function ReaderEngine({
 	const t = useTranslations();
 	const [upgradeOpen, setUpgradeOpen] = useState(false);
 
+	// Notes. The anchor is canonical (bibleId + bookAbbreviation + chapter), so a
+	// note written here is found again from any translation of the same passage.
+	const [notesOpen, setNotesOpen] = useState(false);
+	const [notes, setNotes] = useState<Note[]>([]);
+	const [notesLoading, setNotesLoading] = useState(false);
+	const [composeRequest, setComposeRequest] = useState<NoteComposeRequest | null>(null);
+
+	const canTakeNotes = Boolean(bibleId && bookAbbreviation && chapterNumber);
+
 	// Reading counts toward the daily streak (once/day/browser, signed-in only).
 	useEffect(() => {
 		void recordActivity("read");
 	}, []);
 
+	const loadNotes = useCallback(async () => {
+		// Notes are premium; skip the round trip entirely for everyone else, which
+		// keeps anonymous views of the public reader free of extra queries.
+		if (!canTakeNotes || !isPremium) return;
+		setNotesLoading(true);
+		try {
+			setNotes(await noteGetForChapterSS(bibleId!, bookAbbreviation!, chapterNumber!));
+		} finally {
+			setNotesLoading(false);
+		}
+	}, [canTakeNotes, isPremium, bibleId, bookAbbreviation, chapterNumber]);
+
+	useEffect(() => {
+		void loadNotes();
+	}, [loadNotes]);
+
+	const noteCountsByVerseNumber = useMemo(() => {
+		const counts: Record<number, number> = {};
+		for (const note of notes) {
+			if (note.targetType === "verse" && note.verse) {
+				counts[note.verse] = (counts[note.verse] ?? 0) + 1;
+			}
+		}
+		return counts;
+	}, [notes]);
+
+	const openNotes = () => {
+		if (!isPremium) {
+			setUpgradeOpen(true);
+			return;
+		}
+		setComposeRequest(null);
+		setNotesOpen(true);
+	};
+
+	const handleVerseNoteClick = (verse: Verse) => {
+		if (!isPremium) {
+			setUpgradeOpen(true);
+			return;
+		}
+		// A verse that already has notes opens the panel to read them; an untouched
+		// verse jumps straight into writing one.
+		const hasNotes = (noteCountsByVerseNumber[verse.verseNumber] ?? 0) > 0;
+		setComposeRequest(hasNotes ? null : { verseNumber: verse.verseNumber, nonce: Date.now() });
+		setNotesOpen(true);
+	};
+
 	return (
 		<TooltipProvider delayDuration={200}>
 			{/* Mode selector */}
-			<div className="flex justify-end mb-4">
+			<div className="flex items-center justify-end gap-2 mb-4">
+				{canTakeNotes && (
+					<Button
+						variant="ghost"
+						size="sm"
+						className="h-8 px-2"
+						onClick={openNotes}
+						title={t("notes.panelTitle")}
+					>
+						<NotebookPen className="h-4 w-4 sm:mr-1.5" />
+						<span className="hidden sm:inline">{t("notes.panelTitle")}</span>
+						{notes.length > 0 && (
+							<span className="ml-1.5 rounded-full bg-primary/15 px-1.5 text-xs font-medium text-primary">
+								{notes.length}
+							</span>
+						)}
+					</Button>
+				)}
+
 				<div className="flex items-center gap-1 bg-muted rounded-lg p-1">
 					{MODES.map((m) => (
 						<Button
@@ -118,6 +198,8 @@ export function ReaderEngine({
 							mentionsByVerse={mentions?.mentionsByVerse}
 							charactersInteractive={isPremium}
 							onLockedCharacterClick={() => setUpgradeOpen(true)}
+							noteCountsByVerseNumber={noteCountsByVerseNumber}
+							onVerseNoteClick={canTakeNotes ? handleVerseNoteClick : undefined}
 						/>
 					)}
 
@@ -150,6 +232,25 @@ export function ReaderEngine({
 					<BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
 					<p className="text-muted-foreground">{t("bible.noContent")}</p>
 				</div>
+			)}
+
+			{canTakeNotes && isPremium && (
+				<NotesPanel
+					open={notesOpen}
+					onClose={() => setNotesOpen(false)}
+					notes={notes}
+					isLoading={notesLoading}
+					verses={verses}
+					composeRequest={composeRequest}
+					onChanged={loadNotes}
+					context={{
+						bibleId: bibleId!,
+						bibleName: bibleName ?? "",
+						bookAbbreviation: bookAbbreviation!,
+						bookName: bookName ?? "",
+						chapterNumber: chapterNumber!,
+					}}
+				/>
 			)}
 
 			{upgradeOpen && <UpgradeModal open={upgradeOpen} onOpenChange={setUpgradeOpen} />}

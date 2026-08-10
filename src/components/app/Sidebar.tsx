@@ -16,6 +16,7 @@ import {
   Plus,
   Book,
   Lock,
+  NotebookPen,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     { href: "/study", label: t("nav.studies"), icon: GraduationCap, premium: true },
     { href: "/session", label: t("nav.sessions"), icon: Play, premium: true },
     { href: "/bible", label: t("nav.explore"), icon: Book, premium: false },
+    { href: "/notes", label: t("nav.notes"), icon: NotebookPen, premium: true },
   ];
 
   const getProgress = (session: SessionFull) => {

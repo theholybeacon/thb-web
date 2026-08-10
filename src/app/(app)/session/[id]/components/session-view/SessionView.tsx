@@ -125,7 +125,9 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
   // (which has no `bible`), so it must be read through a cast. Widening StudyFull to
   // carry the bible would remove this — worth doing separately.
   const sessionBible = (
-    initialSession.study as { bible?: { id?: string; language?: string; audioEnabled?: boolean } }
+    initialSession.study as {
+      bible?: { id?: string; name?: string; version?: string; language?: string; audioEnabled?: boolean };
+    }
   )?.bible;
 
   const {
@@ -528,6 +530,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                 mentions={mentions}
                 isPremium
                 bibleLanguage={sessionBible?.language}
+                bibleName={sessionBible?.version || sessionBible?.name}
                 bibleId={sessionBible?.id}
                 bookAbbreviation={currentStep?.bookAbbreviation ?? undefined}
                 audioEnabled={sessionBible?.audioEnabled ?? false}

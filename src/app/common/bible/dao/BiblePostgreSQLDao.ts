@@ -27,6 +27,14 @@ export class BiblePostgreSQLDao {
 			}
 		}) as BibleWithBooks;
 	}
+	/** The bible row on its own, without pulling in all of its books. */
+	async getBasicById(id: string): Promise<Bible | undefined> {
+		log.trace("getBasicById");
+		return await db.query.bibleTable.findFirst({
+			where: eq(bibleTable.id, id),
+		});
+	}
+
 	async getByApiId(apiId: string): Promise<Bible | undefined> {
 		log.trace("getByApiId");
 		return await db.query.bibleTable.findFirst({

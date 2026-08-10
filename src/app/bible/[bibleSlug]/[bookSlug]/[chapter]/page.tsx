@@ -139,6 +139,7 @@ export default async function ChapterPage({ params }: PageProps) {
         isPremium={isPremium}
         bibleId={bible.id}
         bibleLanguage={bible.language}
+        bibleName={bible.version || bible.name}
         bookAbbreviation={book.apiId}
         audioEnabled={bible.audioEnabled}
       />

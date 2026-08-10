@@ -25,6 +25,8 @@ interface ExplorerViewProps {
   bibleLanguage?: string;
   bookAbbreviation?: string;
   audioEnabled?: boolean;
+  /** Labels the "This Bible" option in the notes scope picker. */
+  bibleName?: string;
 }
 
 export function ExplorerView({
@@ -40,6 +42,7 @@ export function ExplorerView({
   isPremium = false,
   bibleId,
   bibleLanguage,
+  bibleName,
   bookAbbreviation,
   audioEnabled = false,
 }: ExplorerViewProps) {
@@ -89,6 +92,7 @@ export function ExplorerView({
             mentions={mentions}
             isPremium={isPremium}
             bibleLanguage={bibleLanguage}
+            bibleName={bibleName}
             bibleId={bibleId}
             bookAbbreviation={bookAbbreviation}
             audioEnabled={audioEnabled}

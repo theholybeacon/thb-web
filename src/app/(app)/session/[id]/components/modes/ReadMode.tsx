@@ -8,7 +8,7 @@ import { renderVerseContent } from "@/components/entity/VerseText";
 import { CharacterName } from "@/components/entity/CharacterName";
 import { AiContent } from "@/components/entity/AiContent";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
-import { BookOpen, Users } from "lucide-react";
+import { BookOpen, StickyNote, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ReadModeProps {
@@ -25,9 +25,13 @@ interface ReadModeProps {
 	charactersInteractive?: boolean;
 	/** Invoked when a non-premium user clicks a locked character name. */
 	onLockedCharacterClick?: () => void;
+	/** How many notes each verse already has, keyed by verse number. */
+	noteCountsByVerseNumber?: Record<number, number>;
+	/** Enables the per-verse note affordance when provided. */
+	onVerseNoteClick?: (verse: Verse) => void;
 }
 
-export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, explanation, people, mentionsByVerse, charactersInteractive = true, onLockedCharacterClick }: ReadModeProps) {
+export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, explanation, people, mentionsByVerse, charactersInteractive = true, onLockedCharacterClick, noteCountsByVerseNumber, onVerseNoteClick }: ReadModeProps) {
 	const t = useTranslations();
 	const progress = useOptionalSessionProgress();
 	const firstVerseRef = useRef<HTMLParagraphElement>(null);
@@ -102,13 +106,15 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 						const endV = endVerse ?? startV;
 						const isHighlighted = !hasVerseRange || (verse.verseNumber >= startV && verse.verseNumber <= endV);
 						const isFirstRelevant = verse.verseNumber === (startVerse ?? 1);
+						const noteCount = noteCountsByVerseNumber?.[verse.verseNumber] ?? 0;
 
 						return (
 							<p
 								key={verse.id}
+								id={`verse-${verse.verseNumber}`}
 								ref={isFirstRelevant ? firstVerseRef : undefined}
 								className={cn(
-									"leading-relaxed text-base md:text-lg transition-opacity",
+									"group leading-relaxed text-base md:text-lg transition-opacity scroll-mt-24",
 									!isHighlighted && "opacity-30"
 								)}
 							>
@@ -126,6 +132,23 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 										onLockedClick: onLockedCharacterClick,
 									})}
 								</span>
+								{onVerseNoteClick && (
+									<button
+										type="button"
+										onClick={() => onVerseNoteClick(verse)}
+										title={noteCount > 0 ? t("notes.viewVerseNotes") : t("notes.addVerseNote")}
+										aria-label={noteCount > 0 ? t("notes.viewVerseNotes") : t("notes.addVerseNote")}
+										className={cn(
+											"ml-1.5 inline-flex items-center gap-0.5 align-middle rounded px-1 py-0.5 text-xs transition-opacity hover:bg-primary/10",
+											noteCount > 0
+												? "text-primary opacity-100"
+												: "text-muted-foreground opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
+										)}
+									>
+										<StickyNote className="h-3.5 w-3.5" />
+										{noteCount > 0 && <span className="font-medium">{noteCount}</span>}
+									</button>
+								)}
 							</p>
 						);
 					})}
