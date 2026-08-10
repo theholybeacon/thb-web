@@ -2,6 +2,7 @@ import { logger } from "@/app/utils/logger";
 import { selectBibleSchema } from "@/db/schema/bible";
 import { Bible } from "../model/Bible";
 import { toUrlSlug, makeUniqueSlug } from "@/lib/slug";
+import { isAudioLicensedBible } from "@/lib/bibleLicense";
 
 const API_KEY = process.env.BIBLE_API_KEY;
 const BASE_URL = "https://api.scripture.api.bible/v1/";
@@ -59,6 +60,8 @@ export class BibleExternalAPIDao {
 					slug,
 					description: bible.description || "",
 					numBooks: 0,
+					// Only public-domain / open-licensed text may be narrated.
+					audioEnabled: isAudioLicensedBible({ version: bible.abbreviationLocal }),
 					createdAt: new Date(),
 					updatedAt: new Date()
 				}));

@@ -7,6 +7,7 @@ import { entityMentionsGetForChapterSS } from "@/app/common/entity/service/serve
 import { isPremiumUserSS } from "@/app/common/subscription/service/server/isPremiumUserSS";
 import { ExplorerView } from "../../../components/ExplorerView";
 import { BookRepository } from "@/app/common/book/repository/BookRepository";
+import { isIndexedTranslation } from "@/lib/seo";
 
 interface PageProps {
   params: Promise<{ bibleSlug: string; bookSlug: string; chapter: string }>;
@@ -36,9 +37,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const title = `${book.name} ${chapterNum} - ${bible.version} | The Holy Beacon`;
 
+  // Only the curated core translations are indexed (see src/lib/seo.ts); the
+  // rest stay readable but noindex to avoid ~480k near-duplicate pages.
+  const indexable = isIndexedTranslation(bibleSlug);
+
   return {
     title,
     description,
+    robots: indexable ? undefined : { index: false, follow: true },
     openGraph: {
       title: `${book.name} ${chapterNum} - ${bible.version}`,
       description,
@@ -46,7 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: "The Holy Beacon",
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: `${book.name} ${chapterNum} - ${bible.version}`,
       description,
     },
@@ -131,6 +137,10 @@ export default async function ChapterPage({ params }: PageProps) {
         nextBook={nextBook}
         mentions={mentions}
         isPremium={isPremium}
+        bibleId={bible.id}
+        bibleLanguage={bible.language}
+        bookAbbreviation={book.apiId}
+        audioEnabled={bible.audioEnabled}
       />
 
       {/* JSON-LD Structured Data */}

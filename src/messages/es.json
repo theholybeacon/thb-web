@@ -265,9 +265,6 @@
     "typeComplete": "¡Escritura Completada!",
     "tryAgain": "Intentar de Nuevo",
     "completeStep": "Completar Paso",
-    "listenComplete": "¡Escucha Completada!",
-    "listenedFor": "Escuchaste durante {seconds} segundos",
-    "listenAgain": "Escuchar de Nuevo",
     "markAsRead": "Marcar como Leído",
     "verse": "Versículo",
     "speed": "Velocidad",
@@ -275,10 +272,20 @@
     "skipStep": "Saltar Paso",
     "nextChapter": "Siguiente Capítulo",
     "chapterProgress": "Capítulo {current} de {total}",
-    "speechError": "No se puede reproducir el audio. Tu navegador puede no soportar síntesis de voz.",
-    "aiInsight": "Perspectiva IA",
-    "hideControls": "Ocultar Controles",
-    "showControls": "Mostrar Controles"
+    "aiInsight": "Perspectiva IA"
+  },
+  "audio": {
+    "introduction": "Introducción",
+    "preparing": "Preparando el audio…",
+    "preparingHint": "Estamos narrando este capítulo por primera vez. A partir de ahora será instantáneo, para todos.",
+    "playbackError": "Hubo un problema al reproducir este audio. Inténtalo de nuevo.",
+    "notLicensed": "Esta traducción tiene derechos de autor, así que no podemos narrar el texto bíblico. Aun así escucharás la introducción y el comentario.",
+    "premiumTitle": "Escucha las Escrituras",
+    "premiumBody": "Escucha cada pasaje leído en voz natural — con la pantalla apagada, camino al trabajo o en el coche. Disponible con Premium.",
+    "download": "Descargar",
+    "downloaded": "Descargado",
+    "downloadFailed": "No se pudo descargar este audio.",
+    "close": "Cerrar reproductor"
   },
   "sidebar": {
     "activeSessions": "Sesiones Activas",
@@ -313,7 +320,10 @@
     "saved": "¡Guardado!",
     "invalidFileType": "Por favor selecciona un archivo de imagen",
     "fileTooLarge": "El archivo debe ser menor a 5MB",
-    "uploadError": "Error al subir la imagen. Intenta de nuevo."
+    "uploadError": "Error al subir la imagen. Intenta de nuevo.",
+    "notifications": "Notificaciones",
+    "emailReminders": "Correos de recordatorio diario",
+    "emailRemindersHint": "Tu versículo del día y un aviso cuando tu racha esté por terminar. Cancela cuando quieras."
   },
   "premium": {
     "title": "Desbloquea Premium",
@@ -452,7 +462,7 @@
       "titleHighlight": "Biblia",
       "description": "Lee las Escrituras en múltiples traducciones con nuestro explorador de Biblia gratuito y bellamente diseñado. No se requiere cuenta.",
       "multipleTranslations": "Múltiples Traducciones",
-      "multipleTranslationsDesc": "Accede a la Biblia en varios idiomas y versiones - NVI, RVR, DHH, y más.",
+      "multipleTranslationsDesc": "Accede a la Biblia en muchos idiomas y versiones - Reina-Valera, Biblia Libre, King James, World English, y más.",
       "cleanReading": "Lectura Limpia",
       "cleanReadingDesc": "Interfaz sin distracciones diseñada para la lectura y estudio enfocado de las Escrituras.",
       "easyNavigation": "Navegación Fácil",
@@ -485,7 +495,7 @@
       "dailyGrowth": "Crecimiento Diario"
     },
     "studyPlans": {
-      "badge": "¡Próximamente!",
+      "badge": "Ya disponible",
       "title": "Aprende Con",
       "titleHighlight": "Propósito",
       "description": "El corazón de The Holy Beacon es su Generador de Planes de Estudio con IA. Simplemente describe lo que quieres aprender y recibe un plan de estudio personalizado según tus necesidades.",

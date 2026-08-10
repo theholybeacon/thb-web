@@ -20,6 +20,11 @@ interface ExplorerViewProps {
   nextBook?: { name: string; slug: string } | null;
   mentions?: ChapterMentions;
   isPremium?: boolean;
+  /** Needed by Listen mode. Without bibleLanguage the narrator reads Spanish in English. */
+  bibleId?: string;
+  bibleLanguage?: string;
+  bookAbbreviation?: string;
+  audioEnabled?: boolean;
 }
 
 export function ExplorerView({
@@ -33,6 +38,10 @@ export function ExplorerView({
   nextBook,
   mentions,
   isPremium = false,
+  bibleId,
+  bibleLanguage,
+  bookAbbreviation,
+  audioEnabled = false,
 }: ExplorerViewProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -79,6 +88,10 @@ export function ExplorerView({
             chapterNumber={chapterNumber}
             mentions={mentions}
             isPremium={isPremium}
+            bibleLanguage={bibleLanguage}
+            bibleId={bibleId}
+            bookAbbreviation={bookAbbreviation}
+            audioEnabled={audioEnabled}
           />
         </div>
       </div>

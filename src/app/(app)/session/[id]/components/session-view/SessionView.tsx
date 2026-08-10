@@ -121,6 +121,13 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  // The DAO hydrates `bible` on the study, but SessionFull.study is typed StudyFull
+  // (which has no `bible`), so it must be read through a cast. Widening StudyFull to
+  // carry the bible would remove this — worth doing separately.
+  const sessionBible = (
+    initialSession.study as { bible?: { id?: string; language?: string; audioEnabled?: boolean } }
+  )?.bible;
+
   const {
     currentStepIndex,
     currentChapterInStep,
@@ -520,7 +527,13 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                 explanation={currentStep?.explanation}
                 mentions={mentions}
                 isPremium
-                bibleLanguage={(initialSession.study as { bible?: { language?: string } })?.bible?.language}
+                bibleLanguage={sessionBible?.language}
+                bibleId={sessionBible?.id}
+                bookAbbreviation={currentStep?.bookAbbreviation ?? undefined}
+                audioEnabled={sessionBible?.audioEnabled ?? false}
+                studyStepId={currentStep?.id}
+                sessionId={initialSession.id}
+                isLastChapterInStep={isLastChapterInStep}
                 isLoading={isChapterLoading}
               />
             </div>

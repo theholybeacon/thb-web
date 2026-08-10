@@ -31,6 +31,14 @@ export class EntityRepository {
 		return await this.dao.getAllSlugs();
 	}
 
+	async getSlugsWithMinMentions(minMentions: number): Promise<string[]> {
+		return await this.dao.getSlugsWithMinMentions(minMentions);
+	}
+
+	async countMentions(entityId: string): Promise<number> {
+		return await this.dao.countMentions(entityId);
+	}
+
 	async upsertByDatasetId(entity: EntityInsert): Promise<Entity> {
 		return await this.dao.upsertByDatasetId(entity);
 	}

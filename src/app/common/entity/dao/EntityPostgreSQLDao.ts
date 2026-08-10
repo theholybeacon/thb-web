@@ -54,6 +54,25 @@ export class EntityPostgreSQLDao {
 		return rows.map((r) => r.slug);
 	}
 
+	/** Slugs of entities with at least `minMentions` verse mentions — the SEO-indexable set. */
+	async getSlugsWithMinMentions(minMentions: number): Promise<string[]> {
+		const rows = await db
+			.select({ slug: entityTable.slug })
+			.from(entityTable)
+			.innerJoin(entityMentionTable, eq(entityMentionTable.entityId, entityTable.id))
+			.groupBy(entityTable.id, entityTable.slug)
+			.having(sql`count(*) >= ${minMentions}`);
+		return rows.map((r) => r.slug);
+	}
+
+	async countMentions(entityId: string): Promise<number> {
+		const rows = await db
+			.select({ n: sql<number>`count(*)::int` })
+			.from(entityMentionTable)
+			.where(eq(entityMentionTable.entityId, entityId));
+		return rows[0]?.n ?? 0;
+	}
+
 	// --- Import helpers (idempotent) ---
 
 	async upsertByDatasetId(entity: EntityInsert): Promise<Entity> {

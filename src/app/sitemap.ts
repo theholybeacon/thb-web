@@ -2,12 +2,20 @@ import { MetadataRoute } from "next";
 import { bibleGetAllSS } from "@/app/common/bible/service/bibleGetAllSS";
 import { bookGetAllByBibleIdSS } from "@/app/common/book/service/server/bookGetAllByBibleIdSS";
 import { EntityRepository } from "@/app/common/entity/repository/EntityRepository";
+import { CHARACTER_INDEX_MIN_MENTIONS, isIndexedTranslation } from "@/lib/seo";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://theholybeacon.com";
 
+// Only the curated core is indexed — see src/lib/seo.ts. This turns ~480k
+// near-duplicate chapter URLs into a few thousand and keeps the domain clear of
+// Google's scaled-content-abuse policy.
+async function indexedBibles() {
+  return (await bibleGetAllSS()).filter((b) => isIndexedTranslation(b.slug));
+}
+
 export async function generateSitemaps() {
-  const bibles = await bibleGetAllSS();
-  // id 0 = static pages, ids 1..N = one per bible, id N+1 = character pages
+  const bibles = await indexedBibles();
+  // id 0 = static pages, ids 1..N = one per indexed bible, id N+1 = character pages
   return [
     { id: 0 },
     ...bibles.map((_, index) => ({ id: index + 1 })),
@@ -15,7 +23,12 @@ export async function generateSitemaps() {
   ];
 }
 
-export default async function sitemap({ id }: { id: number }): Promise<MetadataRoute.Sitemap> {
+export default async function sitemap({ id: rawId }: { id: number }): Promise<MetadataRoute.Sitemap> {
+  // Next passes `id` as a STRING at runtime (from the /sitemap/[id].xml segment),
+  // so strict `=== 0` / `=== length+1` silently fail and those shards render empty.
+  // Coerce once up front.
+  const id = Number(rawId);
+
   // Static pages sitemap
   if (id === 0) {
     return [
@@ -24,11 +37,13 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
     ];
   }
 
-  const bibles = await bibleGetAllSS();
+  const bibles = await indexedBibles();
 
-  // Character pages sitemap (last id)
+  // Character pages sitemap (last id) — only entities above the mention threshold
   if (id === bibles.length + 1) {
-    const slugs = await new EntityRepository().getAllSlugs();
+    const slugs = await new EntityRepository().getSlugsWithMinMentions(
+      CHARACTER_INDEX_MIN_MENTIONS,
+    );
     return slugs.map((slug) => ({
       url: `${BASE_URL}/bible/people/${slug}`,
       lastModified: new Date(),

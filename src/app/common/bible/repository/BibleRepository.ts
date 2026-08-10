@@ -16,9 +16,9 @@ export class BibleRepository {
 
 		if (output.length === 0) {
 			output = await this.externalDao.getAll();
-			output.map(async (actual) => {
-				await this.internalBibleDao.create(actual);
-			});
+			// Was `output.map(async ...)` with no await — the seed writes were fired and
+			// forgotten, so getAll() could return before a single row was persisted.
+			await Promise.all(output.map((actual) => this.internalBibleDao.create(actual)));
 		}
 
 		return output;

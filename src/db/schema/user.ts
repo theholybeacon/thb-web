@@ -15,6 +15,9 @@ export const userTable = pgTable("user", {
 	// Profile fields
 	profilePicture: text(),
 	country: varchar({ length: 2 }), // ISO 3166-1 alpha-2 country code
+	timezone: varchar({ length: 64 }), // IANA zone (e.g. America/Bogota), captured client-side
+	// Notifications
+	emailRemindersEnabled: boolean().notNull().default(true),
 	// Stripe
 	stripeCustomerId: varchar({ length: 255 }),
 	createdAt: timestamp().defaultNow(),

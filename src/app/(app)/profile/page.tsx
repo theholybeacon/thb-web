@@ -17,6 +17,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EmailRemindersToggle } from "@/components/profile/EmailRemindersToggle";
 import { User, Mail, Globe, Camera, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
@@ -273,6 +274,9 @@ export default function ProfilePage() {
 								</SelectContent>
 							</Select>
 						</div>
+
+						{/* Daily reminder emails (saves on toggle, independent of the form) */}
+						<EmailRemindersToggle />
 
 						{/* Submit Button */}
 						<div className="flex items-center gap-4">

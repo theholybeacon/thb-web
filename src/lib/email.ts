@@ -6,12 +6,66 @@ const log = logger.child({ module: "Email" });
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM_EMAIL = process.env.EMAIL_FROM || "The Holy Beacon <noreply@theholybeacon.com>";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://theholybeacon.com";
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://theholybeacon.com";
+
+/** Resend's batch endpoint accepts at most 100 messages per call. */
+export const EMAIL_BATCH_LIMIT = 100;
 
 interface SendEmailParams {
 	to: string;
 	subject: string;
 	html: string;
+}
+
+export interface BatchMessage {
+	to: string;
+	subject: string;
+	html: string;
+	headers?: Record<string, string>;
+}
+
+/**
+ * Send up to EMAIL_BATCH_LIMIT messages in a single Resend call — used by the
+ * daily cron sweep so a few hundred reminders don't become a few hundred round
+ * trips (and blow the function's duration budget).
+ *
+ * Resend validates a batch as a unit, so a rejected call fails the whole chunk;
+ * the caller marks that chunk's log rows `failed` rather than guessing which
+ * individual messages landed.
+ */
+export async function sendEmailBatch(messages: BatchMessage[]): Promise<{ ok: boolean; error?: string }> {
+	if (messages.length === 0) return { ok: true };
+
+	if (!process.env.RESEND_API_KEY) {
+		log.warn("RESEND_API_KEY not configured, skipping batch");
+		return { ok: false, error: "RESEND_API_KEY not configured" };
+	}
+	if (messages.length > EMAIL_BATCH_LIMIT) {
+		return { ok: false, error: `batch of ${messages.length} exceeds limit of ${EMAIL_BATCH_LIMIT}` };
+	}
+
+	try {
+		const { error } = await resend.batch.send(
+			messages.map((m) => ({
+				from: FROM_EMAIL,
+				to: m.to,
+				subject: m.subject,
+				html: m.html,
+				headers: m.headers,
+			})),
+		);
+
+		if (error) {
+			log.error({ error, count: messages.length }, "Failed to send email batch");
+			return { ok: false, error: error.message };
+		}
+
+		log.info({ count: messages.length }, "Email batch sent successfully");
+		return { ok: true };
+	} catch (error) {
+		log.error({ error, count: messages.length }, "Error sending email batch");
+		return { ok: false, error: error instanceof Error ? error.message : String(error) };
+	}
 }
 
 async function sendEmail({ to, subject, html }: SendEmailParams): Promise<boolean> {

@@ -1,0 +1,51 @@
+/*
+ * Cinematic capture CSS — injected on every navigation. LOAD-BEARING, not
+ * cosmetic: the public reader isn't mobile-responsive (ExplorerSidebar is a
+ * w-72 <aside> with no responsive hiding — it eats a 360px screen), and the
+ * Read/Type/Listen labels are `hidden sm:inline` (invisible at 360px).
+ * Edit freely to tune the shot.
+ */
+
+/* Hide app chrome: BibleHeader (<header class="sticky">) + ExplorerSidebar (<aside>). */
+header,
+aside {
+  display: none !important;
+}
+
+/* Dev/toast overlays. */
+[data-sonner-toaster],
+#__next-build-watcher,
+nextjs-portal {
+  display: none !important;
+}
+
+/* The reader layout is `flex h-[calc(100vh-3.5rem)]` (height reserved for the now-hidden
+   header). Substring match avoids escaping the Tailwind arbitrary-value class. */
+[class*="100vh-3.5rem"] {
+  height: 100vh !important;
+}
+
+/* Un-hide the mode labels so "Type" is legible in-frame (selection uses the icon). */
+.sm\:inline {
+  display: inline !important;
+}
+
+/* TypeMode renders every space as a non-breaking  , so the line never wraps
+   and overflows off-frame. Force it to wrap within the box. */
+.font-mono.text-lg {
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  line-height: 2 !important;
+}
+
+/* Enlarge type for portrait legibility (text-lg becomes ~28px), and give the
+   typing area real height so the demo fills the frame instead of one line up top. */
+html {
+  font-size: 22px;
+}
+main {
+  padding-top: 1.5rem !important;
+}
+div.cursor-text {
+  min-height: 62vh !important;
+}

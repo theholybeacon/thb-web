@@ -28,6 +28,14 @@ export class UserRepository {
         return await this.dao.updateProfile(id, data);
     }
 
+    async setTimezone(id: string, timezone: string): Promise<void> {
+        return await this.dao.setTimezone(id, timezone);
+    }
+
+    async setEmailReminders(id: string, enabled: boolean): Promise<void> {
+        return await this.dao.setEmailReminders(id, enabled);
+    }
+
     async delete(id: string): Promise<void> {
         return await this.dao.delete(id);
     }

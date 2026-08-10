@@ -42,3 +42,7 @@ next-env.d.ts
 
 
 design.pen
+
+# Studio (local video pipeline) artifacts
+studio/.runs/
+studio/.auth/

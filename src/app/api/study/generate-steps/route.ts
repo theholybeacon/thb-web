@@ -2,10 +2,23 @@ export const runtime = 'edge';
 
 import { AIRepository } from "@/app/common/ai/repository/AIRepository";
 import { BibleRepository } from "@/app/common/bible/repository/BibleRepository";
+import { requirePremiumUserSS } from "@/app/common/subscription/service/server/requirePremiumUserSS";
 import { StudyInsert } from "@/app/common/study/model/Study";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
+    // Study generation is a premium feature and an expensive OpenAI call.
+    // Enforce it server-side — the client PremiumGate is UX only.
+    try {
+        await requirePremiumUserSS();
+    } catch (e) {
+        const reason = e instanceof Error ? e.message : "UNAUTHENTICATED";
+        return NextResponse.json(
+            { error: reason },
+            { status: reason === "PREMIUM_REQUIRED" ? 402 : 401 },
+        );
+    }
+
     const { studyInsert, bibleId } = await request.json() as {
         studyInsert: StudyInsert;
         bibleId: string;

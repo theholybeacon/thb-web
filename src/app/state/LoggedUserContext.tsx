@@ -9,6 +9,7 @@ import { userUpdateSS } from '../common/user/service/server/userUpdateSS';
 import { User } from '../common/user/model/User';
 import { subscriptionGetByUserIdSS } from '../common/subscription/service/server/subscriptionGetByUserIdSS';
 import { isPremiumStatus } from '@/lib/premium';
+import { captureTimezone } from '@/lib/activityClient';
 import posthog from 'posthog-js';
 
 const LoggedUserContext = createContext<LoggedUserContextType>({
@@ -88,6 +89,8 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
           localStorage.setItem('user', JSON.stringify(dbUser));
           localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
           posthog.identify(dbUser.id, { email: dbUser.email, name: dbUser.name });
+          // Needed by the daily email cron to resolve this user's local day.
+          void captureTimezone();
         } catch (error) {
           console.error("Error syncing user:", error);
           setState({ user: null, loading: false, isPremium: false, subscriptionStatus: null });

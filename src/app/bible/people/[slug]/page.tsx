@@ -11,6 +11,8 @@ import { EntityContentSections } from "@/components/entity/EntityContentSections
 import { EntityContentLoader } from "@/components/entity/EntityContentLoader";
 import { SectionCommunity } from "@/components/community/SectionCommunity";
 import type { RefLinkMap } from "@/components/entity/CitationLinks";
+import { EntityRepository } from "@/app/common/entity/repository/EntityRepository";
+import { CHARACTER_INDEX_MIN_MENTIONS } from "@/lib/seo";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -30,10 +32,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 		(aliases.length ? `, also called ${aliases.join(", ")}` : "") +
 		`, and more — on The Holy Beacon.`;
 
+	// Thin (low-mention) character pages stay readable but noindex — see src/lib/seo.ts.
+	const mentionCount = await new EntityRepository().countMentions(entity.id);
+	const indexable = mentionCount >= CHARACTER_INDEX_MIN_MENTIONS;
+
 	return {
 		title: `${entity.name} — Bible Character | The Holy Beacon`,
 		description,
+		robots: indexable ? undefined : { index: false, follow: true },
 		openGraph: { title: `${entity.name} — Bible Character`, description, type: "profile", siteName: "The Holy Beacon" },
+		twitter: { card: "summary_large_image", title: `${entity.name} — Bible Character`, description },
 		alternates: { canonical: `/bible/people/${slug}` },
 	};
 }

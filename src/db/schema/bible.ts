@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/relations";
 import { bookTable } from "./book";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -12,6 +12,12 @@ export const bibleTable = pgTable("bible", {
 	slug: varchar({ length: 100 }).notNull().unique(),
 	description: text().default(""),
 	numBooks: integer().default(0),
+	/**
+	 * Whether this translation's text may be synthesized into cached audio.
+	 * Set from `isAudioLicensedBible()` at import; see src/lib/bibleLicense.ts.
+	 * False (the safe default) still allows narration of our own content.
+	 */
+	audioEnabled: boolean().notNull().default(false),
 	createdAt: timestamp().defaultNow(),
 	updatedAt: timestamp().defaultNow(),
 });

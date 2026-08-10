@@ -265,9 +265,6 @@
     "typeComplete": "Typing Complete!",
     "tryAgain": "Try Again",
     "completeStep": "Complete Step",
-    "listenComplete": "Listening Complete!",
-    "listenedFor": "You listened for {seconds} seconds",
-    "listenAgain": "Listen Again",
     "markAsRead": "Mark as Read",
     "verse": "Verse",
     "speed": "Speed",
@@ -275,10 +272,20 @@
     "skipStep": "Skip Step",
     "nextChapter": "Next Chapter",
     "chapterProgress": "Chapter {current} of {total}",
-    "speechError": "Unable to play audio. Your browser may not support speech synthesis.",
-    "aiInsight": "AI Insight",
-    "hideControls": "Hide Controls",
-    "showControls": "Show Controls"
+    "aiInsight": "AI Insight"
+  },
+  "audio": {
+    "introduction": "Introduction",
+    "preparing": "Preparing audio…",
+    "preparingHint": "We're narrating this chapter for the first time. It'll be instant from now on, for everyone.",
+    "playbackError": "Something went wrong playing this audio. Please try again.",
+    "notLicensed": "This translation is under copyright, so we can't narrate the scripture text. You'll still hear the introduction and commentary.",
+    "premiumTitle": "Listen to Scripture",
+    "premiumBody": "Hear every passage read aloud in a natural voice — with your screen off, on your commute, or through your car. Available with Premium.",
+    "download": "Download",
+    "downloaded": "Downloaded",
+    "downloadFailed": "Couldn't download this audio.",
+    "close": "Close player"
   },
   "sidebar": {
     "activeSessions": "Active Sessions",
@@ -313,7 +320,10 @@
     "saved": "Saved!",
     "invalidFileType": "Please select an image file",
     "fileTooLarge": "File size must be less than 5MB",
-    "uploadError": "Failed to upload image. Please try again."
+    "uploadError": "Failed to upload image. Please try again.",
+    "notifications": "Notifications",
+    "emailReminders": "Daily reminder emails",
+    "emailRemindersHint": "Your verse of the day, and a nudge when your streak is about to end. Unsubscribe any time."
   },
   "premium": {
     "title": "Unlock Premium",
@@ -452,7 +462,7 @@
       "titleHighlight": "Bible",
       "description": "Read Scripture in multiple translations with our free, beautifully designed Bible explorer. No account required.",
       "multipleTranslations": "Multiple Translations",
-      "multipleTranslationsDesc": "Access the Bible in various languages and versions - NIV, ESV, KJV, Reina-Valera, and more.",
+      "multipleTranslationsDesc": "Access the Bible in many languages and versions - King James, World English, Berean Standard, Reina-Valera, and more.",
       "cleanReading": "Clean Reading Experience",
       "cleanReadingDesc": "Distraction-free interface designed for focused Scripture reading and study.",
       "easyNavigation": "Easy Navigation",
@@ -485,7 +495,7 @@
       "dailyGrowth": "Daily Growth"
     },
     "studyPlans": {
-      "badge": "Coming soon!",
+      "badge": "Live Now",
       "title": "Learn With",
       "titleHighlight": "Purpose",
       "description": "The beating heart of The Holy Beacon is its AI-powered Study Plan Generator. Simply describe what you want to learn, and receive a personalized study plan tailored to your needs.",

@@ -34,6 +34,15 @@ interface ReaderEngineProps {
 	isPremium?: boolean;
 	bibleLanguage?: string;
 	isLoading?: boolean;
+
+	/** Audio context. Without bibleId/bookAbbreviation, Listen narrates our own content only. */
+	bibleId?: string;
+	bookAbbreviation?: string;
+	/** False for copyrighted translations — scripture is not synthesized. */
+	audioEnabled?: boolean;
+	studyStepId?: string;
+	sessionId?: string;
+	isLastChapterInStep?: boolean;
 }
 
 /**
@@ -55,6 +64,12 @@ export function ReaderEngine({
 	isPremium = true,
 	bibleLanguage,
 	isLoading = false,
+	bibleId,
+	bookAbbreviation,
+	audioEnabled = false,
+	studyStepId,
+	sessionId,
+	isLastChapterInStep,
 }: ReaderEngineProps) {
 	const t = useTranslations();
 	const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -119,6 +134,14 @@ export function ReaderEngine({
 							chapterNumber={chapterNumber}
 							bibleLanguage={bibleLanguage}
 							explanation={explanation}
+							bibleId={bibleId}
+							bookAbbreviation={bookAbbreviation}
+							audioEnabled={audioEnabled}
+							isPremium={isPremium}
+							studyStepId={studyStepId}
+							sessionId={sessionId}
+							isLastChapterInStep={isLastChapterInStep}
+							onUpgradeClick={() => setUpgradeOpen(true)}
 						/>
 					)}
 				</>

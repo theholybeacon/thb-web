@@ -73,6 +73,17 @@ export class UserPostgreSQLDao {
         return result[0];
     }
 
+    /** IANA zone, so the daily cron can resolve the user's local day and hour. */
+    async setTimezone(id: string, timezone: string): Promise<void> {
+        log.trace("setTimezone");
+        await db.update(userTable).set({ timezone }).where(eq(userTable.id, id));
+    }
+
+    async setEmailReminders(id: string, enabled: boolean): Promise<void> {
+        log.trace("setEmailReminders");
+        await db.update(userTable).set({ emailRemindersEnabled: enabled }).where(eq(userTable.id, id));
+    }
+
     async delete(id: string): Promise<void> {
         log.trace("delete");
 

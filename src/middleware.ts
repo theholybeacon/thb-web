@@ -10,7 +10,19 @@ const isPublicRoute = createRouteMatcher([
   '/sso-callback(.*)',
   '/api/webhooks(.*)',
   '/api/stripe/prices',
+  // Both carry their own auth and must work without a Clerk session: the cron
+  // is invoked by Vercel with a CRON_SECRET bearer token, and unsubscribe links
+  // are opened straight from a mail client. Clerk answers 404 (not 401) for
+  // unauthenticated API requests, so leaving these protected silently breaks them.
+  '/api/cron(.*)',
+  '/api/email(.*)',
   '/bible(.*)',
+  // Crawler-facing metadata files. The matcher below does not exclude .txt/.xml,
+  // so without these Clerk answers 404 to anonymous crawlers and the whole SEO
+  // discovery surface (robots + every generateSitemaps() shard) silently breaks.
+  '/robots.txt',
+  '/sitemap.xml',
+  '/sitemap/(.*)',
 ])
 
 export default clerkMiddleware(async (auth, request) => {
