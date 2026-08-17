@@ -1,8 +1,14 @@
 import type { NextRequest } from "next/server";
 import { dailyEmailSweep } from "@/app/common/notification/service/server/dailyEmailSweep";
 
-/** Hobby's ceiling. The sweep is capped so it finishes well inside this. */
-export const maxDuration = 300;
+/**
+ * Hobby's ceiling is 60s — NOT 300, which an earlier comment here claimed and
+ * which fails the deploy outright ("invalid maxDuration value ... between 1 and
+ * 60 for plan hobby"). Raise to 300 only alongside a Pro upgrade.
+ *
+ * The sweep is capped (RUN_CAP) so it finishes well inside this.
+ */
+export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 /**

@@ -13,7 +13,14 @@ import { dailyVerseEmail, streakAtRiskEmail, trialEndingEmail, type EmailContent
 
 const log = logger.child({ module: "dailyEmailSweep" });
 
-/** Upper bound on users touched in one run, so we can't blow the 300s function cap. */
+/**
+ * Upper bound on users touched in one run, so we can't blow the function's time
+ * cap (60s on Hobby — see the route's maxDuration).
+ *
+ * 2000 was sized against a mistaken 300s budget. It is far above current usage,
+ * so it is left as-is; revisit it before the user base approaches this number,
+ * or shard the sweep across several cron runs.
+ */
 const RUN_CAP = 2000;
 /** A streak this long is worth an email to rescue. */
 const STREAK_AT_RISK_MIN = 3;
