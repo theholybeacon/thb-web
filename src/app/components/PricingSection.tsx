@@ -18,38 +18,53 @@ interface PricesResponse {
   yearly: PriceData | null;
 }
 
+// Display-only fallback so the marketing card always shows a price, even if
+// Stripe is unreachable. Checkout always resolves the real price from Stripe.
+const FALLBACK_CURRENCY = "eur";
+const FALLBACK_MONTHLY_AMOUNT = 1000;
+const FALLBACK_YEARLY_AMOUNT = 10000;
+
+const FALLBACK_PRICES: PricesResponse = {
+  monthly: { id: "", amount: FALLBACK_MONTHLY_AMOUNT, currency: FALLBACK_CURRENCY },
+  yearly: { id: "", amount: FALLBACK_YEARLY_AMOUNT, currency: FALLBACK_CURRENCY },
+};
+
 export function PricingSection() {
   const t = useTranslations("landing.pricing");
   const tPremium = useTranslations("premium");
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("year");
-  const [prices, setPrices] = useState<PricesResponse | null>(null);
-  const [pricesLoading, setPricesLoading] = useState(true);
+  const [prices, setPrices] = useState<PricesResponse>(FALLBACK_PRICES);
 
   useEffect(() => {
     async function fetchPrices() {
       try {
         const response = await fetch("/api/stripe/prices");
-        const data = await response.json();
-        setPrices(data);
+        if (!response.ok) return;
+        const data: PricesResponse = await response.json();
+        setPrices({
+          monthly: data.monthly ?? FALLBACK_PRICES.monthly,
+          yearly: data.yearly ?? FALLBACK_PRICES.yearly,
+        });
       } catch (error) {
         console.error("Error fetching prices:", error);
-      } finally {
-        setPricesLoading(false);
       }
     }
     fetchPrices();
   }, []);
 
-  const selectedPrice = billingInterval === "year" ? prices?.yearly : prices?.monthly;
+  const selectedPrice = billingInterval === "year" ? prices.yearly : prices.monthly;
 
   const formatPrice = (price: PriceData | null | undefined) => {
-    if (!price || price.amount === null) return "...";
+    const amount = price?.amount ?? FALLBACK_MONTHLY_AMOUNT;
+    const currency = price?.currency ?? FALLBACK_CURRENCY;
+    // Round prices read better without trailing zeros, but never hide cents.
+    const fractionDigits = amount % 100 === 0 ? 0 : 2;
     return new Intl.NumberFormat(undefined, {
       style: "currency",
-      currency: price.currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price.amount / 100);
+      currency,
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }).format(amount / 100);
   };
 
   const freeFeatures = [
@@ -190,7 +205,7 @@ export function PricingSection() {
 
               <div className="mt-4 text-center">
                 <span className="text-4xl font-bold">
-                  {pricesLoading ? "..." : formatPrice(selectedPrice)}
+                  {formatPrice(selectedPrice)}
                 </span>
                 <span className="text-muted-foreground">
                   /{billingInterval === "year" ? t("premiumPlan.year") : t("premiumPlan.month")}

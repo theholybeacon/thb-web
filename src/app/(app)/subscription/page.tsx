@@ -33,6 +33,7 @@ export default function SubscriptionPage() {
 	const tPremium = useTranslations("premium");
 	const tSponsorship = useTranslations("sponsorship");
 	const { isPremium, loading, user } = useLoggedUserContext();
+	const isLifetime = user?.lifetimePremium === true;
 	const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 	const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
 	const [billingInterval, setBillingInterval] = useState<"month" | "year">("year");
@@ -212,14 +213,23 @@ export default function SubscriptionPage() {
 							<div className="rounded-lg border bg-card p-6">
 								<div className="flex items-center gap-3 mb-4">
 									<PremiumBadge size="md" />
-									<span className="text-lg font-medium">{t("activeSubscription")}</span>
+									<span className="text-lg font-medium">
+										{isLifetime ? t("lifetimeAccess") : t("activeSubscription")}
+									</span>
 								</div>
-								<p className="text-muted-foreground mb-4">{t("thankYou")}</p>
+								<p className="text-muted-foreground mb-4">
+									{isLifetime ? t("lifetimeDescription") : t("thankYou")}
+								</p>
 								<div className="flex flex-wrap gap-3">
-									<Button onClick={handleManageSubscription} disabled={isLoadingPortal}>
-										<CreditCard className="mr-2 h-4 w-4" />
-										{isLoadingPortal ? t("loading") : t("manageSubscription")}
-									</Button>
+									{/* No billing portal for lifetime users — they have no Stripe
+									    customer, so /api/stripe/portal would 400 and the button
+									    would silently do nothing. */}
+									{!isLifetime && (
+										<Button onClick={handleManageSubscription} disabled={isLoadingPortal}>
+											<CreditCard className="mr-2 h-4 w-4" />
+											{isLoadingPortal ? t("loading") : t("manageSubscription")}
+										</Button>
+									)}
 									<Link href="/gift">
 										<Button variant="outline">
 											<Gift className="mr-2 h-4 w-4" />

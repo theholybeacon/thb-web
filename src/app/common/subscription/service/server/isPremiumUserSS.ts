@@ -3,7 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { userGetByAuthIdSS } from "../../../user/service/server/userGetByAuthIdSS";
 import { subscriptionGetByUserIdSS } from "./subscriptionGetByUserIdSS";
-import { isPremiumStatus } from "@/lib/premium";
+import { isPremiumUser } from "@/lib/premium";
 
 /**
  * Non-throwing premium check for surfaces that render for everyone (e.g. the
@@ -17,7 +17,7 @@ export async function isPremiumUserSS(): Promise<boolean> {
 		const user = await userGetByAuthIdSS(authId);
 		if (!user) return false;
 		const subscription = await subscriptionGetByUserIdSS(user.id);
-		return isPremiumStatus(subscription?.status ?? null);
+		return isPremiumUser({ status: subscription?.status, lifetimePremium: user.lifetimePremium });
 	} catch {
 		return false;
 	}

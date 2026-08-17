@@ -8,7 +8,7 @@ import { userCreateSS } from '../common/user/service/server/userCreateSS';
 import { userUpdateSS } from '../common/user/service/server/userUpdateSS';
 import { User } from '../common/user/model/User';
 import { subscriptionGetByUserIdSS } from '../common/subscription/service/server/subscriptionGetByUserIdSS';
-import { isPremiumStatus } from '@/lib/premium';
+import { isPremiumUser } from '@/lib/premium';
 import { captureTimezone } from '@/lib/activityClient';
 import posthog from 'posthog-js';
 
@@ -41,7 +41,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
       setState(prev => ({ ...prev, loading: true }));
       try {
         const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
-        const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id);
+        const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser);
         setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
         localStorage.setItem('user', JSON.stringify(dbUser));
         localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
@@ -84,7 +84,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
         setState(prev => ({ ...prev, loading: true }));
         try {
           const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
-          const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser.id);
+          const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser);
           setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
           localStorage.setItem('user', JSON.stringify(dbUser));
           localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
@@ -125,16 +125,23 @@ interface ClerkUserData {
   username?: string | null;
 }
 
+// Takes the whole user, not just the id: premium can also come from the
+// lifetime comp flag, which lives on the user row rather than a subscription.
 async function fetchSubscriptionStatus(
-  userId: string
+  user: User
 ): Promise<{ isPremium: boolean; subscriptionStatus: string | null }> {
   try {
-    const subscription = await subscriptionGetByUserIdSS(userId);
+    const subscription = await subscriptionGetByUserIdSS(user.id);
     const status = subscription?.status ?? null;
-    return { isPremium: isPremiumStatus(status), subscriptionStatus: status };
+    return {
+      isPremium: isPremiumUser({ status, lifetimePremium: user.lifetimePremium }),
+      subscriptionStatus: status,
+    };
   } catch (error) {
     console.error("Error fetching subscription:", error);
-    return { isPremium: false, subscriptionStatus: null };
+    // A lookup failure must not strip access from a lifetime user — that signal
+    // is on the user row we already have, not on the subscription we failed to read.
+    return { isPremium: user.lifetimePremium === true, subscriptionStatus: null };
   }
 }
 

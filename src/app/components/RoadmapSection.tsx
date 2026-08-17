@@ -22,7 +22,9 @@ export function RoadmapSection() {
       timeline: string;
       title: string;
       description: string;
-      features: string[];
+      // A plain string inherits the phase status; use { text, done } to ship a
+      // single feature ahead of the rest of its phase.
+      features: Array<string | { text: string; done: boolean }>;
     }>;
 
     return phasesData.map((phase, index) => ({
@@ -30,10 +32,11 @@ export function RoadmapSection() {
       timeline: phase.timeline,
       title: phase.title,
       description: phase.description,
-      features: phase.features.map((text) => ({
-        text,
-        done: phase.status === "live",
-      })),
+      features: phase.features.map((feature) =>
+        typeof feature === "string"
+          ? { text: feature, done: phase.status === "live" }
+          : feature
+      ),
       side: index % 2 === 0 ? "left" : "right",
     })) as Phase[];
   }, [t]);

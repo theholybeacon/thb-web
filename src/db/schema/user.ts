@@ -23,6 +23,10 @@ export const userTable = pgTable("user", {
 	publicProfileEnabled: boolean().notNull().default(false),
 	// Stripe
 	stripeCustomerId: varchar({ length: 255 }),
+	// Comp tier granted out-of-band (scripts/grant-lifetime.ts), independent of
+	// Stripe — a lifetime user has no `subscription` row. See src/lib/premium.ts.
+	lifetimePremium: boolean().notNull().default(false),
+	lifetimePremiumGrantedAt: timestamp(),
 	createdAt: timestamp().defaultNow(),
 });
 

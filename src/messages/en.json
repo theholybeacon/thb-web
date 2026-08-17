@@ -405,6 +405,8 @@
   "subscription": {
     "title": "Subscription",
     "activeSubscription": "Active Subscription",
+    "lifetimeAccess": "Lifetime Access",
+    "lifetimeDescription": "You have lifetime access to The Holy Beacon. There is nothing to renew and nothing to pay — every premium feature stays unlocked.",
     "thankYou": "Thank you for supporting The Holy Beacon. Your subscription helps us continue developing new features.",
     "manageSubscription": "Manage Subscription",
     "giftPremium": "Gift Premium",
@@ -549,7 +551,7 @@
       "exploreFree": "Explore the Bible free",
       "translations": "Translations",
       "characters": "Bible characters",
-      "waysToRead": "Ways to read",
+      "waysToStudy": "Ways to study",
       "yourGuide": "Your guide to Scripture",
       "characterProfiles": "Character profiles",
       "audioNarration": "Audio narration",
@@ -680,7 +682,7 @@
             "Chapter summaries and key themes",
             "Side-by-side translation compare",
             "Full-text verse search",
-            "Reading progress per book"
+            { "text": "Reading progress per book", "done": true }
           ]
         },
         {

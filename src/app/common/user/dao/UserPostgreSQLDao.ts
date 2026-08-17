@@ -79,6 +79,19 @@ export class UserPostgreSQLDao {
         await db.update(userTable).set({ timezone }).where(eq(userTable.id, id));
     }
 
+    /**
+     * Lifetime comp tier. A narrow setter on purpose: `update` above writes an
+     * explicit column whitelist, so routing this through it would silently drop
+     * the flag (and, usefully, means ordinary profile updates can never clobber it).
+     */
+    async setLifetimePremium(id: string, enabled: boolean): Promise<void> {
+        log.trace("setLifetimePremium");
+        await db.update(userTable).set({
+            lifetimePremium: enabled,
+            lifetimePremiumGrantedAt: enabled ? new Date() : null,
+        }).where(eq(userTable.id, id));
+    }
+
     async setEmailReminders(id: string, enabled: boolean): Promise<void> {
         log.trace("setEmailReminders");
         await db.update(userTable).set({ emailRemindersEnabled: enabled }).where(eq(userTable.id, id));

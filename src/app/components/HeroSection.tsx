@@ -68,7 +68,7 @@ export function HeroSection() {
               </div>
               <div className="space-y-1">
                 <p className="text-2xl font-bold gradient-text">3</p>
-                <p className="text-sm text-muted-foreground">{t("waysToRead")}</p>
+                <p className="text-sm text-muted-foreground">{t("waysToStudy")}</p>
               </div>
             </div>
           </div>
