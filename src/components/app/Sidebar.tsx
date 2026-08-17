@@ -52,6 +52,11 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     { href: "/journey", label: t("nav.journey"), icon: Trophy, premium: false },
   ];
 
+  // Prefix match so nested routes still light up their section — /bible/kjv-en/gen/1
+  // belongs to Explore, /session/<id> to Sessions.
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
+
   const getProgress = (session: SessionFull) => {
     if (!session.study?.steps?.length) return 0;
     const currentStepIndex = session.study.steps.findIndex(
@@ -70,7 +75,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
             return (
               <Link key={item.href} href={item.href}>
                 <Button
-                  variant={pathname === item.href ? "secondary" : "ghost"}
+                  variant={isActive(item.href) ? "secondary" : "ghost"}
                   size="icon"
                   className="h-10 w-10 relative"
                   title={item.label}
@@ -97,7 +102,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
           return (
             <Link key={item.href} href={item.href}>
               <Button
-                variant={pathname === item.href ? "secondary" : "ghost"}
+                variant={isActive(item.href) ? "secondary" : "ghost"}
                 className="w-full justify-start gap-3"
               >
                 <item.icon className={cn("h-4 w-4", showLock && "opacity-50")} />

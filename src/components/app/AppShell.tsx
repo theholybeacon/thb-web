@@ -8,6 +8,8 @@ import { UserAvatar } from "./UserAvatar";
 import { Sidebar } from "./Sidebar";
 import { TrialBanner } from "./TrialBanner";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { AppRouteRecorder } from "./AppRouteRecorder";
+import { BackToAppButton } from "./BackToAppButton";
 import { cn } from "@/lib/utils";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useTranslations } from "next-intl";
@@ -24,7 +26,11 @@ export function AppShell({ children, hideSidebar = false }: AppShellProps) {
   const t = useTranslations();
 
   return (
-    <div className="min-h-screen bg-background">
+    // --thb-header-h lets height-bound children (the /bible reader) size
+    // themselves without hardcoding which chrome is wrapping them.
+    <div className="min-h-screen bg-background [--thb-header-h:4rem]">
+      <AppRouteRecorder />
+
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
         <div className="flex h-16 items-center justify-between px-4">
@@ -65,6 +71,7 @@ export function AppShell({ children, hideSidebar = false }: AppShellProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            <BackToAppButton />
             <LanguageSwitcher />
             {isPremium ? (
               <Link href="/subscription">
@@ -126,7 +133,10 @@ export function AppShell({ children, hideSidebar = false }: AppShellProps) {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 min-h-[calc(100vh-4rem)]">
+        {/* min-w-0: a flex item defaults to min-width:auto, so without this the
+            /bible reader's own flex row (fixed-width book sidebar + reader)
+            props this open past the viewport on narrow screens. */}
+        <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)]">
           {children}
         </main>
       </div>

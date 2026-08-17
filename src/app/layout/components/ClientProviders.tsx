@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { LoggedUserProvider } from "@/app/state/LoggedUserContext";
 import {
     QueryClient,
@@ -11,7 +12,9 @@ export default function ClientProvider({
     children: React.ReactNode;
 }) {
 
-    const queryClient = new QueryClient();
+    // Must survive re-renders — constructing it in the body would hand every
+    // render a fresh client and throw away the cache.
+    const [queryClient] = useState(() => new QueryClient());
 
 
     return (

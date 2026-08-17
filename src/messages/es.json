@@ -149,7 +149,9 @@
     "browseStudies": "Ver Estudios",
     "explore": "Explorar",
     "notes": "Notas",
-    "journey": "Camino"
+    "journey": "Camino",
+    "backTo": "Volver a {label}",
+    "backToApp": "Volver a la app"
   },
   "bible": {
     "explorer": "Explorar la Biblia",

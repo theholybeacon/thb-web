@@ -19,7 +19,10 @@ export default async function BibleReaderLayout({ children, params }: LayoutProp
   const books = await bookGetAllByBibleIdSS(bible.id);
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)]">
+    // Height comes from whichever chrome wrapped us (public header vs app
+    // shell), which publishes --thb-header-h. dvh so retracting mobile browser
+    // toolbars do not push the reader's sticky footer out of view.
+    <div className="flex h-[calc(100dvh-var(--thb-header-h,3.5rem))]">
       <ExplorerSidebar bible={bible} books={books} />
       <main className="flex-1 overflow-y-auto">
         {children}

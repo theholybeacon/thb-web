@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { PostHogProvider } from "@/app/layout/components/PostHogProvider"
 import { AudioPlayerProvider } from "@/app/state/AudioPlayerContext"
 import { GlobalAudioPlayer } from "@/components/audio/GlobalAudioPlayer"
+import ClientProvider from "@/app/layout/components/ClientProviders"
 
 export const metadata: Metadata = {
   // Required for file-based OG images (opengraph-image.tsx) to resolve to
@@ -50,11 +51,19 @@ export default async function RootLayout({
                   Next.js preserves across client navigation. That is what lets
                   playback survive route changes and keep going with the screen off.
                 */}
-                <AudioPlayerProvider>
-                  {children}
-                  <GlobalAudioPlayer />
-                  <Toaster position="top-right" richColors closeButton />
-                </AudioPlayerProvider>
+                {/*
+                  User + subscription state and the react-query cache live at
+                  the ROOT for the same reason as the audio player above: the
+                  signed-in app shell now renders over the public /bible tree
+                  too, and both need the same provider instance.
+                */}
+                <ClientProvider>
+                  <AudioPlayerProvider>
+                    {children}
+                    <GlobalAudioPlayer />
+                    <Toaster position="top-right" richColors closeButton />
+                  </AudioPlayerProvider>
+                </ClientProvider>
               </ThemeProvider>
             </NextIntlClientProvider>
           </PostHogProvider>

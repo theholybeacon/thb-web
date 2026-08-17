@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import posthog from "posthog-js";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -33,6 +33,7 @@ import { AppShell } from "@/components/app";
 import { ReaderEngine, ReaderMode } from "@/components/reader/ReaderEngine";
 import { entityMentionsGetForChapterSS } from "@/app/common/entity/service/server/entityMentionsGetForChapterSS";
 import { recordActivity } from "@/lib/activityClient";
+import { recordAppRoute } from "@/lib/lastAppRoute";
 import { PremiumGate } from "@/components/premium";
 import { SessionProgressProvider, useSessionProgress } from "../../context/SessionProgressContext";
 
@@ -120,6 +121,13 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
   const t = useTranslations();
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  // Overrides the generic "Sessions" label so the /bible back-pill reads
+  // "Back to <study name>" instead.
+  const studyName = initialSession.study?.name;
+  useEffect(() => {
+    recordAppRoute(`/session/${initialSession.id}`, studyName || undefined);
+  }, [initialSession.id, studyName]);
 
   // The DAO hydrates `bible` on the study, but SessionFull.study is typed StudyFull
   // (which has no `bible`), so it must be read through a cast. Widening StudyFull to
