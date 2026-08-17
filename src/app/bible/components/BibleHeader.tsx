@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sun, Compass } from "lucide-react";
+import { Sun, Compass, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
@@ -25,6 +25,15 @@ export function BibleHeader() {
           >
             <Compass className="h-4 w-4" />
             <span>Explore</span>
+          </Link>
+
+          {/* Character index */}
+          <Link
+            href="/bible/people"
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary"
+          >
+            <Users className="h-4 w-4" />
+            <span>People</span>
           </Link>
         </div>
 

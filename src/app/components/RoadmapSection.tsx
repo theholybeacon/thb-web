@@ -18,6 +18,7 @@ export function RoadmapSection() {
 
   const phases: Phase[] = useMemo(() => {
     const phasesData = t.raw("phases") as Array<{
+      status: Phase["status"];
       timeline: string;
       title: string;
       description: string;
@@ -25,14 +26,13 @@ export function RoadmapSection() {
     }>;
 
     return phasesData.map((phase, index) => ({
-      // First phase is live, second is current, rest are upcoming
-      status: index === 0 ? "live" : index === 1 ? "current" : "upcoming",
+      status: phase.status,
       timeline: phase.timeline,
       title: phase.title,
       description: phase.description,
       features: phase.features.map((text) => ({
         text,
-        done: index === 0, // First phase features are done
+        done: phase.status === "live",
       })),
       side: index % 2 === 0 ? "left" : "right",
     })) as Phase[];

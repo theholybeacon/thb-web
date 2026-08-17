@@ -10,12 +10,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ArrowRight, Bookmark, Clock4, Headphones, Users, ChevronLeft, ChevronRight, Link2, User, Globe, BookOpen, Mic, Image, MessageCircle, Rss, LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { ArrowRight, Bookmark, CheckCircle2, Clock4, Columns2, FileText, Flame, Headphones, Users, ChevronLeft, ChevronRight, Link2, NotebookPen, User, Globe, BookOpen, Mic, Keyboard, Sparkles, LucideIcon } from "lucide-react";
 
 interface PreviewSlide {
   title: string;
   description: string;
   icon: LucideIcon;
+  /** Marks a teaser slide for work that has not shipped yet. */
+  upcoming?: boolean;
 }
 
 interface Feature {
@@ -23,7 +27,6 @@ interface Feature {
   icon: LucideIcon;
   title: string;
   description: string;
-  timeline: string;
   modalTitle: string;
   modalDescription: string;
   previews: PreviewSlide[];
@@ -33,12 +36,12 @@ function FeatureModal({
   feature,
   open,
   onOpenChange,
-  expectedText
+  comingNextText
 }: {
   feature: Feature | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  expectedText: string;
+  comingNextText: string;
 }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -80,8 +83,14 @@ function FeatureModal({
           {/* Slide content */}
           <div className="relative bg-secondary/30 rounded-xl p-6 min-h-[200px]">
             <div className="flex flex-col items-center text-center space-y-4">
-              <div className="rounded-2xl bg-primary/10 p-4">
-                <current.icon className="h-10 w-10 text-primary" />
+              {current.upcoming && (
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+                  <Clock4 className="h-3 w-3" />
+                  <span>{comingNextText}</span>
+                </div>
+              )}
+              <div className={cn("rounded-2xl p-4", current.upcoming ? "bg-secondary" : "bg-primary/10")}>
+                <current.icon className={cn("h-10 w-10", current.upcoming ? "text-muted-foreground" : "text-primary")} />
               </div>
               <h4 className="text-lg font-bold">{current.title}</h4>
               <p className="text-muted-foreground text-sm leading-relaxed">
@@ -125,14 +134,6 @@ function FeatureModal({
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
-
-          {/* Timeline badge */}
-          <div className="flex justify-center mt-4">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
-              <Clock4 className="h-3 w-3" />
-              <span>{expectedText} {feature.timeline}</span>
-            </div>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -147,27 +148,32 @@ export function FeaturePreviewSection() {
   const features: Feature[] = useMemo(() => [
     {
       key: "scriptureHD",
-      icon: Bookmark,
+      icon: Users,
       title: t("scriptureHD.title"),
       description: t("scriptureHD.description"),
-      timeline: t("scriptureHD.timeline"),
       modalTitle: t("scriptureHD.modalTitle"),
       modalDescription: t("scriptureHD.modalDescription"),
       previews: [
         {
           title: t("scriptureHD.preview1Title"),
           description: t("scriptureHD.preview1Desc"),
-          icon: Link2,
+          icon: User,
         },
         {
           title: t("scriptureHD.preview2Title"),
           description: t("scriptureHD.preview2Desc"),
-          icon: User,
+          icon: Clock4,
         },
         {
           title: t("scriptureHD.preview3Title"),
           description: t("scriptureHD.preview3Desc"),
+          icon: Link2,
+        },
+        {
+          title: t("scriptureHD.preview4Title"),
+          description: t("scriptureHD.preview4Desc"),
           icon: Globe,
+          upcoming: true,
         },
       ],
     },
@@ -176,7 +182,6 @@ export function FeaturePreviewSection() {
       icon: Headphones,
       title: t("multiModal.title"),
       description: t("multiModal.description"),
-      timeline: t("multiModal.timeline"),
       modalTitle: t("multiModal.modalTitle"),
       modalDescription: t("multiModal.modalDescription"),
       previews: [
@@ -193,33 +198,44 @@ export function FeaturePreviewSection() {
         {
           title: t("multiModal.preview3Title"),
           description: t("multiModal.preview3Desc"),
-          icon: Image,
+          icon: Keyboard,
+        },
+        {
+          title: t("multiModal.preview4Title"),
+          description: t("multiModal.preview4Desc"),
+          icon: Columns2,
+          upcoming: true,
         },
       ],
     },
     {
-      key: "community",
-      icon: Users,
-      title: t("community.title"),
-      description: t("community.description"),
-      timeline: t("community.timeline"),
-      modalTitle: t("community.modalTitle"),
-      modalDescription: t("community.modalDescription"),
+      key: "studyNotes",
+      icon: Bookmark,
+      title: t("studyNotes.title"),
+      description: t("studyNotes.description"),
+      modalTitle: t("studyNotes.modalTitle"),
+      modalDescription: t("studyNotes.modalDescription"),
       previews: [
         {
-          title: t("community.preview1Title"),
-          description: t("community.preview1Desc"),
-          icon: Users,
+          title: t("studyNotes.preview1Title"),
+          description: t("studyNotes.preview1Desc"),
+          icon: Sparkles,
         },
         {
-          title: t("community.preview2Title"),
-          description: t("community.preview2Desc"),
-          icon: MessageCircle,
+          title: t("studyNotes.preview2Title"),
+          description: t("studyNotes.preview2Desc"),
+          icon: NotebookPen,
         },
         {
-          title: t("community.preview3Title"),
-          description: t("community.preview3Desc"),
-          icon: Rss,
+          title: t("studyNotes.preview3Title"),
+          description: t("studyNotes.preview3Desc"),
+          icon: Flame,
+        },
+        {
+          title: t("studyNotes.preview4Title"),
+          description: t("studyNotes.preview4Desc"),
+          icon: FileText,
+          upcoming: true,
         },
       ],
     },
@@ -239,8 +255,8 @@ export function FeaturePreviewSection() {
       <div className="container relative px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-secondary border border-border px-4 py-1.5 text-sm text-secondary-foreground animate-fade-down opacity-0">
-              <Clock4 className="h-4 w-4" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary animate-fade-down opacity-0">
+              <Sparkles className="h-4 w-4" />
               <span className="font-medium">{t("badge")}</span>
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-up opacity-0 animation-delay-100">
@@ -262,11 +278,11 @@ export function FeaturePreviewSection() {
               {/* Hover glow effect */}
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-              {/* Timeline badge */}
+              {/* Live badge */}
               <div className="absolute top-4 right-4">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
-                  <Clock4 className="h-3 w-3" />
-                  <span>{feature.timeline}</span>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 border border-green-500/20 px-3 py-1 text-xs text-green-600 dark:text-green-400">
+                  <CheckCircle2 className="h-3 w-3" />
+                  <span>{t("liveBadge")}</span>
                 </div>
               </div>
 
@@ -293,6 +309,17 @@ export function FeaturePreviewSection() {
             </div>
           ))}
         </div>
+
+        {/* Pointer to what's still coming */}
+        <div className="mt-10 text-center animate-fade-up opacity-0 animation-delay-600">
+          <Link
+            href="#roadmap"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <span>{t("moreOnRoadmap")}</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
 
       {/* Feature Modal */}
@@ -300,7 +327,7 @@ export function FeaturePreviewSection() {
         feature={selectedFeature}
         open={modalOpen}
         onOpenChange={setModalOpen}
-        expectedText={t("expected")}
+        comingNextText={t("comingNext")}
       />
     </section>
   );

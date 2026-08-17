@@ -34,6 +34,7 @@ export default async function sitemap({ id: rawId }: { id: number }): Promise<Me
     return [
       { url: BASE_URL, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
       { url: `${BASE_URL}/bible`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+      { url: `${BASE_URL}/bible/people`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     ];
   }
 

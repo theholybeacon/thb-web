@@ -29,6 +29,7 @@ function statusFor(message: string): number {
 			return 451; // Unavailable For Legal Reasons — literally what this is.
 		case "BIBLE_NOT_FOUND":
 		case "STUDY_STEP_NOT_FOUND":
+		case "CHAPTER_NOT_FOUND":
 			return 404;
 		default:
 			return 500;

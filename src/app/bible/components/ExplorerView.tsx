@@ -80,24 +80,23 @@ export function ExplorerView({
         </div>
       </header>
 
-      {/* Content area - scrollable */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-4 md:p-6">
-          <ReaderEngine
-            verses={verses}
-            mode={currentMode}
-            onModeChange={setCurrentMode}
-            bookName={bookName}
-            chapterNumber={chapterNumber}
-            mentions={mentions}
-            isPremium={isPremium}
-            bibleLanguage={bibleLanguage}
-            bibleName={bibleName}
-            bibleId={bibleId}
-            bookAbbreviation={bookAbbreviation}
-            audioEnabled={audioEnabled}
-          />
-        </div>
+      {/* Content area. The engine owns scrolling and centring so its info panel
+          can sit beside the text column and reflow it instead of covering it. */}
+      <div className="min-h-0 flex-1">
+        <ReaderEngine
+          verses={verses}
+          mode={currentMode}
+          onModeChange={setCurrentMode}
+          bookName={bookName}
+          chapterNumber={chapterNumber}
+          mentions={mentions}
+          isPremium={isPremium}
+          bibleLanguage={bibleLanguage}
+          bibleName={bibleName}
+          bibleId={bibleId}
+          bookAbbreviation={bookAbbreviation}
+          audioEnabled={audioEnabled}
+        />
       </div>
 
       {/* Navigation footer */}

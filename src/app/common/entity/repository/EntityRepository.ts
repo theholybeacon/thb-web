@@ -1,5 +1,5 @@
 import { EntityPostgreSQLDao } from "../dao/EntityPostgreSQLDao";
-import { Entity, EntityInsert, EntityMention, EntityMentionInsert } from "../model/Entity";
+import { Entity, EntityIndexRow, EntityInsert, EntityMention, EntityMentionInsert } from "../model/Entity";
 
 export class EntityRepository {
 	private dao = new EntityPostgreSQLDao();
@@ -37,6 +37,19 @@ export class EntityRepository {
 
 	async countMentions(entityId: string): Promise<number> {
 		return await this.dao.countMentions(entityId);
+	}
+
+	async listForIndex(opts: {
+		letter?: string;
+		query?: string;
+		limit: number;
+		offset: number;
+	}): Promise<{ rows: EntityIndexRow[]; total: number }> {
+		return await this.dao.listForIndex(opts);
+	}
+
+	async listIndexLetters(): Promise<string[]> {
+		return await this.dao.listIndexLetters();
 	}
 
 	async upsertByDatasetId(entity: EntityInsert): Promise<Entity> {

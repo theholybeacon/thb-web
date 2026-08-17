@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "studio": "tsx studio/cli.ts"
+    "studio": "tsx studio/cli.ts",
+    "migrate": "tsx scripts/apply-migration.ts",
+    "seed:people": "tsx scripts/import-bible-people.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.37.1",

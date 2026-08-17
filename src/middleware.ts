@@ -17,6 +17,11 @@ const isPublicRoute = createRouteMatcher([
   '/api/cron(.*)',
   '/api/email(.*)',
   '/bible(.*)',
+  // Shared journey pages. These are opened by people who are not signed in (that
+  // is the point of sharing), and Clerk answers 404 rather than 401 to anonymous
+  // requests — so leaving this protected would silently break every shared link.
+  // The service itself still returns null unless the owner opted in.
+  '/u/(.*)',
   // Crawler-facing metadata files. The matcher below does not exclude .txt/.xml,
   // so without these Clerk answers 404 to anonymous crawlers and the whole SEO
   // discovery surface (robots + every generateSitemaps() shard) silently breaks.

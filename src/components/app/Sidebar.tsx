@@ -17,6 +17,7 @@ import {
   Book,
   Lock,
   NotebookPen,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,8 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     { href: "/session", label: t("nav.sessions"), icon: Play, premium: true },
     { href: "/bible", label: t("nav.explore"), icon: Book, premium: false },
     { href: "/notes", label: t("nav.notes"), icon: NotebookPen, premium: true },
+    // Progress is for everyone, like the streak — not a premium surface.
+    { href: "/journey", label: t("nav.journey"), icon: Trophy, premium: false },
   ];
 
   const getProgress = (session: SessionFull) => {

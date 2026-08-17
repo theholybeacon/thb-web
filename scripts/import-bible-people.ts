@@ -52,6 +52,48 @@ function parseAliases(alsoCalled: unknown): string[] {
 	return [];
 }
 
+function str(v: unknown): string {
+	return v == null ? "" : String(v).trim();
+}
+
+/**
+ * The name to show in chips, the character page heading and the A-Z index.
+ *
+ * The dataset's `name` is only the given name, so the apostle Peter is a bare
+ * "Simon" — indistinguishable from the eight other Simons. `displayTitle` is
+ * the disambiguated label ("Simon Peter", "Joseph (son of Jacob)"), so prefer it.
+ */
+function displayName(f: Record<string, unknown>): string {
+	return str(f.displayTitle) || str(f.name) || "Unknown";
+}
+
+/**
+ * Every surface form that might appear verbatim in verse text, used to link
+ * names inline. Distinct from the display name: parenthetical disambiguators
+ * ("Judah (patriarch)") never occur in scripture, so they are stripped, while
+ * the given name, the surname and the full "Simon Peter" form are all kept —
+ * that is what makes "Peter" and "Christ" clickable at all.
+ */
+function matchTerms(f: Record<string, unknown>): string[] {
+	const name = str(f.name);
+	const surname = str(f.surname);
+	const display = str(f.displayTitle);
+
+	const terms = [name, surname, name && surname ? `${name} ${surname}` : "", ...parseAliases(f.alsoCalled)];
+	if (display && !display.includes("(")) terms.push(display);
+
+	const seen = new Set<string>();
+	return terms
+		.map((t) => t.trim())
+		.filter((t) => t.length > 1 && !t.includes("("))
+		.filter((t) => {
+			const k = t.toLowerCase();
+			if (seen.has(k)) return false;
+			seen.add(k);
+			return true;
+		});
+}
+
 function parseYear(v: unknown): number | null {
 	if (v == null || String(v).trim() === "") return null;
 	const n = Number(v);
@@ -79,8 +121,8 @@ async function main() {
 		return {
 			datasetId,
 			slug: String(f.slug ?? datasetId),
-			name: String(f.name ?? f.displayTitle ?? "Unknown"),
-			aliases: parseAliases(f.alsoCalled),
+			name: displayName(f),
+			aliases: matchTerms(f),
 			gender: f.gender ? String(f.gender) : null,
 			birthYear: parseYear(f.birthYear),
 			deathYear: parseYear(f.deathYear),

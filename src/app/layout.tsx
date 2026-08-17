@@ -19,8 +19,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_BASE_URL || "https://theholybeacon.com",
   ),
-  title: "The Holy Beacon",
-  description: "Illuminate Your Path Through the Word",
+  title: "The Holy Beacon — Study the Bible, deeply",
+  description:
+    "AI study plans, three ways through every chapter — read it, hear it narrated, or type it — plus profiles of the people behind the text and notes that stay attached to the verse.",
   icons: {
     icon: [{ url: "/favicon.ico?2", sizes: "any", type: "image/x-icon" }],
   },

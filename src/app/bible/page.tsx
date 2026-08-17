@@ -6,7 +6,7 @@ import { BookOpen } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Explore the Bible | The Holy Beacon",
-  description: "Read the Bible online in multiple translations. Choose from various Bible versions including NIV, ESV, KJV, and more. Free online Bible study tool.",
+  description: "Read the Bible online in hundreds of translations, including the King James Version, World English Bible, Berean Standard Bible, American Standard Version and Reina-Valera. Free online Bible study tool.",
   openGraph: {
     title: "Explore the Bible | The Holy Beacon",
     description: "Read the Bible online in multiple translations. Free online Bible study tool.",

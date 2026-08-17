@@ -1,4 +1,5 @@
 import { logger } from "@/app/utils/logger";
+import { chapterContentHash } from "@/lib/chapterHash";
 import { BibleRepository } from "../../bible/repository/BibleRepository";
 import { BookRepository } from "../../book/repository/BookRepository";
 import { VerseRepository } from "../../verse/repository/VerseRepository";
@@ -97,7 +98,44 @@ export class ChapterRepository {
 			}
 		}
 
+		await this.ensureContentHash(chapter);
+
 		return chapter;
+	}
+
+	/**
+	 * Fingerprints the chapter text so identical chapters can share one narration.
+	 *
+	 * Only hashes a chapter that looks COMPLETE. The fetch loop above exits on an
+	 * API error or a repeated verse, so a truncated chapter is possible — and a
+	 * hash over half a chapter would be adopted by every Bible sharing that text,
+	 * silently serving everyone a narration that stops midway. Leaving the hash
+	 * null instead just falls back to the per-Bible cache key.
+	 *
+	 * Runs on cached chapters too, so rows written before this column existed
+	 * backfill themselves the first time they are read.
+	 */
+	private async ensureContentHash(chapter: ChapterVer): Promise<void> {
+		if (chapter.contentHash) return;
+		if (chapter.verses.length === 0) return;
+		if (chapter.numVerses && chapter.numVerses !== chapter.verses.length) {
+			log.warn(
+				{ chapterId: chapter.id, expected: chapter.numVerses, got: chapter.verses.length },
+				"incomplete chapter; skipping content hash"
+			);
+			return;
+		}
+
+		const contentHash = chapterContentHash(chapter.verses);
+		chapter.contentHash = contentHash;
+
+		try {
+			await this.chapterInternalDao.update({ ...chapter, contentHash });
+		} catch (e) {
+			// Non-fatal: the caller still has the hash in memory and the next read
+			// retries. Never let a bookkeeping write break chapter delivery.
+			log.error({ err: e, chapterId: chapter.id }, "failed to persist content hash");
+		}
 	}
 
 	async update(chapter: Chapter): Promise<void> {

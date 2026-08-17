@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2, NotebookPen, Plus, StickyNote, X } from "lucide-react";
+import { Loader2, Plus, StickyNote } from "lucide-react";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { Note } from "@/app/common/note/model/Note";
 import { NoteTargetType } from "@/app/common/note/noteScope";
@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/lib/toast";
 import { logger } from "@/app/utils/logger";
-import { cn } from "@/lib/utils";
 import { NoteCard } from "./NoteCard";
 import { NoteEditor } from "./NoteEditor";
 
@@ -49,9 +48,7 @@ export interface NoteComposeRequest {
   nonce: number;
 }
 
-interface NotesPanelProps {
-  open: boolean;
-  onClose: () => void;
+interface NotesSectionProps {
   notes: Note[];
   isLoading: boolean;
   context: NotesPanelContext;
@@ -70,16 +67,21 @@ const SECTION_LABEL_KEY: Record<NoteTargetType, string> = {
   bible: "sectionBible",
 };
 
-export function NotesPanel({
-  open,
-  onClose,
+/**
+ * The notes body of the reader info panel.
+ *
+ * This used to be a viewport-`fixed` slide-over that covered the reader; it is
+ * now a plain in-flow section so the panel can reflow the reading column
+ * instead of hiding it. The compose/edit/delete flows are unchanged.
+ */
+export function NotesSection({
   notes,
   isLoading,
   context,
   verses,
   composeRequest,
   onChanged,
-}: NotesPanelProps) {
+}: NotesSectionProps) {
   const t = useTranslations("notes");
   const tCommon = useTranslations("common");
 
@@ -196,147 +198,112 @@ export function NotesPanel({
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 bg-black/40 transition-opacity lg:hidden",
-          open ? "opacity-100" : "pointer-events-none opacity-0"
-        )}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      <aside
-        className={cn(
-          "fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l bg-background shadow-xl transition-transform duration-300",
-          open ? "translate-x-0" : "translate-x-full"
-        )}
-        aria-hidden={!open}
-      >
-        <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
-          <div className="flex min-w-0 items-center gap-2">
-            <NotebookPen className="h-5 w-5 flex-shrink-0 text-primary" />
-            <div className="min-w-0">
-              <h2 className="truncate font-semibold">{t("panelTitle")}</h2>
-              <p className="truncate text-xs text-muted-foreground">
-                {context.bookName} {context.chapterNumber}
-              </p>
-            </div>
-          </div>
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label={tCommon("cancel")}>
-            <X className="h-5 w-5" />
-          </Button>
-        </header>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-4">
-            {composing ? (
-              <div className="rounded-lg border bg-card p-4">
-                <NoteEditor
-                  saving={saving}
-                  onSubmit={handleCreate}
-                  onCancel={() => setComposing(false)}
-                  header={
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        {t("scope")}
-                      </label>
-                      <Select value={scope} onValueChange={(v) => setScope(v as NoteTargetType)}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {scopeOptions.map((option) => (
-                            <SelectItem
-                              key={option.value}
-                              value={option.value}
-                              disabled={option.value === "verse" && sortedVerses.length === 0}
-                            >
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      {scope === "verse" && (
-                        <Select
-                          value={verseNumber ? String(verseNumber) : ""}
-                          onValueChange={(v) => setVerseNumber(Number(v))}
+      <div className="space-y-4">
+        {composing ? (
+          <div className="rounded-lg border bg-card p-3">
+            <NoteEditor
+              saving={saving}
+              onSubmit={handleCreate}
+              onCancel={() => setComposing(false)}
+              header={
+                <div className="space-y-2">
+                  <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    {t("scope")}
+                  </label>
+                  <Select value={scope} onValueChange={(v) => setScope(v as NoteTargetType)}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {scopeOptions.map((option) => (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          disabled={option.value === "verse" && sortedVerses.length === 0}
                         >
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder={t("selectVerse")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {sortedVerses.map((verse) => (
-                              <SelectItem key={verse.id} value={String(verse.verseNumber)}>
-                                {context.bookName} {context.chapterNumber}:{verse.verseNumber}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-                  }
-                />
-              </div>
-            ) : (
-              <Button className="w-full" onClick={startCompose}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t("newNote")}
-              </Button>
-            )}
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-            {isLoading && (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            )}
-
-            {!isLoading && notes.length === 0 && !composing && (
-              <div className="py-10 text-center">
-                <StickyNote className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
-                <p className="text-sm text-muted-foreground">{t("noNotesHere")}</p>
-              </div>
-            )}
-
-            {SCOPE_SECTIONS.map((section) => {
-              const sectionNotes = grouped.get(section) ?? [];
-              if (sectionNotes.length === 0) return null;
-
-              return (
-                <section key={section} className="space-y-2">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {t(SECTION_LABEL_KEY[section])}
-                  </h3>
-                  {sectionNotes.map((note) =>
-                    editingNote?.id === note.id ? (
-                      <div key={note.id} className="rounded-lg border bg-card p-4">
-                        <NoteEditor
-                          initialTitle={note.title}
-                          initialContent={note.content}
-                          saving={saving}
-                          onSubmit={handleUpdate}
-                          onCancel={() => setEditingNote(null)}
-                        />
-                      </div>
-                    ) : (
-                      <NoteCard
-                        key={note.id}
-                        note={note}
-                        onEdit={(n) => {
-                          setComposing(false);
-                          setEditingNote(n);
-                        }}
-                        onDelete={setNoteToDelete}
-                      />
-                    )
+                  {scope === "verse" && (
+                    <Select
+                      value={verseNumber ? String(verseNumber) : ""}
+                      onValueChange={(v) => setVerseNumber(Number(v))}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder={t("selectVerse")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sortedVerses.map((verse) => (
+                          <SelectItem key={verse.id} value={String(verse.verseNumber)}>
+                            {context.bookName} {context.chapterNumber}:{verse.verseNumber}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
-                </section>
-              );
-            })}
+                </div>
+              }
+            />
           </div>
-        </div>
-      </aside>
+        ) : (
+          <Button className="w-full" size="sm" onClick={startCompose}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t("newNote")}
+          </Button>
+        )}
+
+        {isLoading && (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {!isLoading && notes.length === 0 && !composing && (
+          <div className="py-8 text-center">
+            <StickyNote className="mx-auto mb-3 h-9 w-9 text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground">{t("noNotesHere")}</p>
+          </div>
+        )}
+
+        {SCOPE_SECTIONS.map((section) => {
+          const sectionNotes = grouped.get(section) ?? [];
+          if (sectionNotes.length === 0) return null;
+
+          return (
+            <section key={section} className="space-y-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t(SECTION_LABEL_KEY[section])}
+              </h3>
+              {sectionNotes.map((note) =>
+                editingNote?.id === note.id ? (
+                  <div key={note.id} className="rounded-lg border bg-card p-3">
+                    <NoteEditor
+                      initialTitle={note.title}
+                      initialContent={note.content}
+                      saving={saving}
+                      onSubmit={handleUpdate}
+                      onCancel={() => setEditingNote(null)}
+                    />
+                  </div>
+                ) : (
+                  <NoteCard
+                    key={note.id}
+                    note={note}
+                    onEdit={(n) => {
+                      setComposing(false);
+                      setEditingNote(n);
+                    }}
+                    onDelete={setNoteToDelete}
+                  />
+                )
+              )}
+            </section>
+          );
+        })}
+      </div>
 
       <AlertDialog open={Boolean(noteToDelete)} onOpenChange={(o) => !o && setNoteToDelete(null)}>
         <AlertDialogContent>

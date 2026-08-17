@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
+import { useOptionalChapterCompletion } from "@/components/reader/progress/ChapterCompletionContext";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -13,7 +14,7 @@ import { AiContent } from "@/components/entity/AiContent";
 import { cn } from "@/lib/utils";
 import { useAudioPlayer } from "@/app/state/AudioPlayerContext";
 import {
-	AUDIO_VOICES, AudioTrack, AudioVoice, chapterCacheKey, stepIntroCacheKey,
+	AUDIO_VOICES, AudioTrack, AudioVoice, VOICE_LABEL_KEY, chapterCacheKey, stepIntroCacheKey,
 } from "@/app/common/audio/model/AudioAsset";
 import { cacheAudio, isAudioCached } from "@/lib/audioCache";
 import { toast } from "@/lib/toast";
@@ -78,6 +79,7 @@ export function ListenMode({
 	const t = useTranslations();
 	const player = useAudioPlayer();
 	const sessionProgress = useOptionalSessionProgress();
+	const chapterCompletion = useOptionalChapterCompletion();
 
 	const verseRefs = useRef<Record<number, HTMLParagraphElement | null>>({});
 	const [downloaded, setDownloaded] = useState(false);
@@ -142,6 +144,11 @@ export function ListenMode({
 				sessionId,
 				stepId: studyStepId,
 				isLastChapterInStep: isLastChapterInStep ?? true,
+				// Lets the player record the completion itself when the track ends with
+				// the screen locked and this component long unmounted.
+				bookAbbreviation: bookAbbreviation!,
+				chapterNumber: chapterNumber!,
+				bibleId: bibleId!,
 			});
 		}
 
@@ -174,7 +181,12 @@ export function ListenMode({
 		const idx = activeVerse ? filteredVerses.findIndex((v) => v.verseNumber === activeVerse) : 0;
 		const done = player.status === "ready" && player.positionMs > 0 && player.positionMs >= player.durationMs;
 		sessionProgress?.reportModeProgress(Math.max(0, idx), filteredVerses.length, done);
-	}, [activeVerse, filteredVerses, player.status, player.positionMs, player.durationMs, sessionProgress]);
+		// Reflect completion in the reader straight away. The player writes this too
+		// (it has to — audio finishes with the screen locked), but only this path
+		// runs while the user is looking at the page. The server's re-completion
+		// cooldown makes the overlap a no-op rather than a second lap.
+		if (done) chapterCompletion?.markComplete("listen");
+	}, [activeVerse, filteredVerses, player.status, player.positionMs, player.durationMs, sessionProgress, chapterCompletion]);
 
 	useEffect(() => {
 		if (player.track?.url) void isAudioCached(player.track.url).then(setDownloaded);
@@ -368,10 +380,10 @@ export function ListenMode({
 									key={v}
 									size="sm"
 									variant={player.voice === v ? "secondary" : "ghost"}
-									className="h-7 px-2 text-xs capitalize"
+									className="h-7 px-2 text-xs"
 									onClick={() => player.setVoice(v)}
 								>
-									{v}
+									{t(`audio.${VOICE_LABEL_KEY[v]}`)}
 								</Button>
 							))}
 						</div>

@@ -6,27 +6,14 @@ function escapeRegExp(s: string): string {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export interface VerseLinkOptions {
-	/** Whether character names should link to their page (premium) or be locked. */
-	interactive?: boolean;
-	/** Invoked when a non-premium user clicks a locked name. */
-	onLockedClick?: () => void;
-}
-
 /**
  * Renders verse text with character names/aliases (that the mention index says
  * appear in this verse) wrapped as character links. Falls back to the plain
  * string when there are no entities to link — safe because verse content is a
- * single plain string. Names are always shown; interactivity is gated via opts.
+ * single plain string.
  */
-export function renderVerseContent(
-	content: string,
-	entities?: EntityLite[],
-	opts?: VerseLinkOptions,
-): ReactNode {
+export function renderVerseContent(content: string, entities?: EntityLite[]): ReactNode {
 	if (!entities || entities.length === 0) return content;
-
-	const interactive = opts?.interactive ?? true;
 
 	// Build term -> slug, longest terms first so "John the Baptist" wins over "John".
 	const terms: { term: string; slug: string }[] = [];
@@ -55,13 +42,7 @@ export function renderVerseContent(
 		const slug = slugByLowerTerm.get(matched.toLowerCase());
 		if (slug) {
 			nodes.push(
-				<CharacterName
-					key={key++}
-					slug={slug}
-					variant="inline"
-					interactive={interactive}
-					onLockedClick={opts?.onLockedClick}
-				>
+				<CharacterName key={key++} slug={slug} variant="inline">
 					{matched}
 				</CharacterName>,
 			);

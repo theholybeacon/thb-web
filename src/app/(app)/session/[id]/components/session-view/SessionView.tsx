@@ -511,12 +511,12 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
           </header>
 
           {/* Scripture content - Mode dependent */}
-          <div className="flex-1 overflow-y-auto flex flex-col">
+          {/* The engine owns scrolling and centring so its info panel can sit
+              beside the text column and reflow it instead of covering it. */}
+          <div className="flex min-h-0 flex-1 flex-col">
             <div className={cn(
-              "px-3 py-3 md:px-6 md:py-6",
-              currentMode === "listen" && "flex-1",
-              currentMode === "type" && "h-full max-w-4xl mx-auto",
-              currentMode === "read" && "max-w-4xl mx-auto"
+              "min-h-0 flex-1",
+              currentMode === "type" && "h-full"
             )}>
               <ReaderEngine
                 verses={chapterData?.verses ?? []}

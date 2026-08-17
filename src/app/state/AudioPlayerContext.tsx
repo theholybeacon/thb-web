@@ -466,8 +466,32 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
  * reader is unmounted. It also finally routes `timeSpentSeconds` into
  * session_step_completion — listen sessions have always written a null, because
  * SessionView's only call site invokes handleCompleteChapter() with no args.
+ *
+ * The two writes are independent. Study-step completion needs a session; chapter
+ * completion only needs the canonical ref, so listening from the public reader —
+ * which carries no session and so recorded nothing at all before — now counts
+ * toward the user's journey.
  */
 async function onTrackComplete(track: AudioTrack, timeSpentSeconds: number) {
+	if (track.bookAbbreviation && track.chapterNumber) {
+		try {
+			const [{ chapterCompletionRecordSS }, { localDateString }] = await Promise.all([
+				import("@/app/common/completion/service/server/chapterCompletionRecordSS"),
+				import("@/lib/activityClient"),
+			]);
+			await chapterCompletionRecordSS({
+				bookAbbreviation: track.bookAbbreviation,
+				chapter: track.chapterNumber,
+				mode: "listen",
+				bibleId: track.bibleId ?? null,
+				secondsSpent: timeSpentSeconds,
+				localDate: localDateString(),
+			});
+		} catch {
+			// Never let a stats write break playback.
+		}
+	}
+
 	if (!track.sessionId || !track.stepId || !track.isLastChapterInStep) return;
 	try {
 		const { sessionStepCompletionCreateSS } = await import(

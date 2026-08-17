@@ -37,6 +37,8 @@ export class ChapterExternalAPIDao {
 					bookId: "",
 					chapterNumber: chapter.number === "intro" ? 0 : Number(chapter.number),
 					numVerses: 0,
+					// Computed once the verses are fetched — see ChapterRepository.
+					contentHash: null,
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				});

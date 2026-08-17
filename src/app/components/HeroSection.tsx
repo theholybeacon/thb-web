@@ -30,7 +30,7 @@ export function HeroSection() {
               </div>
 
               {/* Heading */}
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none animate-fade-up opacity-0 animation-delay-100">
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/[1.1] animate-fade-up opacity-0 animation-delay-100">
                 {t("title")}{" "}
                 <span className="gradient-text">{t("titleHighlight")}</span>
               </h1>
@@ -49,9 +49,9 @@ export function HeroSection() {
                   <Compass className="ml-2 h-4 w-4 transition-transform group-hover:rotate-45" />
                 </Button>
               </Link>
-              <Link href="#roadmap">
+              <Link href="/bible">
                 <Button size="lg" variant="outline" className="hover-lift">
-                  {t("viewRoadmap")}
+                  {t("exploreFree")}
                 </Button>
               </Link>
             </div>
@@ -59,16 +59,16 @@ export function HeroSection() {
             {/* Stats */}
             <div className="flex flex-wrap gap-8 pt-4 animate-fade-up opacity-0 animation-delay-400">
               <div className="space-y-1">
-                <p className="text-2xl font-bold gradient-text">100%</p>
-                <p className="text-sm text-muted-foreground">{t("personalized")}</p>
+                <p className="text-2xl font-bold gradient-text">400+</p>
+                <p className="text-sm text-muted-foreground">{t("translations")}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-2xl font-bold gradient-text">AI</p>
-                <p className="text-sm text-muted-foreground">{t("aiPowered")}</p>
+                <p className="text-2xl font-bold gradient-text">3,000+</p>
+                <p className="text-sm text-muted-foreground">{t("characters")}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-2xl font-bold gradient-text">66</p>
-                <p className="text-sm text-muted-foreground">{t("booksCovered")}</p>
+                <p className="text-2xl font-bold gradient-text">3</p>
+                <p className="text-sm text-muted-foreground">{t("waysToRead")}</p>
               </div>
             </div>
           </div>
@@ -103,13 +103,13 @@ export function HeroSection() {
 
               {/* Floating feature badges */}
               <div className="absolute -top-4 -right-4 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-200">
-                <p className="text-sm font-medium">{t("personalizedPlans")}</p>
+                <p className="text-sm font-medium">{t("characterProfiles")}</p>
               </div>
               <div className="absolute -bottom-4 -left-4 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-400">
-                <p className="text-sm font-medium">{t("smartInsights")}</p>
+                <p className="text-sm font-medium">{t("audioNarration")}</p>
               </div>
               <div className="absolute top-1/2 -right-8 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-600">
-                <p className="text-sm font-medium">{t("dailyGrowth")}</p>
+                <p className="text-sm font-medium">{t("verseNotes")}</p>
               </div>
             </div>
           </div>

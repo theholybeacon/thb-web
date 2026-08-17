@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Bible } from "@/app/common/bible/model/Bible";
+import { ListenableIndicator } from "@/components/audio/ListenableIndicator";
 
 interface BibleSelectorProps {
   bibles: Bible[] | undefined;
@@ -26,6 +27,56 @@ interface BibleSelectorProps {
   onValueChange: (value: string) => void;
   disabled?: boolean;
   isLoading?: boolean;
+}
+
+interface BibleOptionProps {
+  bible: Bible;
+  selected: boolean;
+  onSelect: (id: string) => void;
+}
+
+/**
+ * The canon a translation is scoped to ("Protestant", "Catholic", ...), when the
+ * description happens to be one.
+ *
+ * API.Bible lists a translation once per canon, so four rows can share the same
+ * name and version and differ only here — without it the picker shows four
+ * identical "World English Bible" options. But `description` is free text: it is
+ * sometimes a full sentence and sometimes the useless string "Bible", so only
+ * short, meaningful values are shown.
+ */
+function canonLabel(description?: string | null): string | null {
+  const d = description?.trim();
+  if (!d || d.length > 24 || d.toLowerCase() === "bible") return null;
+  return d;
+}
+
+/** One row of the picker. Shared by both the "recommended" and "all" groups. */
+function BibleOption({ bible, selected, onSelect }: BibleOptionProps) {
+  const canon = canonLabel(bible.description);
+
+  return (
+    <CommandItem
+      value={bible.id}
+      onSelect={() => onSelect(bible.id)}
+      className="cursor-pointer"
+    >
+      <Check
+        className={cn("mr-2 h-4 w-4", selected ? "opacity-100" : "opacity-0")}
+      />
+      <div className="flex flex-col">
+        <span className="flex items-center gap-1.5">
+          {bible.name}
+          <ListenableIndicator audioEnabled={bible.audioEnabled} />
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {bible.language}
+          {bible.version && ` - ${bible.version}`}
+          {canon && ` · ${canon}`}
+        </span>
+      </div>
+    </CommandItem>
+  );
 }
 
 // Map locale codes to language names used in the Bible API
@@ -55,6 +106,14 @@ export function BibleSelector({
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+
+  const handleSelect = useCallback(
+    (id: string) => {
+      onValueChange(id);
+      setOpen(false);
+    },
+    [onValueChange]
+  );
 
   // Get the selected Bible for display
   const selectedBible = useMemo(() => {
@@ -148,29 +207,12 @@ export function BibleSelector({
             {priorityBibles.length > 0 && (
               <CommandGroup heading={t("recommended")}>
                 {priorityBibles.map((bible) => (
-                  <CommandItem
+                  <BibleOption
                     key={bible.id}
-                    value={bible.id}
-                    onSelect={() => {
-                      onValueChange(bible.id);
-                      setOpen(false);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === bible.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col">
-                      <span>{bible.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {bible.language}
-                        {bible.version && ` - ${bible.version}`}
-                      </span>
-                    </div>
-                  </CommandItem>
+                    bible={bible}
+                    selected={value === bible.id}
+                    onSelect={handleSelect}
+                  />
                 ))}
               </CommandGroup>
             )}
@@ -182,29 +224,12 @@ export function BibleSelector({
             {otherBibles.length > 0 && (
               <CommandGroup heading={t("allTranslations")}>
                 {otherBibles.map((bible) => (
-                  <CommandItem
+                  <BibleOption
                     key={bible.id}
-                    value={bible.id}
-                    onSelect={() => {
-                      onValueChange(bible.id);
-                      setOpen(false);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === bible.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col">
-                      <span>{bible.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {bible.language}
-                        {bible.version && ` - ${bible.version}`}
-                      </span>
-                    </div>
-                  </CommandItem>
+                    bible={bible}
+                    selected={value === bible.id}
+                    onSelect={handleSelect}
+                  />
                 ))}
               </CommandGroup>
             )}

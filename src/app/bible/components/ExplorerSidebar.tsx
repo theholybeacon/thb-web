@@ -24,6 +24,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ListenableIndicator } from "@/components/audio/ListenableIndicator";
 
 interface ExplorerSidebarProps {
   bible: Bible;
@@ -176,7 +177,10 @@ export function ExplorerSidebar({ bible, books }: ExplorerSidebarProps) {
           </Link>
           <div className="flex-1 min-w-0">
             <h2 className="font-semibold truncate text-sm">{bible.name}</h2>
-            <p className="text-xs text-muted-foreground">{bible.version}</p>
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              {bible.version}
+              <ListenableIndicator audioEnabled={bible.audioEnabled} />
+            </p>
           </div>
         </div>
 

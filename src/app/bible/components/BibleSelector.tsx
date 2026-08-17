@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, BookOpen, ChevronRight, Globe, ArrowUpDown } from "lucide-react";
+import { Search, BookOpen, ChevronRight, Globe, ArrowUpDown, Headphones } from "lucide-react";
+import { ListenableIndicator } from "@/components/audio/ListenableIndicator";
 
 interface BibleSelectorProps {
   bibles: Bible[];
@@ -26,6 +27,7 @@ export function BibleSelector({ bibles }: BibleSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("name");
+  const [listenableOnly, setListenableOnly] = useState(false);
 
   // Get unique languages
   const languages = useMemo(() => {
@@ -47,6 +49,11 @@ export function BibleSelector({ bibles }: BibleSelectorProps) {
     // Filter by language
     if (selectedLanguage !== "all") {
       result = result.filter((b) => b.language === selectedLanguage);
+    }
+
+    // Only translations we're licensed to narrate
+    if (listenableOnly) {
+      result = result.filter((b) => b.audioEnabled);
     }
 
     // Filter by search query
@@ -75,7 +82,7 @@ export function BibleSelector({ bibles }: BibleSelectorProps) {
     });
 
     return result;
-  }, [bibles, selectedLanguage, searchQuery, sortBy]);
+  }, [bibles, selectedLanguage, searchQuery, sortBy, listenableOnly]);
 
   return (
     <div className="space-y-6">
@@ -141,6 +148,15 @@ export function BibleSelector({ bibles }: BibleSelectorProps) {
             {lang}
           </Button>
         ))}
+        <Button
+          variant={listenableOnly ? "default" : "outline"}
+          size="sm"
+          aria-pressed={listenableOnly}
+          onClick={() => setListenableOnly((prev) => !prev)}
+        >
+          <Headphones className="h-4 w-4 mr-1.5" />
+          {t("listenableOnly")}
+        </Button>
       </div>
 
       {/* Results count */}
@@ -167,6 +183,7 @@ export function BibleSelector({ bibles }: BibleSelectorProps) {
                     <span className="font-mono">{bible.version}</span>
                     <span>•</span>
                     <span>{bible.language}</span>
+                    <ListenableIndicator audioEnabled={bible.audioEnabled} />
                   </div>
                   {bible.numBooks && bible.numBooks > 0 && (
                     <p className="text-xs text-muted-foreground mt-2">

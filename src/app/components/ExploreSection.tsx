@@ -259,7 +259,7 @@ export function ExploreSection() {
             {/* Stats */}
             <div className="flex justify-center gap-8 mt-6">
               {[
-                { value: "50+", label: t("translations") },
+                { value: "400+", label: t("translations") },
                 { value: "66", label: t("books") },
                 { value: t("free"), label: t("forever") },
               ].map((stat) => (

@@ -22,7 +22,19 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       {
         userAgent: "*",
         allow: ["/", "/bible/"],
-        disallow: ["/api/", "/auth/", "/home", "/study", "/session", "/profile"],
+        // `/u/` is reachable by anyone with the link but kept out of the index:
+        // a shared page is not the same as a public one, and personal reading
+        // records should not accumulate in search results.
+        disallow: [
+          "/api/",
+          "/auth/",
+          "/home",
+          "/study",
+          "/session",
+          "/profile",
+          "/journey",
+          "/u/",
+        ],
       },
     ],
     sitemap,

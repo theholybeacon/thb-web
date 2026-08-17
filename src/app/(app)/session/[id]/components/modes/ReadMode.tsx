@@ -5,10 +5,10 @@ import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { EntityLite } from "@/app/common/entity/model/Entity";
 import { renderVerseContent } from "@/components/entity/VerseText";
-import { CharacterName } from "@/components/entity/CharacterName";
 import { AiContent } from "@/components/entity/AiContent";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
-import { BookOpen, StickyNote, Users } from "lucide-react";
+import { useReadCompletion } from "@/components/reader/progress/useReadCompletion";
+import { BookOpen, StickyNote } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ReadModeProps {
@@ -18,28 +18,28 @@ interface ReadModeProps {
 	bookName?: string;
 	chapterNumber?: number;
 	explanation?: string | null;
-	/** People mentioned in this chapter (for inline links + the people list). */
-	people?: EntityLite[];
+	/** People mentioned in each verse, for inline character links. */
 	mentionsByVerse?: Record<number, EntityLite[]>;
-	/** When true, character names link to their page; otherwise they're locked. */
-	charactersInteractive?: boolean;
-	/** Invoked when a non-premium user clicks a locked character name. */
-	onLockedCharacterClick?: () => void;
 	/** How many notes each verse already has, keyed by verse number. */
 	noteCountsByVerseNumber?: Record<number, number>;
 	/** Enables the per-verse note affordance when provided. */
 	onVerseNoteClick?: (verse: Verse) => void;
 }
 
-export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, explanation, people, mentionsByVerse, charactersInteractive = true, onLockedCharacterClick, noteCountsByVerseNumber, onVerseNoteClick }: ReadModeProps) {
+export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, explanation, mentionsByVerse, noteCountsByVerseNumber, onVerseNoteClick }: ReadModeProps) {
 	const t = useTranslations();
 	const progress = useOptionalSessionProgress();
 	const firstVerseRef = useRef<HTMLParagraphElement>(null);
+	const lastVerseRef = useRef<HTMLParagraphElement>(null);
 
 	const sortedVerses = useMemo(
 		() => [...verses].sort((a, b) => a.verseNumber - b.verseNumber),
 		[verses]
 	);
+
+	// Reading has no natural completion event, so it is inferred from reaching
+	// the last verse plus a length-scaled dwell. See useReadCompletion.
+	useReadCompletion(lastVerseRef, sortedVerses.length, sortedVerses.length > 0);
 
 	const reference = bookName && chapterNumber
 		? `${bookName} ${chapterNumber}${startVerse ? `:${startVerse}${endVerse && endVerse !== startVerse ? `-${endVerse}` : ""}` : ""}`
@@ -76,43 +76,27 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 				</div>
 			)}
 
-			{people && people.length > 0 && (
-				<div className="rounded-lg border bg-card/50 p-3">
-					<div className="flex items-center gap-2 mb-2 text-sm font-medium text-muted-foreground">
-						<Users className="h-4 w-4" />
-						People in this chapter
-					</div>
-					<div className="flex flex-wrap gap-2">
-						{people.map((p) => (
-							<CharacterName
-								key={p.id}
-								slug={p.slug}
-								variant="chip"
-								interactive={charactersInteractive}
-								onLockedClick={onLockedCharacterClick}
-							>
-								{p.name}
-							</CharacterName>
-						))}
-					</div>
-				</div>
-			)}
-
 			{sortedVerses.length > 0 ? (
 				<div className="space-y-4">
-					{sortedVerses.map((verse) => {
+					{sortedVerses.map((verse, index) => {
 						const hasVerseRange = startVerse != null;
 						const startV = startVerse ?? 1;
 						const endV = endVerse ?? startV;
 						const isHighlighted = !hasVerseRange || (verse.verseNumber >= startV && verse.verseNumber <= endV);
 						const isFirstRelevant = verse.verseNumber === (startVerse ?? 1);
+						const isLast = index === sortedVerses.length - 1;
 						const noteCount = noteCountsByVerseNumber?.[verse.verseNumber] ?? 0;
 
 						return (
 							<p
 								key={verse.id}
 								id={`verse-${verse.verseNumber}`}
-								ref={isFirstRelevant ? firstVerseRef : undefined}
+								// A one-verse chapter is both the first relevant verse and the
+								// last, so both refs have to be assignable to the same node.
+								ref={(node) => {
+									if (isFirstRelevant) firstVerseRef.current = node;
+									if (isLast) lastVerseRef.current = node;
+								}}
 								className={cn(
 									"group leading-relaxed text-base md:text-lg transition-opacity scroll-mt-24",
 									!isHighlighted && "opacity-30"
@@ -127,10 +111,7 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 									{verse.verseNumber}
 								</sup>
 								<span className={isHighlighted ? "text-foreground" : "text-muted-foreground"}>
-									{renderVerseContent(verse.content, mentionsByVerse?.[verse.verseNumber], {
-										interactive: charactersInteractive,
-										onLockedClick: onLockedCharacterClick,
-									})}
+									{renderVerseContent(verse.content, mentionsByVerse?.[verse.verseNumber])}
 								</span>
 								{onVerseNoteClick && (
 									<button

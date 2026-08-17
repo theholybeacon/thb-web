@@ -11,6 +11,7 @@ import { streakGetSS } from "@/app/common/activity/service/server/streakGetSS";
 import { recordDailyActivitySS } from "@/app/common/activity/service/server/recordDailyActivitySS";
 import { dailyVerseGetSS } from "@/app/common/dailyVerse/service/server/dailyVerseGetSS";
 import { localDateString } from "@/lib/activityClient";
+import { JourneyHomeCard } from "@/components/journey/JourneyHomeCard";
 
 /** Streak counter + verse-of-the-day, the daily reason to open the app. */
 export function DailyHomeWidget() {
@@ -49,6 +50,7 @@ export function DailyHomeWidget() {
 	};
 
 	return (
+		<div className="space-y-4">
 		<div className="grid gap-4 sm:grid-cols-3">
 			{/* Streak */}
 			<div className="rounded-lg border bg-card p-5 flex items-center gap-3">
@@ -104,6 +106,10 @@ export function DailyHomeWidget() {
 					<p className="text-sm text-muted-foreground">Today&apos;s verse is loading…</p>
 				)}
 			</div>
+		</div>
+
+		{/* How far through the Bible they are — invisible by design everywhere else. */}
+		<JourneyHomeCard />
 		</div>
 	);
 }

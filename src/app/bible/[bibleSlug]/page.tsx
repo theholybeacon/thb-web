@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { bibleGetByVersionSS } from "@/app/common/bible/service/server/bibleGetByVersionSS";
 import { BookOpen } from "lucide-react";
+import { ListenableIndicator } from "@/components/audio/ListenableIndicator";
 
 interface PageProps {
   params: Promise<{ bibleSlug: string }>;
@@ -43,8 +44,11 @@ export default async function BibleHomePage({ params }: PageProps) {
           <BookOpen className="h-10 w-10 text-primary" />
         </div>
         <h1 className="text-2xl font-bold mb-3">{bible.name}</h1>
-        <p className="text-muted-foreground mb-2">
-          {bible.version} • {bible.language}
+        <p className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
+          <span>
+            {bible.version} • {bible.language}
+          </span>
+          <ListenableIndicator audioEnabled={bible.audioEnabled} size="md" />
         </p>
         {bible.description && (
           <p className="text-sm text-muted-foreground mb-6">

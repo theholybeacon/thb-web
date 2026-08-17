@@ -18,6 +18,9 @@ export const userTable = pgTable("user", {
 	timezone: varchar({ length: 64 }), // IANA zone (e.g. America/Bogota), captured client-side
 	// Notifications
 	emailRemindersEnabled: boolean().notNull().default(true),
+	// Opt-in gate for the public /u/[username] progress profile. Off by default —
+	// reading habits must never become public without an explicit choice.
+	publicProfileEnabled: boolean().notNull().default(false),
 	// Stripe
 	stripeCustomerId: varchar({ length: 255 }),
 	createdAt: timestamp().defaultNow(),

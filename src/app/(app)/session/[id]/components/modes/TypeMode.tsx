@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
+import { useOptionalChapterCompletion } from "@/components/reader/progress/ChapterCompletionContext";
 import { Button } from "@/components/ui/button";
 import { AiContent } from "@/components/entity/AiContent";
 import { RotateCcw } from "lucide-react";
@@ -35,6 +36,7 @@ function normalizeForTyping(text: string): string {
 export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeModeProps) {
 	const t = useTranslations();
 	const sessionProgress = useOptionalSessionProgress();
+	const chapterCompletion = useOptionalChapterCompletion();
 	const inputRef = useRef<HTMLInputElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +83,13 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 	useEffect(() => {
 		sessionProgress?.reportModeProgress(currentIndex, charStates.length, isComplete);
 	}, [currentIndex, charStates.length, isComplete, sessionProgress]);
+
+	// Typing the passage through counts as finishing the chapter, on both the
+	// public reader and inside a study. markComplete is idempotent per chapter.
+	useEffect(() => {
+		if (!isComplete) return;
+		chapterCompletion?.markComplete("type", stats.timeSpentSeconds);
+	}, [isComplete, stats.timeSpentSeconds, chapterCompletion]);
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {

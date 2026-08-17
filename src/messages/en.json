@@ -148,7 +148,8 @@
     "newStudy": "New Study",
     "browseStudies": "Browse Studies",
     "explore": "Explore",
-    "notes": "Notes"
+    "notes": "Notes",
+    "journey": "Journey"
   },
   "bible": {
     "explorer": "Explore the Bible",
@@ -165,6 +166,7 @@
     "translations": "translations",
     "searchBibles": "Search Bibles...",
     "allLanguages": "All Languages",
+    "listenableOnly": "Listenable only",
     "noResults": "No Bibles found matching your search",
     "books": "books",
     "sortBy": "Sort by",
@@ -286,6 +288,9 @@
     "download": "Download",
     "downloaded": "Downloaded",
     "downloadFailed": "Couldn't download this audio.",
+    "listenable": "Available in Listen Mode",
+    "voiceMale": "Male",
+    "voiceFemale": "Female",
     "close": "Close player"
   },
   "sidebar": {
@@ -335,7 +340,15 @@
     "updatedAt": "Updated {date}"
   },
   "reader": {
-    "chapter": "Chapter {number}"
+    "chapter": "Chapter {number}",
+    "panel": {
+      "title": "Chapter info",
+      "expand": "Show chapter info",
+      "collapse": "Hide chapter info",
+      "people": "People",
+      "notes": "Notes",
+      "noPeople": "No people are recorded for this chapter."
+    }
   },
   "settings": {
     "title": "Settings",
@@ -373,7 +386,11 @@
     "features": {
       "sessions": "Unlimited study sessions",
       "studies": "AI-powered study creation",
-      "explore": "Full Bible exploration"
+      "explore": "Full Bible exploration",
+      "modes": "Read, listen, and type modes",
+      "narration": "Narrated audio with offline download",
+      "characters": "Character profiles with cited timelines",
+      "notes": "Notes on any verse, chapter, or book"
     },
     "monthly": "Monthly",
     "yearly": "Yearly",
@@ -499,18 +516,18 @@
       "goToApp": "Go to App"
     },
     "explore": {
-      "badge": "Available Now",
+      "badge": "Free · No account needed",
       "title": "Explore the",
       "titleHighlight": "Bible",
-      "description": "Read Scripture in multiple translations with our free, beautifully designed Bible explorer. No account required.",
-      "multipleTranslations": "Multiple Translations",
-      "multipleTranslationsDesc": "Access the Bible in many languages and versions - King James, World English, Berean Standard, Reina-Valera, and more.",
+      "description": "Read Scripture in hundreds of translations with our free, beautifully designed Bible explorer. No account required.",
+      "multipleTranslations": "Hundreds of Translations",
+      "multipleTranslationsDesc": "Read in many languages and versions — King James, World English, Berean Standard, American Standard, Reina-Valera, and hundreds more.",
       "cleanReading": "Clean Reading Experience",
-      "cleanReadingDesc": "Distraction-free interface designed for focused Scripture reading and study.",
+      "cleanReadingDesc": "A distraction-free interface built for focused Scripture reading, in light or dark theme.",
       "easyNavigation": "Easy Navigation",
-      "easyNavigationDesc": "Quickly find any book, chapter, or verse with intuitive navigation and search.",
-      "seoOptimized": "SEO Optimized",
-      "seoOptimizedDesc": "Share specific verses with friends - each chapter has its own shareable link.",
+      "easyNavigationDesc": "Jump to any book or chapter instantly, and keep moving with prev/next that carries you across book boundaries.",
+      "seoOptimized": "Built to Share",
+      "seoOptimizedDesc": "Every chapter and every Bible character has its own link — send a friend straight to the passage.",
       "startExploring": "Start Exploring",
       "searchBibles": "Search Bibles...",
       "clickToPreview": "Click any Bible to see the reader preview →",
@@ -522,25 +539,25 @@
       "forever": "Forever"
     },
     "hero": {
-      "badge": "AI-Powered Bible Study",
-      "title": "Illuminate Your Path",
-      "titleHighlight": "Through the Word",
-      "description": "The Holy Beacon is a smart, spiritually-aligned productivity tool that helps believers build a deeper, more meaningful relationship with Scripture—one that adapts to your lifestyle, learning style, and spiritual maturity.",
+      "badge": "Read · Listen · Type",
+      "title": "Study the Bible,",
+      "titleHighlight": "deeply",
+      "description": "Most Bible apps hand you a verse and move on. The Holy Beacon gives you AI study plans, three ways through every chapter — read it, hear it narrated, or type it — plus profiles of the people behind the text and notes that stay attached to the verse.",
       "cta": "Start Your Journey",
-      "viewRoadmap": "View Roadmap",
-      "personalized": "Personalized",
-      "aiPowered": "Powered",
-      "booksCovered": "Books Covered",
+      "exploreFree": "Explore the Bible free",
+      "translations": "Translations",
+      "characters": "Bible characters",
+      "waysToRead": "Ways to read",
       "yourGuide": "Your guide to Scripture",
-      "personalizedPlans": "Personalized Plans",
-      "smartInsights": "Smart Insights",
-      "dailyGrowth": "Daily Growth"
+      "characterProfiles": "Character profiles",
+      "audioNarration": "Audio narration",
+      "verseNotes": "Verse notes"
     },
     "studyPlans": {
       "badge": "Live Now",
       "title": "Learn With",
       "titleHighlight": "Purpose",
-      "description": "The beating heart of The Holy Beacon is its AI-powered Study Plan Generator. Simply describe what you want to learn, and receive a personalized study plan tailored to your needs.",
+      "description": "The beating heart of The Holy Beacon is its AI study plan generator. Describe what you want to learn and get a structured plan — passage by passage, session by session — with your progress tracked as you go.",
       "customDuration": "Customizable Duration",
       "customDurationDesc": "From quick daily devotionals to in-depth multi-week studies, tailor your plan to fit your schedule.",
       "adjustableDepth": "Adjustable Depth",
@@ -552,86 +569,128 @@
       "whatToStudy": "What would you like to study?",
       "generatedPlan": "Generated Study Plan",
       "exampleQuery": "Understanding the parables of Jesus",
-      "exampleSteps": ["The Sower & Seeds", "The Prodigal Son", "The Good Samaritan", "The Mustard Seed"],
+      "exampleSteps": [
+        "The Sower & Seeds",
+        "The Prodigal Son",
+        "The Good Samaritan",
+        "The Mustard Seed"
+      ],
       "exampleDuration": "4 weeks",
       "exampleLevel": "Intermediate"
     },
     "features": {
-      "badge": "Coming Soon",
-      "title": "Feature",
-      "titleHighlight": "Previews",
-      "description": "Get a sneak peek at the exciting features we're developing for future releases.",
+      "badge": "Available Now",
+      "title": "Everything",
+      "titleHighlight": "you get",
+      "description": "Not a verse-a-day app. Every chapter comes with the people in it, narrated audio, your own notes, and the study structure to work through it.",
       "learnMore": "Learn More",
-      "expected": "Expected",
+      "liveBadge": "Live",
+      "comingNext": "Coming next",
+      "moreOnRoadmap": "See what lands in the next two quarters",
       "scriptureHD": {
         "title": "Scripture in HD",
-        "description": "Smart links, character profiles, and contextual layers that bring the Bible to life.",
-        "timeline": "Q4 2025",
+        "description": "Character profiles, cited timelines, and the people behind every chapter.",
         "modalTitle": "Scripture in HD",
-        "modalDescription": "Experience the Bible like never before with rich, interconnected content.",
-        "preview1Title": "Smart Verse Connections",
-        "preview1Desc": "Instantly see related verses, cross-references, and thematic connections. Tap any verse to explore its relationship with other scriptures throughout the Bible.",
-        "preview2Title": "Character Profiles",
-        "preview2Desc": "Dive deep into biblical figures with comprehensive profiles including their timeline, key events, relationships, and character arc throughout Scripture.",
-        "preview3Title": "Historical & Cultural Context",
-        "preview3Desc": "Understand the world behind the text. Access maps, cultural insights, historical events, and archaeological discoveries that illuminate Scripture's meaning."
+        "modalDescription": "Know who you are reading about, not just what happened.",
+        "preview1Title": "Character Profiles A–Z",
+        "preview1Desc": "Browse every person named in Scripture, with their alternate names, dates, and every passage they appear in — free and open to everyone at /bible/people.",
+        "preview2Title": "Timelines & Relationships",
+        "preview2Desc": "See a person's arc across Scripture and how they connect to everyone around them. Every claim is cited to a real verse mention — nothing invented.",
+        "preview3Title": "People in This Chapter",
+        "preview3Desc": "Names light up inside the text as you read. Tap one to open their profile without losing your place in the chapter.",
+        "preview4Title": "Cross-references & context",
+        "preview4Desc": "We're building smart verse connections and historical and cultural context layers so you can trace a theme across the whole Bible."
       },
       "multiModal": {
         "title": "Multi-Modal Bible",
-        "description": "Experience Scripture through reading, listening, and visual engagement.",
-        "timeline": "Q1 2026",
+        "description": "Read it, hear it, or type it — the same chapter, three ways.",
         "modalTitle": "Multi-Modal Bible",
         "modalDescription": "Engage with God's Word in the way that works best for you.",
         "preview1Title": "Distraction-Free Reading",
-        "preview1Desc": "A beautifully designed reading experience that removes all distractions. Customizable fonts, themes, and layouts to match your reading preferences.",
-        "preview2Title": "High-Quality Audio",
-        "preview2Desc": "Listen to professionally narrated Scripture. Perfect for commutes, workouts, or when you want to close your eyes and let the Word wash over you.",
-        "preview3Title": "AI Verse Visualization",
-        "preview3Desc": "Generate beautiful, shareable images of your favorite verses. Perfect for social media, personal reflection, or creating meaningful gifts."
+        "preview1Desc": "A calm, typeset reading mode with nothing competing for your attention — just the text, your notes, and the people in the passage.",
+        "preview2Title": "Narrated Audio",
+        "preview2Desc": "Listen to any chapter with two voices, adjustable speed, and verse-by-verse highlighting that follows along. Download for offline listening on your commute.",
+        "preview3Title": "Type-the-Word Mode",
+        "preview3Desc": "Type Scripture out word by word with live speed and accuracy. Slower than reading, and that is exactly the point.",
+        "preview4Title": "Side-by-side translations",
+        "preview4Desc": "Compare two translations of the same passage in a single view — in progress for the next release."
       },
-      "community": {
-        "title": "Community Features",
-        "description": "Study circles, discussion boards, and shared spiritual growth.",
-        "timeline": "Q2 2026",
-        "modalTitle": "Community Features",
-        "modalDescription": "Grow together in faith with believers around the world.",
-        "preview1Title": "Study Circles",
-        "preview1Desc": "Create or join small groups to study Scripture together. Share insights, track progress, and hold each other accountable in your spiritual journey.",
-        "preview2Title": "Discussion Boards",
-        "preview2Desc": "Engage in thoughtful theological discussions. Ask questions, share discoveries, and learn from diverse perspectives within a respectful community.",
-        "preview3Title": "Daily Word Feed",
-        "preview3Desc": "A personalized feed of Scripture, devotionals, and community insights. Start each day with curated content tailored to your spiritual journey."
+      "studyNotes": {
+        "title": "Study & Notes",
+        "description": "AI study plans plus notes that stay attached to the verse.",
+        "modalTitle": "Study & Notes",
+        "modalDescription": "Structure for your study, and a place to keep what you find.",
+        "preview1Title": "AI Study Plan Generator",
+        "preview1Desc": "Describe what you want to learn and set the length and depth. You get a passage-by-passage plan you can work through session by session, and regenerate any time.",
+        "preview2Title": "Notes at Every Scope",
+        "preview2Desc": "Attach a note to a single verse, a chapter, a whole book, or a translation. Search across all of them and jump straight back to the passage.",
+        "preview3Title": "Verse of the Day & Streaks",
+        "preview3Desc": "A fresh verse each day and a streak that counts the days you showed up, with an optional daily reminder by email.",
+        "preview4Title": "Chapter summaries",
+        "preview4Desc": "AI summaries and key themes for any chapter, coming to the reading panel next quarter."
       }
     },
     "roadmap": {
-      "badge": "Our Journey Ahead",
+      "badge": "Where we are",
       "title": "Feature",
       "titleHighlight": "Roadmap",
-      "description": "We're building The Holy Beacon step by step. Here's our plan for bringing all the promised features to life.",
+      "description": "Three phases are live today. Here's what lands over the next two quarters.",
       "phases": [
         {
-          "timeline": "Live Now!",
+          "status": "live",
+          "timeline": "Shipped",
           "title": "AI-Guided Study Plans",
-          "description": "Our core feature that helps you create personalized Bible study plans based on your interests, schedule, and spiritual goals.",
-          "features": ["Customizable study durations", "Depth adjustment for all knowledge levels", "Thematic exploration options"]
+          "description": "Describe what you want to learn and get a structured, passage-by-passage plan built around your schedule and depth.",
+          "features": [
+            "Customizable duration and depth",
+            "Thematic study generation",
+            "Progress tracked across sessions"
+          ]
         },
         {
-          "timeline": "Phase 2 - Q2 2026",
+          "status": "live",
+          "timeline": "Shipped",
           "title": "Scripture in HD",
-          "description": "Smart links, timelines, and contextual layers that bring the Bible's interconnected tapestry to life.",
-          "features": ["Smart verse connections", "Character profiles and timelines", "Historical and cultural context layers"]
+          "description": "The people behind the text — profiles, timelines, and relationships, every claim cited to a real verse.",
+          "features": [
+            "Character profiles A–Z with aliases and dates",
+            "AI timelines and relationships, fully cited",
+            "People linked inline in every chapter"
+          ]
         },
         {
-          "timeline": "Phase 3 - Q3 2026",
-          "title": "Multi-Modal Bible Consumption",
-          "description": "Multiple ways to engage with Scripture through reading, listening, typing, and visual experiences.",
-          "features": ["Distraction-free reading mode", "High-quality audio narration", "AI-generated verse visualization"]
+          "status": "live",
+          "timeline": "Shipped",
+          "title": "Multi-Modal Bible",
+          "description": "Three ways through the same chapter, so Scripture fits the moment you're in.",
+          "features": [
+            "Distraction-free reading mode",
+            "Type-the-word mode with speed and accuracy",
+            "Narrated audio: two voices, speed control, offline download"
+          ]
         },
         {
-          "timeline": "Phase 4 - Q4 2026",
+          "status": "current",
+          "timeline": "Q4 2026",
+          "title": "Deeper Reading Panel",
+          "description": "More context alongside the text you're reading, without ever leaving the chapter.",
+          "features": [
+            "Chapter summaries and key themes",
+            "Side-by-side translation compare",
+            "Full-text verse search",
+            "Reading progress per book"
+          ]
+        },
+        {
+          "status": "upcoming",
+          "timeline": "Q1 2027",
           "title": "Community & Daily Word",
-          "description": "Fellowship features and daily Scripture engagement to help believers grow together and maintain consistency.",
-          "features": ["Study circles for group learning", "Theological discussion boards", "Daily Word personalized feed"]
+          "description": "Fellowship features and daily Scripture engagement, so believers grow together and stay consistent.",
+          "features": [
+            "Study circles for group learning",
+            "Theological discussion boards",
+            "Daily Word personalized feed"
+          ]
         }
       ]
     },
@@ -651,7 +710,7 @@
       },
       "freeFeatures": {
         "explore": "Full access to Bible Explorer",
-        "translations": "Multiple Bible translations",
+        "translations": "Hundreds of Bible translations",
         "noAccount": "No account required"
       },
       "premiumPlan": {
@@ -677,5 +736,72 @@
     "footer": {
       "allRightsReserved": "All rights reserved."
     }
+  },
+  "journey": {
+    "title": "Your Journey",
+    "subtitle": "Every chapter you've read, heard, or typed — wherever you started.",
+    "signedOut": "Sign in to start tracking your journey.",
+    "empty": "Nothing here yet. Open any chapter and it will show up.",
+    "markComplete": "Mark read",
+    "markCompleteHint": "Count this chapter as read",
+    "chapterComplete": "Read",
+    "chapterCompleteTimes": "Read {count} times",
+    "chaptersComplete": "{done} of {total} chapters",
+    "percentComplete": "of the Bible",
+    "chaptersRead": "Chapters",
+    "booksFinished": "Books finished",
+    "booksStarted": "Books started",
+    "booksUntouched": "Books untouched",
+    "oldTestament": "Old Testament",
+    "newTestament": "New Testament",
+    "laps": "Times through the Bible",
+    "lapsNone": "First time through",
+    "lapsCount": "{count}× through the Bible",
+    "towardNextLap": "{count} chapters into the next pass",
+    "timeframeTitle": "Recently",
+    "today": "Today",
+    "week": "This week",
+    "month": "This month",
+    "year": "This year",
+    "chaptersShort": "chapters",
+    "modesTitle": "How you read",
+    "modeRead": "Read",
+    "modeListen": "Listened",
+    "modeType": "Typed",
+    "modeManual": "Marked",
+    "listeningTime": "Listening time",
+    "hoursShort": "h",
+    "minutesShort": "m",
+    "gridTitle": "The whole Bible",
+    "gridHint": "Each square is a chapter. Darker means you've been back.",
+    "gridCellRead": "{book} {chapter} — read {count}×",
+    "gridCellUnread": "{book} {chapter} — not yet",
+    "badgesTitle": "Milestones",
+    "badgeLocked": "Not yet",
+    "badges": {
+      "firstChapter": "First chapter",
+      "firstBook": "First book finished",
+      "tenPercent": "10% of the Bible",
+      "gospels": "All four Gospels",
+      "torah": "The Torah",
+      "quarter": "A quarter of the Bible",
+      "week": "Seven days running",
+      "half": "Half the Bible",
+      "month": "Thirty days running",
+      "newTestament": "The whole New Testament",
+      "oldTestament": "The whole Old Testament",
+      "firstLap": "The whole Bible",
+      "year": "A year of days",
+      "thirdLap": "Three times through"
+    },
+    "shareTitle": "Share your journey",
+    "shareButton": "Share",
+    "shareCopy": "Copy link",
+    "shareCopied": "Link copied",
+    "shareEnable": "Make my journey public",
+    "shareEnableHint": "Creates a public page anyone with the link can see. Off by default.",
+    "shareDisabled": "Your journey is private.",
+    "profileSubtitle": "{name}'s journey through the Bible",
+    "profileNotPublic": "This journey is private."
   }
 }

@@ -60,8 +60,10 @@ export function PricingSection() {
 
   const premiumFeatures = [
     tPremium("features.studies"),
-    tPremium("features.sessions"),
-    tPremium("features.explore"),
+    tPremium("features.modes"),
+    tPremium("features.narration"),
+    tPremium("features.characters"),
+    tPremium("features.notes"),
     t("premiumFeatures.gift"),
   ];
 
@@ -236,12 +238,12 @@ export function PricingSection() {
 
           {/* Action Buttons */}
           <div className="flex flex-col md:flex-row gap-6 justify-center">
-            <div className="flex-1 max-w-md bg-background/50 p-6 rounded-xl border border-border/50 hover-lift transition-all duration-300">
+            <div className="flex-1 max-w-md flex flex-col bg-background/50 p-6 rounded-xl border border-border/50 hover-lift transition-all duration-300">
               <h4 className="text-xl font-bold mb-2">{t("needSubscription")}</h4>
-              <p className="text-muted-foreground mb-4">
+              <p className="flex-1 text-muted-foreground mb-4">
                 {t("needSubscriptionDesc")}
               </p>
-              <Link href="/sponsorship">
+              <Link href="/sponsorship" className="mt-auto">
                 <Button className="w-full" variant="outline">
                   <Users className="mr-2 h-5 w-5" />
                   <span>{t("joinQueue")}</span>
@@ -249,12 +251,12 @@ export function PricingSection() {
               </Link>
             </div>
 
-            <div className="flex-1 max-w-md bg-primary/5 p-6 rounded-xl border border-primary/20 hover-lift transition-all duration-300">
+            <div className="flex-1 max-w-md flex flex-col bg-primary/5 p-6 rounded-xl border border-primary/20 hover-lift transition-all duration-300">
               <h4 className="text-xl font-bold mb-2">{t("becomeSponsor")}</h4>
-              <p className="text-muted-foreground mb-4">
+              <p className="flex-1 text-muted-foreground mb-4">
                 {t("becomeSponsorDesc")}
               </p>
-              <Link href="/gift">
+              <Link href="/gift" className="mt-auto">
                 <Button className="w-full bg-primary hover:bg-primary/90 glow-sm hover:glow transition-all duration-300">
                   <Gift className="mr-2 h-5 w-5" />
                   <span>{t("giftSubscriptions")}</span>

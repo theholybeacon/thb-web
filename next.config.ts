@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/bible/[bibleSlug]/[bookSlug]/[chapter]/opengraph-image": ["./src/lib/og/*.ttf"],
     "/bible/people/[slug]/opengraph-image": ["./src/lib/og/*.ttf"],
+    "/u/[username]/opengraph-image": ["./src/lib/og/*.ttf"],
   },
 };
 

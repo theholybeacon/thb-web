@@ -148,7 +148,8 @@
     "newStudy": "Nuevo Estudio",
     "browseStudies": "Ver Estudios",
     "explore": "Explorar",
-    "notes": "Notas"
+    "notes": "Notas",
+    "journey": "Camino"
   },
   "bible": {
     "explorer": "Explorar la Biblia",
@@ -165,6 +166,7 @@
     "translations": "traducciones",
     "searchBibles": "Buscar Biblias...",
     "allLanguages": "Todos los Idiomas",
+    "listenableOnly": "Solo con audio",
     "noResults": "No se encontraron Biblias",
     "books": "libros",
     "sortBy": "Ordenar por",
@@ -286,6 +288,9 @@
     "download": "Descargar",
     "downloaded": "Descargado",
     "downloadFailed": "No se pudo descargar este audio.",
+    "listenable": "Disponible en Modo Escucha",
+    "voiceMale": "Masculina",
+    "voiceFemale": "Femenina",
     "close": "Cerrar reproductor"
   },
   "sidebar": {
@@ -335,7 +340,15 @@
     "updatedAt": "Actualizada el {date}"
   },
   "reader": {
-    "chapter": "Capítulo {number}"
+    "chapter": "Capítulo {number}",
+    "panel": {
+      "title": "Información del capítulo",
+      "expand": "Mostrar información del capítulo",
+      "collapse": "Ocultar información del capítulo",
+      "people": "Personas",
+      "notes": "Notas",
+      "noPeople": "No hay personas registradas para este capítulo."
+    }
   },
   "settings": {
     "title": "Configuración",
@@ -373,7 +386,11 @@
     "features": {
       "sessions": "Sesiones de estudio ilimitadas",
       "studies": "Creación de estudios con IA",
-      "explore": "Exploración completa de la Biblia"
+      "explore": "Exploración completa de la Biblia",
+      "modes": "Modos de lectura, escucha y escritura",
+      "narration": "Narración en audio con descarga sin conexión",
+      "characters": "Perfiles de personajes con líneas de tiempo citadas",
+      "notes": "Notas en cualquier versículo, capítulo o libro"
     },
     "monthly": "Mensual",
     "yearly": "Anual",
@@ -487,7 +504,7 @@
   },
   "landing": {
     "nav": {
-      "features": "Funciones",
+      "features": "Características",
       "studyPlans": "Planes de Estudio",
       "roadmap": "Hoja de Ruta",
       "pricing": "Precios",
@@ -496,25 +513,25 @@
     "auth": {
       "logIn": "Iniciar Sesión",
       "signUp": "Registrarse",
-      "goToApp": "Ir a App"
+      "goToApp": "Ir a la App"
     },
     "explore": {
-      "badge": "Disponible Ahora",
+      "badge": "Gratis · Sin cuenta",
       "title": "Explora la",
       "titleHighlight": "Biblia",
-      "description": "Lee las Escrituras en múltiples traducciones con nuestro explorador de Biblia gratuito y bellamente diseñado. No se requiere cuenta.",
-      "multipleTranslations": "Múltiples Traducciones",
-      "multipleTranslationsDesc": "Accede a la Biblia en muchos idiomas y versiones - Reina-Valera, Biblia Libre, King James, World English, y más.",
-      "cleanReading": "Lectura Limpia",
-      "cleanReadingDesc": "Interfaz sin distracciones diseñada para la lectura y estudio enfocado de las Escrituras.",
-      "easyNavigation": "Navegación Fácil",
-      "easyNavigationDesc": "Encuentra rápidamente cualquier libro, capítulo o versículo con navegación intuitiva.",
-      "seoOptimized": "Optimizado para Compartir",
-      "seoOptimizedDesc": "Comparte versículos específicos con amigos - cada capítulo tiene su propio enlace compartible.",
+      "description": "Lee las Escrituras en cientos de traducciones con nuestro explorador bíblico gratuito y bellamente diseñado. No necesitas cuenta.",
+      "multipleTranslations": "Cientos de Traducciones",
+      "multipleTranslationsDesc": "Lee en muchos idiomas y versiones — King James, World English, Berean Standard, American Standard, Reina-Valera y cientos más.",
+      "cleanReading": "Experiencia de Lectura Limpia",
+      "cleanReadingDesc": "Una interfaz sin distracciones creada para una lectura concentrada de las Escrituras, en tema claro u oscuro.",
+      "easyNavigation": "Navegación Sencilla",
+      "easyNavigationDesc": "Salta a cualquier libro o capítulo al instante, y sigue avanzando con anterior/siguiente que te lleva de un libro a otro.",
+      "seoOptimized": "Hecho para Compartir",
+      "seoOptimizedDesc": "Cada capítulo y cada personaje bíblico tiene su propio enlace — envía a un amigo directo al pasaje.",
       "startExploring": "Comenzar a Explorar",
       "searchBibles": "Buscar Biblias...",
       "clickToPreview": "Haz clic en cualquier Biblia para ver la vista previa →",
-      "backToBibles": "Volver a Biblias",
+      "backToBibles": "Volver a las Biblias",
       "oldTestament": "Antiguo Testamento",
       "translations": "Traducciones",
       "books": "Libros",
@@ -522,116 +539,158 @@
       "forever": "Para Siempre"
     },
     "hero": {
-      "badge": "Estudio Bíblico con IA",
-      "title": "Ilumina Tu Camino",
-      "titleHighlight": "A Través de la Palabra",
-      "description": "The Holy Beacon es una herramienta inteligente y espiritualmente alineada que ayuda a los creyentes a construir una relación más profunda y significativa con las Escrituras—una que se adapta a tu estilo de vida, forma de aprender y madurez espiritual.",
+      "badge": "Lee · Escucha · Escribe",
+      "title": "Estudia la Biblia,",
+      "titleHighlight": "a fondo",
+      "description": "La mayoría de las apps bíblicas te dan un versículo y siguen adelante. The Holy Beacon te ofrece planes de estudio con IA, tres formas de recorrer cada capítulo — leerlo, escucharlo narrado o escribirlo — además de perfiles de las personas detrás del texto y notas que quedan unidas al versículo.",
       "cta": "Comienza Tu Viaje",
-      "viewRoadmap": "Ver Hoja de Ruta",
-      "personalized": "Personalizado",
-      "aiPowered": "Con IA",
-      "booksCovered": "Libros Cubiertos",
+      "exploreFree": "Explora la Biblia gratis",
+      "translations": "Traducciones",
+      "characters": "Personajes bíblicos",
+      "waysToRead": "Formas de leer",
       "yourGuide": "Tu guía hacia las Escrituras",
-      "personalizedPlans": "Planes Personalizados",
-      "smartInsights": "Perspectivas Inteligentes",
-      "dailyGrowth": "Crecimiento Diario"
+      "characterProfiles": "Perfiles de personajes",
+      "audioNarration": "Narración en audio",
+      "verseNotes": "Notas por versículo"
     },
     "studyPlans": {
-      "badge": "Ya disponible",
+      "badge": "Disponible Ahora",
       "title": "Aprende Con",
       "titleHighlight": "Propósito",
-      "description": "El corazón de The Holy Beacon es su Generador de Planes de Estudio con IA. Simplemente describe lo que quieres aprender y recibe un plan de estudio personalizado según tus necesidades.",
+      "description": "El corazón de The Holy Beacon es su generador de planes de estudio con IA. Describe lo que quieres aprender y recibe un plan estructurado — pasaje por pasaje, sesión por sesión — con tu progreso registrado sobre la marcha.",
       "customDuration": "Duración Personalizable",
-      "customDurationDesc": "Desde devocionales diarios rápidos hasta estudios profundos de varias semanas, adapta tu plan a tu horario.",
+      "customDurationDesc": "Desde devocionales diarios breves hasta estudios profundos de varias semanas, adapta tu plan a tu horario.",
       "adjustableDepth": "Profundidad Ajustable",
-      "adjustableDepthDesc": "Desde introducciones para principiantes hasta inmersiones teológicas profundas para eruditos experimentados.",
+      "adjustableDepthDesc": "Desde introducciones para principiantes hasta análisis teológicos profundos para estudiosos experimentados.",
       "thematicExploration": "Exploración Temática",
-      "thematicExplorationDesc": "Enfócate en temas específicos como el perdón, el liderazgo o las profecías del fin de los tiempos.",
+      "thematicExplorationDesc": "Enfócate en temas específicos como el perdón, el liderazgo o la profecía de los últimos tiempos.",
       "aiGenerator": "Generador de Estudios con IA",
       "personalizedForYou": "Personalizado para ti",
       "whatToStudy": "¿Qué te gustaría estudiar?",
       "generatedPlan": "Plan de Estudio Generado",
-      "exampleQuery": "Entendiendo las parábolas de Jesús",
-      "exampleSteps": ["El Sembrador y las Semillas", "El Hijo Pródigo", "El Buen Samaritano", "La Semilla de Mostaza"],
+      "exampleQuery": "Entender las parábolas de Jesús",
+      "exampleSteps": [
+        "El Sembrador y las Semillas",
+        "El Hijo Pródigo",
+        "El Buen Samaritano",
+        "La Semilla de Mostaza"
+      ],
       "exampleDuration": "4 semanas",
       "exampleLevel": "Intermedio"
     },
     "features": {
-      "badge": "Próximamente",
-      "title": "Vista Previa de",
-      "titleHighlight": "Funciones",
-      "description": "Obtén un adelanto de las emocionantes funciones que estamos desarrollando para futuras versiones.",
-      "learnMore": "Más Información",
-      "expected": "Esperado",
+      "badge": "Disponible Ahora",
+      "title": "Todo lo que",
+      "titleHighlight": "obtienes",
+      "description": "No es una app de un versículo al día. Cada capítulo viene con las personas que aparecen en él, audio narrado, tus propias notas y la estructura de estudio para recorrerlo.",
+      "learnMore": "Saber Más",
+      "liveBadge": "En vivo",
+      "comingNext": "Próximamente",
+      "moreOnRoadmap": "Mira lo que llega en los próximos dos trimestres",
       "scriptureHD": {
-        "title": "Escrituras en HD",
-        "description": "Enlaces inteligentes, perfiles de personajes y capas contextuales que dan vida a la Biblia.",
-        "timeline": "Q4 2025",
-        "modalTitle": "Escrituras en HD",
-        "modalDescription": "Experimenta la Biblia como nunca antes con contenido rico e interconectado.",
-        "preview1Title": "Conexiones Inteligentes de Versículos",
-        "preview1Desc": "Ve instantáneamente versículos relacionados, referencias cruzadas y conexiones temáticas. Toca cualquier versículo para explorar su relación con otras escrituras.",
-        "preview2Title": "Perfiles de Personajes",
-        "preview2Desc": "Profundiza en las figuras bíblicas con perfiles completos que incluyen su línea de tiempo, eventos clave, relaciones y arco de personaje.",
-        "preview3Title": "Contexto Histórico y Cultural",
-        "preview3Desc": "Comprende el mundo detrás del texto. Accede a mapas, perspectivas culturales, eventos históricos y descubrimientos arqueológicos."
+        "title": "Escritura en HD",
+        "description": "Perfiles de personajes, líneas de tiempo citadas y las personas detrás de cada capítulo.",
+        "modalTitle": "Escritura en HD",
+        "modalDescription": "Conoce sobre quién estás leyendo, no solo qué sucedió.",
+        "preview1Title": "Perfiles de Personajes A–Z",
+        "preview1Desc": "Explora a cada persona nombrada en las Escrituras, con sus nombres alternativos, fechas y cada pasaje en el que aparece — gratis y abierto para todos en /bible/people.",
+        "preview2Title": "Líneas de Tiempo y Relaciones",
+        "preview2Desc": "Observa el recorrido de una persona a lo largo de las Escrituras y cómo se conecta con quienes la rodean. Cada afirmación está citada a una mención real — nada inventado.",
+        "preview3Title": "Personas en Este Capítulo",
+        "preview3Desc": "Los nombres se resaltan dentro del texto mientras lees. Toca uno para abrir su perfil sin perder tu lugar en el capítulo.",
+        "preview4Title": "Referencias cruzadas y contexto",
+        "preview4Desc": "Estamos construyendo conexiones inteligentes entre versículos y capas de contexto histórico y cultural para que puedas seguir un tema por toda la Biblia."
       },
       "multiModal": {
-        "title": "Biblia Multi-Modal",
-        "description": "Experimenta las Escrituras a través de lectura, audio y participación visual.",
-        "timeline": "Q1 2026",
-        "modalTitle": "Biblia Multi-Modal",
-        "modalDescription": "Interactúa con la Palabra de Dios de la manera que mejor funcione para ti.",
-        "preview1Title": "Lectura sin Distracciones",
-        "preview1Desc": "Una experiencia de lectura bellamente diseñada que elimina todas las distracciones. Fuentes, temas y diseños personalizables.",
-        "preview2Title": "Audio de Alta Calidad",
-        "preview2Desc": "Escucha las Escrituras narradas profesionalmente. Perfecto para viajes, ejercicio, o cuando quieras cerrar los ojos y dejar que la Palabra te envuelva.",
-        "preview3Title": "Visualización de Versículos con IA",
-        "preview3Desc": "Genera hermosas imágenes compartibles de tus versículos favoritos. Perfecto para redes sociales, reflexión personal o crear regalos significativos."
+        "title": "Biblia Multimodal",
+        "description": "Léelo, escúchalo o escríbelo — el mismo capítulo, de tres formas.",
+        "modalTitle": "Biblia Multimodal",
+        "modalDescription": "Conecta con la Palabra de Dios de la forma que mejor te funcione.",
+        "preview1Title": "Lectura Sin Distracciones",
+        "preview1Desc": "Un modo de lectura sereno y bien compuesto, sin nada que compita por tu atención — solo el texto, tus notas y las personas del pasaje.",
+        "preview2Title": "Audio Narrado",
+        "preview2Desc": "Escucha cualquier capítulo con dos voces, velocidad ajustable y resaltado versículo a versículo que te sigue. Descárgalo para escucharlo sin conexión de camino al trabajo.",
+        "preview3Title": "Modo Escribir la Palabra",
+        "preview3Desc": "Escribe las Escrituras palabra por palabra con velocidad y precisión en vivo. Más lento que leer, y de eso se trata precisamente.",
+        "preview4Title": "Traducciones lado a lado",
+        "preview4Desc": "Compara dos traducciones del mismo pasaje en una sola vista — en desarrollo para el próximo lanzamiento."
       },
-      "community": {
-        "title": "Funciones de Comunidad",
-        "description": "Círculos de estudio, foros de discusión y crecimiento espiritual compartido.",
-        "timeline": "Q2 2026",
-        "modalTitle": "Funciones de Comunidad",
-        "modalDescription": "Crece junto con creyentes de todo el mundo.",
-        "preview1Title": "Círculos de Estudio",
-        "preview1Desc": "Crea o únete a grupos pequeños para estudiar las Escrituras juntos. Comparte ideas, rastrea el progreso y manténganse responsables mutuamente.",
-        "preview2Title": "Foros de Discusión",
-        "preview2Desc": "Participa en discusiones teológicas reflexivas. Haz preguntas, comparte descubrimientos y aprende de perspectivas diversas.",
-        "preview3Title": "Feed de Palabra Diaria",
-        "preview3Desc": "Un feed personalizado de Escrituras, devocionales y perspectivas comunitarias. Comienza cada día con contenido curado para tu camino espiritual."
+      "studyNotes": {
+        "title": "Estudio y Notas",
+        "description": "Planes de estudio con IA y notas que quedan unidas al versículo.",
+        "modalTitle": "Estudio y Notas",
+        "modalDescription": "Estructura para tu estudio, y un lugar para guardar lo que descubres.",
+        "preview1Title": "Generador de Planes con IA",
+        "preview1Desc": "Describe lo que quieres aprender y ajusta la duración y la profundidad. Recibes un plan pasaje por pasaje que puedes recorrer sesión por sesión, y regenerar cuando quieras.",
+        "preview2Title": "Notas en Cada Nivel",
+        "preview2Desc": "Adjunta una nota a un solo versículo, a un capítulo, a un libro entero o a una traducción. Búscalas todas y vuelve directo al pasaje.",
+        "preview3Title": "Versículo del Día y Rachas",
+        "preview3Desc": "Un versículo nuevo cada día y una racha que cuenta los días en que apareciste, con un recordatorio diario opcional por correo.",
+        "preview4Title": "Resúmenes de capítulo",
+        "preview4Desc": "Resúmenes con IA y temas clave para cualquier capítulo, llegando al panel de lectura el próximo trimestre."
       }
     },
     "roadmap": {
-      "badge": "Nuestro Camino por Delante",
-      "title": "Hoja de",
-      "titleHighlight": "Ruta",
-      "description": "Estamos construyendo The Holy Beacon paso a paso. Aquí está nuestro plan para hacer realidad todas las funciones prometidas.",
+      "badge": "Dónde estamos",
+      "title": "Hoja de Ruta",
+      "titleHighlight": "de Funciones",
+      "description": "Tres fases ya están disponibles. Esto es lo que llega en los próximos dos trimestres.",
       "phases": [
         {
-          "timeline": "¡Disponible Ahora!",
-          "title": "Planes de Estudio Guiados por IA",
-          "description": "Nuestra función principal que te ayuda a crear planes de estudio bíblico personalizados basados en tus intereses, horario y metas espirituales.",
-          "features": ["Duraciones de estudio personalizables", "Ajuste de profundidad para todos los niveles", "Opciones de exploración temática"]
+          "status": "live",
+          "timeline": "Disponible",
+          "title": "Planes de Estudio con IA",
+          "description": "Describe lo que quieres aprender y recibe un plan estructurado, pasaje por pasaje, construido a tu horario y profundidad.",
+          "features": [
+            "Duración y profundidad personalizables",
+            "Generación de estudios temáticos",
+            "Progreso registrado entre sesiones"
+          ]
         },
         {
-          "timeline": "Fase 2 - Q2 2026",
-          "title": "Escrituras en HD",
-          "description": "Enlaces inteligentes, líneas de tiempo y capas contextuales que dan vida al tapiz interconectado de la Biblia.",
-          "features": ["Conexiones inteligentes de versículos", "Perfiles y líneas de tiempo de personajes", "Capas de contexto histórico y cultural"]
+          "status": "live",
+          "timeline": "Disponible",
+          "title": "Escritura en HD",
+          "description": "Las personas detrás del texto — perfiles, líneas de tiempo y relaciones, cada afirmación citada a un versículo real.",
+          "features": [
+            "Perfiles de personajes A–Z con alias y fechas",
+            "Líneas de tiempo y relaciones con IA, totalmente citadas",
+            "Personas enlazadas dentro de cada capítulo"
+          ]
         },
         {
-          "timeline": "Fase 3 - Q3 2026",
-          "title": "Consumo Multi-Modal de la Biblia",
-          "description": "Múltiples formas de interactuar con las Escrituras a través de lectura, audio, escritura y experiencias visuales.",
-          "features": ["Modo de lectura sin distracciones", "Narración de audio de alta calidad", "Visualización de versículos con IA"]
+          "status": "live",
+          "timeline": "Disponible",
+          "title": "Biblia Multimodal",
+          "description": "Tres formas de recorrer el mismo capítulo, para que las Escrituras se adapten al momento en que estás.",
+          "features": [
+            "Modo de lectura sin distracciones",
+            "Modo escribir la palabra con velocidad y precisión",
+            "Audio narrado: dos voces, control de velocidad, descarga sin conexión"
+          ]
         },
         {
-          "timeline": "Fase 4 - Q4 2026",
+          "status": "current",
+          "timeline": "T4 2026",
+          "title": "Panel de Lectura Ampliado",
+          "description": "Más contexto junto al texto que estás leyendo, sin salir nunca del capítulo.",
+          "features": [
+            "Resúmenes de capítulo y temas clave",
+            "Comparación de traducciones lado a lado",
+            "Búsqueda de texto completo por versículo",
+            "Progreso de lectura por libro"
+          ]
+        },
+        {
+          "status": "upcoming",
+          "timeline": "T1 2027",
           "title": "Comunidad y Palabra Diaria",
-          "description": "Funciones de comunión y participación diaria en las Escrituras para ayudar a los creyentes a crecer juntos.",
-          "features": ["Círculos de estudio para aprendizaje grupal", "Foros de discusión teológica", "Feed personalizado de Palabra Diaria"]
+          "description": "Funciones de comunión y contacto diario con las Escrituras, para que los creyentes crezcan juntos y sean constantes.",
+          "features": [
+            "Círculos de estudio para aprendizaje grupal",
+            "Foros de discusión teológica",
+            "Feed personalizado de Palabra Diaria"
+          ]
         }
       ]
     },
@@ -639,9 +698,9 @@
       "badge": "Planes de Suscripción",
       "title": "Elige Tu",
       "titleHighlight": "Camino",
-      "description": "Selecciona el plan que mejor se adapte a tu camino espiritual, con la posibilidad de compartir o regalar cada suscripción.",
+      "description": "Selecciona el plan que mejor se adapte a tu viaje espiritual, con la posibilidad de compartir o regalar cada suscripción.",
       "mostPopular": "MÁS POPULAR",
-      "canBeGifted": "Puede ser regalado o compartido con un ser querido",
+      "canBeGifted": "Se puede regalar o compartir con un ser querido",
       "freePlan": {
         "name": "Explorador",
         "quote": "\"Gustad y ved...\" — Salmo 34:8",
@@ -650,13 +709,13 @@
         "cta": "Comenzar a Explorar"
       },
       "freeFeatures": {
-        "explore": "Acceso completo al Explorador de la Biblia",
-        "translations": "Múltiples traducciones de la Biblia",
+        "explore": "Acceso completo al Explorador Bíblico",
+        "translations": "Cientos de traducciones bíblicas",
         "noAccount": "No se requiere cuenta"
       },
       "premiumPlan": {
         "name": "Premium",
-        "quote": "\"Tu palabra es lámpara...\" — Salmo 119:105",
+        "quote": "\"Lámpara es a mis pies tu palabra...\" — Salmo 119:105",
         "month": "mes",
         "year": "año",
         "cta": "Comenzar"
@@ -677,5 +736,72 @@
     "footer": {
       "allRightsReserved": "Todos los derechos reservados."
     }
+  },
+  "journey": {
+    "title": "Tu Camino",
+    "subtitle": "Cada capítulo que has leído, escuchado o escrito — donde sea que empezaste.",
+    "signedOut": "Inicia sesión para empezar a registrar tu camino.",
+    "empty": "Aún no hay nada. Abre cualquier capítulo y aparecerá aquí.",
+    "markComplete": "Marcar leído",
+    "markCompleteHint": "Contar este capítulo como leído",
+    "chapterComplete": "Leído",
+    "chapterCompleteTimes": "Leído {count} veces",
+    "chaptersComplete": "{done} de {total} capítulos",
+    "percentComplete": "de la Biblia",
+    "chaptersRead": "Capítulos",
+    "booksFinished": "Libros terminados",
+    "booksStarted": "Libros empezados",
+    "booksUntouched": "Libros sin empezar",
+    "oldTestament": "Antiguo Testamento",
+    "newTestament": "Nuevo Testamento",
+    "laps": "Veces que has leído la Biblia",
+    "lapsNone": "Primera vuelta",
+    "lapsCount": "{count}× por toda la Biblia",
+    "towardNextLap": "{count} capítulos de la siguiente vuelta",
+    "timeframeTitle": "Recientemente",
+    "today": "Hoy",
+    "week": "Esta semana",
+    "month": "Este mes",
+    "year": "Este año",
+    "chaptersShort": "capítulos",
+    "modesTitle": "Cómo lo leíste",
+    "modeRead": "Leído",
+    "modeListen": "Escuchado",
+    "modeType": "Escrito",
+    "modeManual": "Marcado",
+    "listeningTime": "Tiempo escuchando",
+    "hoursShort": "h",
+    "minutesShort": "m",
+    "gridTitle": "Toda la Biblia",
+    "gridHint": "Cada cuadro es un capítulo. Más oscuro significa que has vuelto.",
+    "gridCellRead": "{book} {chapter} — leído {count}×",
+    "gridCellUnread": "{book} {chapter} — todavía no",
+    "badgesTitle": "Hitos",
+    "badgeLocked": "Todavía no",
+    "badges": {
+      "firstChapter": "Primer capítulo",
+      "firstBook": "Primer libro terminado",
+      "tenPercent": "10% de la Biblia",
+      "gospels": "Los cuatro Evangelios",
+      "torah": "La Torá",
+      "quarter": "Un cuarto de la Biblia",
+      "week": "Siete días seguidos",
+      "half": "La mitad de la Biblia",
+      "month": "Treinta días seguidos",
+      "newTestament": "Todo el Nuevo Testamento",
+      "oldTestament": "Todo el Antiguo Testamento",
+      "firstLap": "Toda la Biblia",
+      "year": "Un año de días",
+      "thirdLap": "Tres veces completa"
+    },
+    "shareTitle": "Comparte tu camino",
+    "shareButton": "Compartir",
+    "shareCopy": "Copiar enlace",
+    "shareCopied": "Enlace copiado",
+    "shareEnable": "Hacer público mi camino",
+    "shareEnableHint": "Crea una página pública que cualquiera con el enlace puede ver. Desactivado por defecto.",
+    "shareDisabled": "Tu camino es privado.",
+    "profileSubtitle": "El camino de {name} por la Biblia",
+    "profileNotPublic": "Este camino es privado."
   }
 }
