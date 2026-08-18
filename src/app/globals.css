@@ -201,6 +201,26 @@
     animation: verse-highlight-in 1.4s ease-out;
   }
 
+  /* Two highlighted verses that meet on the same line, though, would each paint
+     their overhang over the other's: 0.3em of doubled translucency, which reads
+     as a dark seam splitting a passage that is meant to look like one mark. At
+     an internal join both overhangs — and the corner radii that would otherwise
+     nick the background out of it — are dropped, so the two backgrounds meet
+     exactly. The run's outer edges keep the pill. */
+  .bible-verse-highlight:has(+ .bible-verse-highlight) {
+    padding-inline-end: 0;
+    margin-inline-end: 0;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .bible-verse-highlight + .bible-verse-highlight {
+    padding-inline-start: 0;
+    margin-inline-start: 0;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .bible-verse-highlight {
       animation: none;

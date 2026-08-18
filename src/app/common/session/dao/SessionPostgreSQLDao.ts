@@ -2,7 +2,7 @@ import { logger } from "@/app/utils/logger";
 import { db } from "@/db";
 import { Session, SessionFull, SessionInsert } from "../model/Session";
 import { sessionTable } from "@/db/schema/session";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 const log = logger.child({ module: 'SessionPostgreSQLDao' });
 
@@ -37,6 +37,23 @@ export class SessionPostgreSQLDao {
             return null;
         }
         return response as unknown as SessionFull;
+    }
+
+    /**
+     * The reader's session on a given study, newest first.
+     *
+     * Adopting a plan twice should drop the reader back into the run they
+     * already have rather than silently starting a second one at chapter 1.
+     */
+    async findByUserAndStudy(userId: string, studyId: string): Promise<Session | null> {
+        log.trace("findByUserAndStudy");
+        const rows = await db
+            .select()
+            .from(sessionTable)
+            .where(and(eq(sessionTable.userId, userId), eq(sessionTable.studyId, studyId)))
+            .orderBy(desc(sessionTable.startedAt))
+            .limit(1);
+        return rows[0] ?? null;
     }
 
     async getAllByOwnerId(id: string): Promise<SessionFull[]> {

@@ -104,7 +104,10 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 			const dimmed = isDimmed(verseNumber);
 			if (!onVerseNoteClick) {
 				return (
-					<span className={cn(VERSE_NUMBER_CLASS, dimmed ? "text-muted-foreground/40" : "text-muted-foreground/70")}>
+					<span
+						data-verse-number=""
+						className={cn(VERSE_NUMBER_CLASS, dimmed ? "text-muted-foreground/40" : "text-muted-foreground/70")}
+					>
 						{verseNumber}
 					</span>
 				);
@@ -114,6 +117,7 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 			return (
 				<button
 					type="button"
+					data-verse-number=""
 					onClick={() => verse && onVerseNoteClick(verse)}
 					title={label}
 					aria-label={label}

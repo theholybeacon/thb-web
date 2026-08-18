@@ -1,4 +1,4 @@
-import { Study, StudyFullWithBible, StudyInsert } from "../model/Study";
+import { Study, StudyFull, StudyFullWithBible, StudyInsert } from "../model/Study";
 import { StudyPostgreSQLDao } from "../dao/StudyPostgreSQLDao";
 
 export class StudyRepository {
@@ -11,6 +11,18 @@ export class StudyRepository {
 
     async getById(id: string): Promise<StudyFullWithBible | null> {
         return await this.studyPostgreSQLDao.getById(id);
+    }
+
+    async getGlobals(): Promise<StudyFull[]> {
+        return await this.studyPostgreSQLDao.getGlobals();
+    }
+
+    async getGlobalBySlug(slug: string): Promise<StudyFull | null> {
+        return await this.studyPostgreSQLDao.getGlobalBySlug(slug);
+    }
+
+    async getAdoptedByOwnerId(ownerId: string): Promise<Study[]> {
+        return await this.studyPostgreSQLDao.getAdoptedByOwnerId(ownerId);
     }
 
     async getByOwnerId(ownerId: string): Promise<StudyFullWithBible[]> {

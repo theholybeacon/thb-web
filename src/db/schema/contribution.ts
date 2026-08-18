@@ -13,7 +13,8 @@ export const contributionSectionEnum = pgEnum("contribution_section", [
 	"significance",
 	"general",
 ]);
-export const contributionKindEnum = pgEnum("contribution_kind", ["fact", "analysis", "correction"]);
+/** "comment" is the default and renders no badge; the other three are opt-in classifications. */
+export const contributionKindEnum = pgEnum("contribution_kind", ["comment", "fact", "analysis", "correction"]);
 export const contributionStatusEnum = pgEnum("contribution_status", ["published", "removed"]);
 
 /**
@@ -57,6 +58,16 @@ export const contributionTable = pgTable("contribution", {
 	body: text().notNull(),
 	citations: jsonb().$type<ContentRef[]>().notNull().default([]),
 	score: integer().notNull().default(0),
+	/**
+	 * Published comments on this thread, and the timestamp of the most recent one
+	 * (falling back to this row's own createdAt). Denormalized the same way
+	 * `score` is denormalized from community_vote: ordering the global feed by
+	 * "most replied" or "recent activity" is otherwise a correlated aggregate over
+	 * every published row before LIMIT, and an aggregate cannot be index-ordered.
+	 * Both are maintained by CommunityPostgreSQLDao.recomputeThreadStats.
+	 */
+	commentCount: integer().notNull().default(0),
+	lastActivityAt: timestamp().notNull().defaultNow(),
 	status: contributionStatusEnum().notNull().default("published"),
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow(),
@@ -70,6 +81,30 @@ export const contributionTable = pgTable("contribution", {
 	scriptureBibleIdx: index("contribution_scripture_bible_idx")
 		.on(t.bibleId)
 		.where(sql`${t.entityId} is null`),
+
+	// One index per sort order of the global /comments feed. All partial on
+	// published rows: the feed is the only reader that filters status in SQL, so
+	// the predicate matches its WHERE exactly and the indexes stay small.
+	// Descending direction lives in the hand-written migration (0032).
+	feedActivityIdx: index("contribution_feed_activity_idx")
+		.on(t.lastActivityAt, t.createdAt, t.id)
+		.where(sql`${t.status} = 'published'`),
+	// btree scans backwards, so this one serves both `newest` and `oldest`.
+	feedRecentIdx: index("contribution_feed_recent_idx")
+		.on(t.createdAt, t.id)
+		.where(sql`${t.status} = 'published'`),
+	feedScoreIdx: index("contribution_feed_score_idx")
+		.on(t.score, t.createdAt, t.id)
+		.where(sql`${t.status} = 'published'`),
+	feedCommentsIdx: index("contribution_feed_comments_idx")
+		.on(t.commentCount, t.createdAt, t.id)
+		.where(sql`${t.status} = 'published'`),
+	// "Mine only" and the author filter. There is no index on userId today, so
+	// this also takes getLastContributionAt (the posting cooldown, on the write
+	// hot path) off a sequential scan.
+	feedAuthorIdx: index("contribution_feed_author_idx")
+		.on(t.userId, t.createdAt)
+		.where(sql`${t.status} = 'published'`),
 }));
 
 export const contributionRelations = relations(contributionTable, ({ one }) => ({

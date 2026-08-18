@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sun, Menu, X, Crown } from "lucide-react";
+import { Menu, X, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "./UserAvatar";
 import { Sidebar } from "./Sidebar";
@@ -65,7 +65,6 @@ export function AppShell({ children, hideSidebar = false }: AppShellProps) {
 
             {/* Logo */}
             <Link href="/home" className="flex items-center gap-2">
-              <Sun className="h-8 w-8 text-primary" />
               <span className="text-xl font-heading font-bold hidden sm:inline">The Holy Beacon</span>
             </Link>
           </div>

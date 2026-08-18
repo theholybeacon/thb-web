@@ -97,6 +97,8 @@ export function ExplorerView({
           bibleLanguage={bibleLanguage}
           bibleName={bibleName}
           bibleVersion={bibleVersion}
+          bibleSlug={bibleSlug}
+          bookSlug={bookSlug}
           bibleId={bibleId}
           bookAbbreviation={bookAbbreviation}
           audioEnabled={audioEnabled}

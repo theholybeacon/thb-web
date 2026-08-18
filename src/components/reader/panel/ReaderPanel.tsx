@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { BookA, MessagesSquare, NotebookPen, PanelRightClose, Trophy, Users, X } from "lucide-react";
+import { BookA, MessagesSquare, NotebookPen, PanelRightClose, Share2, Trophy, Users, X } from "lucide-react";
 import type { ChapterMentions } from "@/app/common/entity/model/Entity";
 import type { Note } from "@/app/common/note/model/Note";
 import type { Verse } from "@/app/common/verse/model/Verse";
@@ -14,6 +14,7 @@ import { CommunitySection, type CommunityPanelContext } from "./sections/Communi
 import { ReaderPanelSection } from "./ReaderPanelSection";
 import { DictionarySection } from "./sections/DictionarySection";
 import { PeopleSection } from "./sections/PeopleSection";
+import { ShareSection, type SharePanelContext } from "./sections/ShareSection";
 import { ProgressSection } from "./sections/ProgressSection";
 import type { ReaderPanelSectionId } from "./useReaderPanel";
 
@@ -29,6 +30,9 @@ export interface ReaderPanelProps {
 	bookAbbreviation?: string;
 	/** Text of the verse the selection is in, for inferred alignment. */
 	selectedVerseText?: string;
+
+	/** Public-reader coordinates for the share links. Absent when the passage has no shareable URL. */
+	shareContext?: SharePanelContext;
 
 	/** Notes are premium; when absent the section is not rendered at all. */
 	notesContext?: NotesPanelContext;
@@ -68,6 +72,7 @@ export function ReaderPanel({
 	bibleVersion,
 	bookAbbreviation,
 	selectedVerseText,
+	shareContext,
 	notesContext,
 	notes,
 	notesLoading,
@@ -129,6 +134,25 @@ export function ReaderPanel({
 						verseText={selectedVerseText}
 					/>
 				</ReaderPanelSection>
+
+				{/*
+				 * Sharing is open to everyone — every target it produces is a public
+				 * /bible page, and handing someone a passage is how readers arrive.
+				 */}
+				{shareContext && (
+					<ReaderPanelSection
+						icon={Share2}
+						title={t("panel.share")}
+						expanded={isExpanded("share")}
+						onToggle={() => toggleSection("share")}
+					>
+						<ShareSection
+							context={shareContext}
+							verses={verses}
+							selectedVerseNumber={selection?.verseNumber}
+						/>
+					</ReaderPanelSection>
+				)}
 
 				{/* Renders nothing for anonymous readers — there is no journey to show. */}
 				<ReaderPanelSection

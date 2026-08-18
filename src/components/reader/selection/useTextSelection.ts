@@ -20,6 +20,12 @@ export interface ReaderSelection {
 /** Below this a selection is a stray tap, above it a sentence. */
 const MIN_LENGTH = 2;
 const MAX_LENGTH = 80;
+/**
+ * Applied to the raw selection before it is cloned, so a select-all over a long
+ * chapter never clones its whole subtree. Safe as a pre-filter: cleaning only
+ * ever shortens the text.
+ */
+const MAX_RAW_LENGTH = MAX_LENGTH * 4;
 /** Long enough to ride out a drag, short enough to feel instant. */
 const DEBOUNCE_MS = 180;
 
@@ -52,6 +58,28 @@ function offsetWithinVerse(elements: HTMLElement[], node: Node, nodeOffset: numb
 
 function verseTextOf(elements: HTMLElement[]): string {
 	return elements.map((el) => el.textContent ?? "").join("");
+}
+
+/**
+ * The selection as scripture text — the verse number stripped back out.
+ *
+ * Double-clicking the first word of a verse selects "16In", not "In": the number
+ * sits directly against the text with no whitespace between them, and Unicode
+ * word segmentation does not break between a digit and a letter, so the two are
+ * one word to the browser. `select-none` keeps a drag out of the number but has
+ * no say over word expansion, and browsers disagree on whether it even excludes
+ * the text from `Selection.toString()` — hence reading the range itself.
+ *
+ * Cloning covers both ends: a number fully inside the selection is cloned whole
+ * and dropped by the selector, and a partially selected one is cloned inside its
+ * own element (the DOM clones partially contained ancestors) and dropped with
+ * it. Text under an ancestor the range merely sits inside is untouched, so
+ * selecting a word mid-verse passes through unchanged.
+ */
+function selectedScriptureText(range: Range): string {
+	const fragment = range.cloneContents();
+	fragment.querySelectorAll("[data-verse-number]").forEach((el) => el.remove());
+	return (fragment.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -102,12 +130,14 @@ export function useTextSelection(enabled = true): ReaderSelection | null {
 			const domSelection = window.getSelection();
 			if (!domSelection || domSelection.isCollapsed || domSelection.rangeCount === 0) return;
 
-			const text = domSelection.toString().replace(/\s+/g, " ").trim();
+			if (domSelection.toString().length > MAX_RAW_LENGTH) return;
+
+			const range = domSelection.getRangeAt(0);
+			const text = selectedScriptureText(range);
 			if (text.length < MIN_LENGTH || text.length > MAX_LENGTH) return;
 			// Punctuation-only drags are not lookups.
 			if (!/\p{L}/u.test(text)) return;
 
-			const range = domSelection.getRangeAt(0);
 			const anchor =
 				range.startContainer.nodeType === Node.ELEMENT_NODE
 					? (range.startContainer as Element)

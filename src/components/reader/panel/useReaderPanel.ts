@@ -7,6 +7,7 @@ export type ReaderPanelSectionId =
 	| "people"
 	| "notes"
 	| "community"
+	| "share"
 	| "summary"
 	| "translations"
 	| "progress";

@@ -39,6 +39,7 @@ import {
   Users,
   Sparkles,
   BookOpen,
+  Library,
 } from "lucide-react";
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
@@ -79,6 +80,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const t = useTranslations("study");
   const tCreate = useTranslations("createStudy");
+  const tPlans = useTranslations("study.plans");
   const tCommon = useTranslations("common");
   const { user: loggedUser, loading: userLoading, isPremium } = useLoggedUserContext();
   const router = useRouter();
@@ -255,16 +257,20 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
               <h1 className="text-3xl font-bold">{t("studyDetails")}</h1>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setRegenerateDialogOpen(true)}
-                disabled={regenerateMutation.isPending}
-              >
-                <RefreshCw className={cn("mr-2 h-4 w-4", regenerateMutation.isPending && "animate-spin")} />
-                <span className="hidden sm:inline">
-                  {regenerateMutation.isPending ? t("regenerating") : t("regenerate")}
-                </span>
-              </Button>
+              {/* An adopted plan's steps are authored, not generated — regenerating
+                  would quietly replace a curated reading order with AI output. */}
+              {!study.sourceStudyId && (
+                <Button
+                  variant="outline"
+                  onClick={() => setRegenerateDialogOpen(true)}
+                  disabled={regenerateMutation.isPending}
+                >
+                  <RefreshCw className={cn("mr-2 h-4 w-4", regenerateMutation.isPending && "animate-spin")} />
+                  <span className="hidden sm:inline">
+                    {regenerateMutation.isPending ? t("regenerating") : t("regenerate")}
+                  </span>
+                </Button>
+              )}
               <Button
                 onClick={() => createSessionMutation.mutate()}
                 disabled={createSessionMutation.isPending || !study.steps?.length}
@@ -279,7 +285,15 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
           {/* Study Info Card */}
           <div className="rounded-lg border bg-card p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">{t("editStudy")}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-semibold">{t("editStudy")}</h2>
+                {study.sourceStudyId && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                    <Library className="h-3 w-3" />
+                    {tPlans("fromCatalog")}
+                  </span>
+                )}
+              </div>
               {!isEditing ? (
                 <Button variant="outline" onClick={() => setIsEditing(true)}>
                   {tCommon("edit")}

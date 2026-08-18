@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/app/UserAvatar";
 import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
-import { Sun } from "lucide-react";
 import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
@@ -15,7 +14,6 @@ export function Header() {
         <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center justify-between py-4">
                 <div className="flex items-center gap-2">
-                    <Sun className="h-8 w-8 text-primary" />
                     <span className="text-xl font-bold">The Holy Beacon</span>
                 </div>
                 <nav className="hidden md:flex items-center gap-6">

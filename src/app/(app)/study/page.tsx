@@ -35,6 +35,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
 import { PremiumGate } from "@/components/premium";
+import { PlanCatalog } from "@/components/study";
 
 // Helper function to format bible reference using canonical fields
 function formatBibleReference(step: StudyStep): string {
@@ -151,12 +152,18 @@ export default function StudyPage() {
         <div className="p-6 lg:p-8">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-3xl font-bold">{t("title")}</h1>
+              <h1 className="text-3xl font-bold">{t("pageTitle")}</h1>
             <Button onClick={onCreateHandler} className="bg-primary hover:bg-primary/90">
               <Plus className="mr-2 h-4 w-4" />
               {t("createStudy")}
             </Button>
           </div>
+
+          {/* Ready-made plans first: a reader with no studies yet should not have
+              to invent a topic before they can start reading. */}
+          <PlanCatalog />
+
+          <h2 className="text-xl font-semibold mb-4">{t("title")}</h2>
 
           {isLoading && (
             <div className="text-center py-12">
@@ -170,7 +177,7 @@ export default function StudyPage() {
 
           {!isLoading && !isError && data?.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">{t("noStudies")}</p>
+              <p className="text-muted-foreground mb-4">{t("noStudiesWithPlans")}</p>
               <Button onClick={onCreateHandler} variant="outline">
                 {t("createFirst")}
               </Button>
@@ -185,9 +192,9 @@ export default function StudyPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <Link href={`/study/${study.id}`} className="flex-1 min-w-0">
-                    <h2 className="text-xl font-semibold hover:text-primary transition-colors">
+                    <h3 className="text-xl font-semibold hover:text-primary transition-colors">
                       {study.name}
-                    </h2>
+                    </h3>
                     {study.description && (
                       <p className="text-muted-foreground mt-1 line-clamp-2">
                         {study.description}

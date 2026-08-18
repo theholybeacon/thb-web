@@ -164,6 +164,7 @@
     "browseStudies": "Ver Estudios",
     "explore": "Explorar",
     "notes": "Notas",
+    "comments": "Comentarios",
     "journey": "Camino",
     "backTo": "Volver a {label}",
     "backToApp": "Volver a la app"
@@ -212,6 +213,7 @@
   },
   "study": {
     "title": "Mis Estudios",
+    "pageTitle": "Estudios",
     "createStudy": "Crear Estudio",
     "noStudies": "Aún no tienes estudios.",
     "createFirst": "Crea tu primer estudio",
@@ -231,7 +233,20 @@
     "studyDetails": "Detalles del Estudio",
     "backToStudies": "Volver a Estudios",
     "saved": "Estudio guardado exitosamente",
-    "regenerated": "Pasos del estudio regenerados exitosamente"
+    "regenerated": "Pasos del estudio regenerados exitosamente",
+    "noStudiesWithPlans": "Todavía no has creado un estudio propio: toma un plan de arriba o crea uno sobre el tema que quieras.",
+    "plans": {
+      "title": "Planes listos para usar",
+      "subtitle": "Ya están escritos, listos para empezar. Toma uno y será tuyo: tu traducción, tu ritmo, tu progreso.",
+      "readings": "{count} lecturas",
+      "coverage": "{chapters} capítulos en {books} libros",
+      "start": "Comenzar plan",
+      "starting": "Comenzando...",
+      "continue": "Continuar",
+      "chooseBible": "¿En qué traducción quieres leerlo?",
+      "bibleHint": "El plan se copiará a tus estudios y se leerá en esta traducción.",
+      "fromCatalog": "Del catálogo"
+    }
   },
   "createStudy": {
     "title": "Crear Estudio",
@@ -374,6 +389,43 @@
     "viewVerseNotes": "Ver notas de este versículo",
     "updatedAt": "Actualizada el {date}"
   },
+  "comments": {
+    "title": "Comentarios",
+    "subtitle": "Lo que la comunidad está comentando, en todas las traducciones.",
+    "clearFilters": "Quitar filtros",
+    "sortBy": "Ordenar por",
+    "sortActivity": "Actividad reciente",
+    "sortNewest": "Más recientes",
+    "sortOldest": "Más antiguos",
+    "sortScore": "Más votados",
+    "sortComments": "Más respondidos",
+    "sourceAll": "En todas partes",
+    "sourceScripture": "Escrituras",
+    "sourceEntity": "Personajes",
+    "translation": "Traducción",
+    "allTranslations": "Todas las traducciones",
+    "book": "Libro",
+    "allBooks": "Todos los libros",
+    "chapter": "Capítulo",
+    "verse": "Versículo",
+    "kindAll": "Todos",
+    "kindComment": "Comentarios",
+    "kindFact": "Datos",
+    "kindAnalysis": "Análisis",
+    "kindCorrection": "Correcciones",
+    "author": "Autor",
+    "allAuthors": "Todos",
+    "mineOnly": "Solo míos",
+    "resultCount": "{from}–{to} de {total}",
+    "pageOf": "Página {page} de {total}",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "empty": "Ninguna contribución coincide con estos filtros.",
+    "emptyAll": "Todavía nadie ha publicado.",
+    "emptyHint": "Abre cualquier capítulo en el explorador y empieza una conversación.",
+    "onCharacter": "Sobre {name}",
+    "viewAllComments": "Ver los {count} comentarios"
+  },
   "reader": {
     "chapter": "Capítulo {number}",
     "explanation": {
@@ -388,7 +440,8 @@
       "notes": "Notas",
       "noPeople": "No hay personas registradas para este capítulo.",
       "dictionary": "Diccionario",
-      "community": "Comunidad"
+      "community": "Comunidad",
+      "share": "Compartir"
     },
     "dictionary": {
       "hint": "Resalta una palabra del texto para buscarla.",
@@ -420,6 +473,21 @@
       "sectionChapter": "Sobre este capítulo",
       "sectionBook": "Sobre este libro",
       "sectionBible": "Sobre esta traducción"
+    },
+    "share": {
+      "scope": "Qué compartir",
+      "optionVerse": "Un versículo",
+      "optionChapter": "Este capítulo ({reference})",
+      "optionBook": "Este libro ({reference})",
+      "optionBible": "Esta traducción ({reference})",
+      "selectVerse": "Elige un versículo",
+      "shareButton": "Compartir",
+      "copyLink": "Copiar enlace",
+      "copyText": "Copiar texto",
+      "linkCopied": "Enlace copiado",
+      "textCopied": "Texto copiado",
+      "copyFailed": "No se pudo copiar al portapapeles",
+      "hint": "Cualquiera con el enlace puede leer este pasaje — no hace falta cuenta."
     }
   },
   "settings": {

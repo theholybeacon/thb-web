@@ -10,8 +10,13 @@ import { communityFlagSS } from "@/app/common/community/service/server/community
 import { CitationLinks, type RefLinkMap } from "@/components/entity/CitationLinks";
 import { VoteButtons } from "./VoteButtons";
 import { CommentThread } from "./CommentThread";
+import { DeleteAction } from "./DeleteAction";
 import { useCommunity } from "./CommunityContext";
 
+/**
+ * Deliberately has no entry for "comment" — the default kind. Classifying a post
+ * is opt-in, and an unclassified one shows the author's name and nothing else.
+ */
 const KIND_LABEL: Record<string, string> = { fact: "Fact", analysis: "Analysis", correction: "Correction" };
 
 export function ContributionItem({
@@ -57,6 +62,21 @@ export function ContributionItem({
 		);
 	}
 
+	// Deleted by its author, but comments below survived — kept as a placeholder
+	// so the discussion under it is not lost. See hydrateContributions.
+	if (contribution.deleted) {
+		return (
+			<div className="py-3 border-t first:border-t-0">
+				<p className="text-sm italic text-muted-foreground">[deleted]</p>
+				{contribution.comments.length > 0 && (
+					<div className="mt-2">
+						<CommentThread contributionId={contribution.id} comments={contribution.comments} />
+					</div>
+				)}
+			</div>
+		);
+	}
+
 	return (
 		<div className="flex gap-2 py-3 border-t first:border-t-0">
 			<VoteButtons
@@ -67,10 +87,12 @@ export function ContributionItem({
 			/>
 			<div className="flex-1 min-w-0">
 				<div className="flex items-center gap-2 mb-1">
-					<span className="text-[10px] uppercase tracking-wide rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
-						{KIND_LABEL[contribution.kind] ?? contribution.kind}
-					</span>
-					<span className="text-xs text-muted-foreground">by {contribution.author.name}</span>
+					{KIND_LABEL[contribution.kind] && (
+						<span className="text-[10px] uppercase tracking-wide rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+							{KIND_LABEL[contribution.kind]}
+						</span>
+					)}
+					<span className="text-xs font-medium text-foreground">{contribution.author.name}</span>
 				</div>
 				<p className="text-sm text-foreground whitespace-pre-wrap">
 					{contribution.body}
@@ -91,6 +113,7 @@ export function ContributionItem({
 					>
 						<Flag className="h-3 w-3" /> Report
 					</button>
+					{contribution.isMine && <DeleteAction targetType="contribution" id={contribution.id} />}
 				</div>
 				{commenting && (
 					<div className="mt-2 space-y-2">

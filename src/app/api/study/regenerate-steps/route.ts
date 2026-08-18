@@ -33,6 +33,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // An adopted plan is an authored reading order — regenerating it would spend
+    // an AI call to produce steps that studyRegenerateSaveSS will refuse to save.
+    if (study.sourceStudyId) {
+        return NextResponse.json({ error: "Adopted plans cannot be regenerated" }, { status: 400 });
+    }
+
     if (!study.bibleId) {
         return NextResponse.json({ error: "Study has no Bible translation selected" }, { status: 400 });
     }

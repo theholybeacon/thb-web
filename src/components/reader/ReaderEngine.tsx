@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { languageNameToIso } from "@/lib/bibleLanguage";
 import { useTranslations } from "next-intl";
 import { recordActivity } from "@/lib/activityClient";
-import { BookA, Eye, Keyboard, Headphones, BookOpen, Loader2, MessagesSquare, NotebookPen, PanelRight, Users } from "lucide-react";
+import { BookA, Eye, Keyboard, Headphones, BookOpen, Loader2, MessagesSquare, NotebookPen, PanelRight, Share2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -56,6 +56,12 @@ interface ReaderEngineProps {
 	 * alignment registry matches on the version code and must not be fed a title.
 	 */
 	bibleVersion?: string | null;
+	/**
+	 * Public-reader slugs. Sharing addresses the /bible tree by slug, so without
+	 * both of these there is no link to hand out and the share section is hidden.
+	 */
+	bibleSlug?: string;
+	bookSlug?: string;
 	isLoading?: boolean;
 
 	/** Audio context. Without bibleId/bookAbbreviation, Listen narrates our own content only. */
@@ -88,6 +94,8 @@ export function ReaderEngine({
 	bibleLanguage,
 	bibleName,
 	bibleVersion,
+	bibleSlug,
+	bookSlug,
 	isLoading = false,
 	bibleId,
 	bookAbbreviation,
@@ -268,6 +276,22 @@ export function ReaderEngine({
 				}
 			: undefined;
 
+	/*
+	 * Share targets. Independent of `chapterContext`: sharing is neither premium
+	 * nor anchored on canonical ids — it needs the public URL slugs, which both
+	 * reading surfaces know but which are absent if a caller omits them.
+	 */
+	const shareContext =
+		bibleSlug && bookSlug && bookName && chapterNumber
+			? {
+					bibleSlug,
+					bookSlug,
+					bibleName: bibleName ?? bibleVersion ?? "",
+					bookName,
+					chapterNumber,
+				}
+			: undefined;
+
 	const panelProps = {
 		bookName,
 		chapterNumber,
@@ -277,6 +301,7 @@ export function ReaderEngine({
 		bibleVersion,
 		bookAbbreviation,
 		selectedVerseText,
+		shareContext,
 		notesContext: chapterContext,
 		notes,
 		notesLoading,
@@ -462,6 +487,18 @@ export function ReaderEngine({
 							>
 								<Users className="h-4 w-4" />
 							</Button>
+							{shareContext && (
+								<Button
+									variant="ghost"
+									size="icon"
+									className="h-9 w-9"
+									onClick={() => panel.revealSection("share")}
+									title={t("reader.panel.share")}
+									aria-label={t("reader.panel.share")}
+								>
+									<Share2 className="h-4 w-4" />
+								</Button>
+							)}
 							{chapterContext && (
 								<Button
 									variant="ghost"

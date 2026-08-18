@@ -7,7 +7,13 @@ import { contributionCreateSS } from "@/app/common/community/service/server/cont
 import type { ContributionKind, ContributionTarget } from "@/app/common/community/model/Community";
 import { useCommunity } from "./CommunityContext";
 
+/**
+ * "Comment" first and preselected: classifying a post is opt-in, and an
+ * unclassified one renders with no badge at all. The other three stay available
+ * for people writing something that really is a fact or a correction.
+ */
 const KINDS: { id: ContributionKind; label: string }[] = [
+	{ id: "comment", label: "Comment" },
 	{ id: "fact", label: "Fact" },
 	{ id: "analysis", label: "Analysis" },
 	{ id: "correction", label: "Correction" },
@@ -24,13 +30,14 @@ export function AddContributionForm({
 	/**
 	 * Which kind chips to offer. The reader passes an empty list: asking someone
 	 * reflecting on a psalm to first classify it as a Fact, an Analysis or a
-	 * Correction is encyclopedia vocabulary, and it suppresses posting.
+	 * Correction is encyclopedia vocabulary, and it suppresses posting. With no
+	 * chips the post falls back to the unlabelled "comment" kind.
 	 */
 	kinds?: ContributionKind[];
 	placeholder?: string;
 }) {
 	const { requirePremium, onChanged } = useCommunity();
-	const [kind, setKind] = useState<ContributionKind>(kinds[0] ?? "analysis");
+	const [kind, setKind] = useState<ContributionKind>(kinds[0] ?? "comment");
 	const [body, setBody] = useState("");
 	const [busy, setBusy] = useState(false);
 
@@ -80,7 +87,7 @@ export function AddContributionForm({
 				onChange={(e) => setBody(e.target.value)}
 				rows={3}
 				placeholder={
-					placeholder ?? "Share a fact, analysis, or correction — cite scripture references where possible…"
+					placeholder ?? "Share a comment — cite scripture references where possible…"
 				}
 				className="w-full rounded border bg-background p-2 text-sm"
 			/>

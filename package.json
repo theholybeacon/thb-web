@@ -11,6 +11,7 @@
     "studio": "tsx studio/cli.ts",
     "migrate": "tsx scripts/apply-migration.ts",
     "seed:people": "tsx scripts/import-bible-people.ts",
+    "seed:studies": "tsx scripts/seed-global-studies.ts",
     "seed:alignment": "tsx scripts/import-alignment.ts",
     "upload:alignment": "tsx scripts/upload-alignment-blobs.ts"
   },

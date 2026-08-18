@@ -5,16 +5,21 @@ import { StudyRepository } from "../../repository/StudyRepository";
 import { StudyStepRepository } from "@/app/common/studyStep/repository/StudyStepRepository";
 import { SessionRepository } from "@/app/common/session/repository/SessionRepository";
 import { StudyStepInsert } from "@/app/common/studyStep/model/StudyStep";
+import { requireOwnedStudySS } from "./studyOwnership";
 
 export async function studyRegenerateSaveSS(studyId: string, steps: StudyStepInsert[]): Promise<StudyFull> {
     const studyRepository = new StudyRepository();
     const studyStepRepository = new StudyStepRepository();
     const sessionRepository = new SessionRepository();
 
-    // Get the existing study
-    const study = await studyRepository.getById(studyId);
-    if (!study) {
-        throw new Error("Study not found");
+    // Ownership, not just existence: this is a public endpoint that deletes
+    // every step of whatever study id it is handed.
+    const study = await requireOwnedStudySS(studyId);
+
+    // An adopted plan's steps are an authored reading order, not AI output. The
+    // detail page hides the button; this is the same rule on the server.
+    if (study.sourceStudyId) {
+        throw new Error("ADOPTED_PLAN_CANNOT_BE_REGENERATED");
     }
 
     // Delete sessions that reference this study's steps (to avoid FK constraint)

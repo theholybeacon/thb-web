@@ -37,20 +37,33 @@ export type ContributionTarget =
 	| { kind: "entity"; entityId: string; section: ContributionSection }
 	| ({ kind: "scripture" } & ScriptureAnchor);
 
-export type ContributionKind = "fact" | "analysis" | "correction";
+export type ContributionKind = "comment" | "fact" | "analysis" | "correction";
 
 export type Author = { id: string; name: string; username: string; profilePicture: string | null };
 
-/** A comment plus its author, the caller's vote, and nested replies (full depth). */
-export type CommentNode = CommunityComment & {
+/**
+ * What every post — contribution or comment — carries on top of its row, so the
+ * client can render the two the same way.
+ *
+ * `deleted` is a tombstone: the author removed it, but a reply below it
+ * survived, so the node is kept to hold the thread together. Its `body` and
+ * `author` are blanked server-side — a deleted post's text never reaches the
+ * browser. A removed post with nothing under it is dropped instead.
+ */
+export type PostMeta = {
 	author: Author;
 	userVote: number; // -1 | 0 | 1
+	/** The caller wrote this, so they may delete it. False for anonymous readers. */
+	isMine: boolean;
+	deleted: boolean;
+};
+
+/** A comment plus its author, the caller's vote, and nested replies (full depth). */
+export type CommentNode = CommunityComment & PostMeta & {
 	replies: CommentNode[];
 };
 
-export type ContributionFull = Contribution & {
-	author: Author;
-	userVote: number;
+export type ContributionFull = Contribution & PostMeta & {
 	comments: CommentNode[];
 };
 

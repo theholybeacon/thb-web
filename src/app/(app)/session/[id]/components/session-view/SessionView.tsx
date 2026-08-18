@@ -100,7 +100,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
   // carry the bible would remove this — worth doing separately.
   const sessionBible = (
     initialSession.study as {
-      bible?: { id?: string; name?: string; version?: string; language?: string; audioEnabled?: boolean };
+      bible?: { id?: string; name?: string; version?: string; slug?: string; language?: string; audioEnabled?: boolean };
     }
   )?.bible;
 
@@ -544,6 +544,8 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                 bibleLanguage={sessionBible?.language}
                 bibleName={sessionBible?.version || sessionBible?.name}
                 bibleVersion={sessionBible?.version}
+                bibleSlug={sessionBible?.slug}
+                bookSlug={bookData?.slug}
                 bibleId={sessionBible?.id}
                 bookAbbreviation={currentStep?.bookAbbreviation ?? undefined}
                 audioEnabled={sessionBible?.audioEnabled ?? false}

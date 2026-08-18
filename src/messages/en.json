@@ -164,6 +164,7 @@
     "browseStudies": "Browse Studies",
     "explore": "Explore",
     "notes": "Notes",
+    "comments": "Comments",
     "journey": "Journey",
     "backTo": "Back to {label}",
     "backToApp": "Back to app"
@@ -212,6 +213,7 @@
   },
   "study": {
     "title": "My Studies",
+    "pageTitle": "Studies",
     "createStudy": "Create Study",
     "noStudies": "You don't have any studies yet.",
     "createFirst": "Create your first study",
@@ -231,7 +233,20 @@
     "studyDetails": "Study Details",
     "backToStudies": "Back to Studies",
     "saved": "Study saved successfully",
-    "regenerated": "Study steps regenerated successfully"
+    "regenerated": "Study steps regenerated successfully",
+    "noStudiesWithPlans": "You haven't created a study of your own yet — take a ready-made plan above, or build one around any topic.",
+    "plans": {
+      "title": "Ready-made plans",
+      "subtitle": "Already written, ready to start. Take one and it becomes yours — your translation, your pace, your progress.",
+      "readings": "{count} readings",
+      "coverage": "{chapters} chapters across {books} books",
+      "start": "Start plan",
+      "starting": "Starting...",
+      "continue": "Continue",
+      "chooseBible": "Which translation would you like to read it in?",
+      "bibleHint": "The plan will be copied into your studies and read in this translation.",
+      "fromCatalog": "From the catalog"
+    }
   },
   "createStudy": {
     "title": "Create Study",
@@ -374,6 +389,43 @@
     "viewVerseNotes": "View notes on this verse",
     "updatedAt": "Updated {date}"
   },
+  "comments": {
+    "title": "Comments",
+    "subtitle": "What the community is discussing, across every translation.",
+    "clearFilters": "Clear filters",
+    "sortBy": "Sort by",
+    "sortActivity": "Recent activity",
+    "sortNewest": "Newest",
+    "sortOldest": "Oldest",
+    "sortScore": "Most voted",
+    "sortComments": "Most replied",
+    "sourceAll": "Everywhere",
+    "sourceScripture": "Scripture",
+    "sourceEntity": "Characters",
+    "translation": "Translation",
+    "allTranslations": "All translations",
+    "book": "Book",
+    "allBooks": "All books",
+    "chapter": "Chapter",
+    "verse": "Verse",
+    "kindAll": "All",
+    "kindComment": "Comments",
+    "kindFact": "Facts",
+    "kindAnalysis": "Analysis",
+    "kindCorrection": "Corrections",
+    "author": "Author",
+    "allAuthors": "Everyone",
+    "mineOnly": "Mine only",
+    "resultCount": "{from}–{to} of {total}",
+    "pageOf": "Page {page} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "empty": "No contributions match these filters.",
+    "emptyAll": "Nobody has posted yet.",
+    "emptyHint": "Open any chapter in the Bible explorer and start a discussion.",
+    "onCharacter": "On {name}",
+    "viewAllComments": "View all {count} comments"
+  },
   "reader": {
     "chapter": "Chapter {number}",
     "explanation": {
@@ -388,7 +440,8 @@
       "notes": "Notes",
       "noPeople": "No people are recorded for this chapter.",
       "dictionary": "Dictionary",
-      "community": "Community"
+      "community": "Community",
+      "share": "Share"
     },
     "dictionary": {
       "hint": "Highlight a word in the text to look it up.",
@@ -420,6 +473,21 @@
       "sectionChapter": "On this chapter",
       "sectionBook": "On this book",
       "sectionBible": "On this translation"
+    },
+    "share": {
+      "scope": "What to share",
+      "optionVerse": "A verse",
+      "optionChapter": "This chapter ({reference})",
+      "optionBook": "This book ({reference})",
+      "optionBible": "This translation ({reference})",
+      "selectVerse": "Select a verse",
+      "shareButton": "Share",
+      "copyLink": "Copy link",
+      "copyText": "Copy text",
+      "linkCopied": "Link copied",
+      "textCopied": "Text copied",
+      "copyFailed": "Couldn't copy to the clipboard",
+      "hint": "Anyone with the link can read this passage — no account needed."
     }
   },
   "settings": {

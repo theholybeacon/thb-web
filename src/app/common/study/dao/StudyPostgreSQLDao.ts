@@ -1,5 +1,5 @@
 import { logger } from "@/app/utils/logger";
-import { eq } from "drizzle-orm";
+import { and, asc, eq, isNotNull } from "drizzle-orm";
 import { db } from "@/db";
 import { studyTable } from "@/db/schema/study";
 import { studyStepTable } from "@/db/schema/studyStep";
@@ -28,6 +28,47 @@ export class StudyPostgreSQLDao {
             }
         });
         return returned as StudyFullWithBible | null;
+    }
+
+    /** The catalog: every ready-made plan, in display order. */
+    async getGlobals(): Promise<StudyFull[]> {
+        log.trace("getGlobals");
+        const returned = await db.query.studyTable.findMany({
+            where: eq(studyTable.isGlobal, true),
+            orderBy: [asc(studyTable.sortOrder), asc(studyTable.name)],
+            with: {
+                steps: {
+                    orderBy: (steps, { asc: ascending }) => [ascending(steps.stepNumber)],
+                }
+            }
+        });
+        return returned as unknown as StudyFull[];
+    }
+
+    async getGlobalBySlug(slug: string): Promise<StudyFull | null> {
+        log.trace("getGlobalBySlug");
+        const returned = await db.query.studyTable.findFirst({
+            where: and(eq(studyTable.slug, slug), eq(studyTable.isGlobal, true)),
+            with: {
+                steps: {
+                    orderBy: (steps, { asc: ascending }) => [ascending(steps.stepNumber)],
+                }
+            }
+        });
+        return (returned ?? null) as StudyFull | null;
+    }
+
+    /**
+     * The reader's copies of catalog plans, without their steps.
+     *
+     * Used to answer "have I already started this plan?" for the whole catalog
+     * in one query, so the listing does not fan out into one lookup per card.
+     */
+    async getAdoptedByOwnerId(ownerId: string): Promise<Study[]> {
+        log.trace("getAdoptedByOwnerId");
+        return await db.select().from(studyTable).where(
+            and(eq(studyTable.ownerId, ownerId), isNotNull(studyTable.sourceStudyId))
+        );
     }
 
     async getByOwnerId(ownerId: string): Promise<StudyFullWithBible[]> {

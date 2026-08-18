@@ -6,6 +6,7 @@ import { toast } from "@/lib/toast";
 import type { CommentNode } from "@/app/common/community/model/Community";
 import { commentCreateSS } from "@/app/common/community/service/server/commentCreateSS";
 import { VoteButtons } from "./VoteButtons";
+import { DeleteAction } from "./DeleteAction";
 import { useCommunity } from "./CommunityContext";
 
 /** Recursively renders a fully-nested comment tree. */
@@ -65,6 +66,19 @@ function CommentItem({
 		);
 	}
 
+	// The author deleted it, but replies below survived — the node is kept only
+	// so those replies keep their place in the thread. Nothing is actionable.
+	if (comment.deleted) {
+		return (
+			<div className="py-2">
+				<p className="text-sm italic text-muted-foreground">[deleted]</p>
+				{comment.replies.length > 0 && (
+					<CommentThread contributionId={contributionId} comments={comment.replies} depth={depth + 1} />
+				)}
+			</div>
+		);
+	}
+
 	return (
 		<div className="py-2">
 			<div className="flex gap-2">
@@ -79,14 +93,17 @@ function CommentItem({
 						<span className="font-medium text-foreground">{comment.author.name}</span>
 					</p>
 					<p className="text-sm whitespace-pre-wrap">{comment.body}</p>
-					<button
-						className="text-xs text-muted-foreground hover:text-primary mt-1"
-						onClick={() => {
-							if (requirePremium()) setReplying((v) => !v);
-						}}
-					>
-						Reply
-					</button>
+					<div className="flex items-center gap-3 mt-1">
+						<button
+							className="text-xs text-muted-foreground hover:text-primary"
+							onClick={() => {
+								if (requirePremium()) setReplying((v) => !v);
+							}}
+						>
+							Reply
+						</button>
+						{comment.isMine && <DeleteAction targetType="comment" id={comment.id} />}
+					</div>
 					{replying && (
 						<div className="mt-2 space-y-2">
 							<textarea

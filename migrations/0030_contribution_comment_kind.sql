@@ -1,0 +1,12 @@
+-- A contribution is no longer required to classify itself.
+--
+-- contribution_kind was fact | analysis | correction, and the column is NOT
+-- NULL, so every post got a badge whether or not it wanted one — the reader
+-- panel hides the kind chips entirely and its posts were all silently landing
+-- as "analysis", which is encyclopedia vocabulary for what is usually just a
+-- comment. 'comment' is the new default: a real enum value with no badge
+-- rendered for it, rather than making the column nullable (which would leave
+-- two ways to say "unclassified").
+--
+-- Additive only. Existing rows keep their kind, so old posts stay labelled.
+ALTER TYPE "contribution_kind" ADD VALUE IF NOT EXISTS 'comment';

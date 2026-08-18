@@ -17,6 +17,7 @@ import {
   Book,
   Lock,
   NotebookPen,
+  MessagesSquare,
   Trophy,
 } from "lucide-react";
 import Link from "next/link";
@@ -48,6 +49,10 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     { href: "/session", label: t("nav.sessions"), icon: Play, premium: true },
     { href: "/bible", label: t("nav.explore"), icon: Book, premium: false },
     { href: "/notes", label: t("nav.notes"), icon: NotebookPen, premium: true },
+    // Notes is what you wrote privately, Comments is what everyone wrote
+    // publicly — the two belong adjacent. MessagesSquare is already the
+    // community icon in the reader panel, so the two surfaces agree.
+    { href: "/comments", label: t("nav.comments"), icon: MessagesSquare, premium: true },
     // Progress is for everyone, like the streak — not a premium surface.
     { href: "/journey", label: t("nav.journey"), icon: Trophy, premium: false },
   ];

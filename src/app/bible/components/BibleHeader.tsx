@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sun, Compass, Users } from "lucide-react";
+import { Compass, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
@@ -14,7 +14,6 @@ export function BibleHeader() {
         <div className="flex items-center gap-6">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <Sun className="h-7 w-7 text-primary" />
             <span className="text-lg font-bold hidden sm:inline">The Holy Beacon</span>
           </Link>
 

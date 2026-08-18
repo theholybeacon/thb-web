@@ -13,6 +13,10 @@ export class SessionRepository {
         return await this.sessionPostgreSQLDao.getById(id);
     }
 
+    async findByUserAndStudy(userId: string, studyId: string): Promise<Session | null> {
+        return await this.sessionPostgreSQLDao.findByUserAndStudy(userId, studyId);
+    }
+
     async getAllByOwnerId(ownerId: string): Promise<SessionFull[]> {
         return await this.sessionPostgreSQLDao.getAllByOwnerId(ownerId);
     }

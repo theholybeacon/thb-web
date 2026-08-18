@@ -15,7 +15,11 @@ export const VERSE_NUMBER_CLASS =
 	"select-none align-super text-[0.62em] font-medium leading-none tabular-nums mr-[0.18em]";
 
 export function VerseNumber({ verseNumber }: { verseNumber: number }) {
-	return <span className={cn(VERSE_NUMBER_CLASS, "text-muted-foreground/70")}>{verseNumber}</span>;
+	return (
+		<span data-verse-number="" className={cn(VERSE_NUMBER_CLASS, "text-muted-foreground/70")}>
+			{verseNumber}
+		</span>
+	);
 }
 
 export interface ChapterTextProps {
@@ -103,6 +107,8 @@ export function ChapterText({
 									 * Scripture text only — deliberately excludes the verse number and any
 									 * caller-supplied chrome, so reconstructing a verse for word-occurrence
 									 * counting never picks up "16" from the number or a note button's label.
+									 * The number carries `data-verse-number` for the other half of that job:
+									 * stripping it back out of a DOM selection that swallowed it.
 									 */}
 									<span data-verse-text="">
 										{renderVerseContent(part.text, mentionsByVerse?.[part.verseNumber])}

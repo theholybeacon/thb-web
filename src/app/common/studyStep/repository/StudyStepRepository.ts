@@ -10,4 +10,8 @@ export class StudyStepRepository {
         return await this.studyStepPostgreSQLDao.create(studyStep);
     }
 
+    async createMany(steps: StudyStepInsert[]): Promise<StudyStep[]> {
+        return await this.studyStepPostgreSQLDao.createMany(steps);
+    }
+
 }

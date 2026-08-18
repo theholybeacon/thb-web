@@ -8,6 +8,13 @@ import {
 	ContributionInsert,
 	VoteTargetType,
 } from "../model/Community";
+import type { RefLinkMap } from "@/components/entity/CitationLinks";
+import type {
+	CommunityFeedFacets,
+	CommunityFeedFilters,
+	CommunityFeedRow,
+	CommunityFeedSort,
+} from "../model/CommunityFeed";
 
 export class CommunityRepository {
 	private dao = new CommunityPostgreSQLDao();
@@ -23,6 +30,18 @@ export class CommunityRepository {
 	): Promise<(Contribution & { author: Author })[]> {
 		return this.dao.listScriptureContributions(bibleId, bookAbbreviation, chapter, limit);
 	}
+	/** A page of the global feed. Filters removed rows in SQL — see the DAO. */
+	listFeed(
+		opts: CommunityFeedFilters & { sort: CommunityFeedSort; limit: number; offset: number },
+	): Promise<{ rows: CommunityFeedRow[]; total: number }> {
+		return this.dao.listFeed(opts);
+	}
+	listFeedFacets(): Promise<CommunityFeedFacets> {
+		return this.dao.listFeedFacets();
+	}
+	listCitationLinkMaps(bibleIds: string[]): Promise<Record<string, RefLinkMap>> {
+		return this.dao.listCitationLinkMaps(bibleIds);
+	}
 	listComments(contributionIds: string[]): Promise<(CommunityComment & { author: Author })[]> {
 		return this.dao.listComments(contributionIds);
 	}
@@ -34,6 +53,10 @@ export class CommunityRepository {
 	}
 	createComment(input: CommunityCommentInsert): Promise<CommunityComment> {
 		return this.dao.createComment(input);
+	}
+	/** Soft-delete, scoped to the author — a no-op on someone else's post. */
+	remove(targetType: VoteTargetType, id: string, userId: string): Promise<void> {
+		return this.dao.remove(targetType, id, userId);
 	}
 	setVote(targetType: VoteTargetType, targetId: string, userId: string, value: number): Promise<number> {
 		return this.dao.setVote(targetType, targetId, userId, value);
