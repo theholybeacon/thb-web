@@ -2,12 +2,14 @@ import { ImageResponse } from "next/og";
 import { entityGetBySlugSS } from "@/app/common/entity/service/server/entityGetBySlugSS";
 import { EntityRepository } from "@/app/common/entity/repository/EntityRepository";
 import { ogFonts, ogText } from "@/lib/og/fonts";
+import { OG_THEME, brandAlpha } from "@/lib/og/theme";
+import { ogLogo } from "@/lib/og/logo";
 
 export const alt = "Bible character on The Holy Beacon";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const BRAND = "#7c3aed";
+const BRAND = OG_THEME.brand;
 
 function yearLabel(y: number | null): string | null {
   if (y == null) return null;
@@ -31,6 +33,8 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
     ? (await new EntityRepository().getMentionsByEntityId(entity.id)).length
     : 0;
 
+  const [fonts, logo] = await Promise.all([ogFonts(), ogLogo()]);
+
   return new ImageResponse(
     (
       <div
@@ -41,24 +45,24 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "72px",
-          backgroundColor: "#0b0b0f",
-          backgroundImage: `radial-gradient(circle at 15% 20%, rgba(124,58,237,0.35), transparent 55%)`,
-          color: "#fafafa",
+          backgroundColor: OG_THEME.background,
+          backgroundImage: `radial-gradient(circle at 15% 20%, ${brandAlpha(0.2)}, transparent 55%)`,
+          color: OG_THEME.foreground,
           fontFamily: "Inter",
         }}
       >
         {/* Wordmark */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <img src={logo} width={60} height={60} alt="" />
           <div
             style={{
-              width: "18px",
-              height: "18px",
-              borderRadius: "9999px",
-              backgroundColor: BRAND,
-              boxShadow: `0 0 24px 6px rgba(124,58,237,0.7)`,
+              fontSize: "26px",
+              fontFamily: "Merriweather",
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              color: OG_THEME.foreground,
             }}
-          />
-          <div style={{ fontSize: "26px", letterSpacing: "0.28em", color: "#a1a1aa" }}>
+          >
             THE HOLY BEACON
           </div>
         </div>
@@ -68,30 +72,39 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
           <div style={{ display: "flex", fontSize: "30px", letterSpacing: "0.2em", color: BRAND }}>
             BIBLE CHARACTER
           </div>
-          <div style={{ display: "flex", fontSize: "108px", fontWeight: 700, lineHeight: 1 }}>
+          <div
+            style={{
+              display: "flex",
+              fontSize: "108px",
+              fontFamily: "Merriweather",
+              fontWeight: 700,
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
+            }}
+          >
             {name}
           </div>
           {aliases.length > 0 ? (
-            <div style={{ display: "flex", fontSize: "32px", color: "#d4d4d8" }}>
+            <div style={{ display: "flex", fontSize: "32px", color: OG_THEME.foreground }}>
               Also called {aliases.join(", ")}
             </div>
           ) : null}
         </div>
 
         {/* Footer facts */}
-        <div style={{ display: "flex", alignItems: "center", gap: "28px", fontSize: "28px", color: "#a1a1aa" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "28px", fontSize: "28px", color: OG_THEME.muted }}>
           {dates ? <div style={{ display: "flex" }}>{dates}</div> : null}
           {mentionCount > 0 ? (
-            <div style={{ display: "flex", color: "#e4e4e7" }}>
+            <div style={{ display: "flex", color: OG_THEME.foreground }}>
               {mentionCount} scripture references
             </div>
           ) : null}
-          <div style={{ display: "flex", marginLeft: "auto", color: "#71717a" }}>
+          <div style={{ display: "flex", marginLeft: "auto", color: OG_THEME.muted }}>
             theholybeacon.com
           </div>
         </div>
       </div>
     ),
-    { ...size, fonts: await ogFonts() },
+    { ...size, fonts },
   );
 }

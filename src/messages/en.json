@@ -376,6 +376,10 @@
   },
   "reader": {
     "chapter": "Chapter {number}",
+    "explanation": {
+      "collapse": "Hide insight",
+      "expand": "Show insight"
+    },
     "panel": {
       "title": "Chapter info",
       "expand": "Show chapter info",
@@ -383,7 +387,8 @@
       "people": "People",
       "notes": "Notes",
       "noPeople": "No people are recorded for this chapter.",
-      "dictionary": "Dictionary"
+      "dictionary": "Dictionary",
+      "community": "Community"
     },
     "dictionary": {
       "hint": "Highlight a word in the text to look it up.",
@@ -400,6 +405,21 @@
       "loadingOriginal": "Loading original-language data…",
       "tierInferredBadge": "AI-matched.",
       "tierInferred": "This translation has no word-level alignment, so the original word was matched by AI from the verse's Greek. Usually right, but verify before relying on it."
+    },
+    "community": {
+      "newDiscussion": "Start a discussion",
+      "noDiscussionsHere": "No discussion on this passage yet.",
+      "scope": "Scope",
+      "onThisVerse": "On this verse",
+      "onThisChapter": "On {reference}",
+      "onThisBook": "On {reference}",
+      "onThisBible": "On {reference}",
+      "selectVerse": "Select a verse",
+      "placeholder": "Share a thought on this passage…",
+      "sectionVerse": "On this verse",
+      "sectionChapter": "On this chapter",
+      "sectionBook": "On this book",
+      "sectionBible": "On this translation"
     }
   },
   "settings": {

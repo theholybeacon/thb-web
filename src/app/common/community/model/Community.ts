@@ -1,4 +1,6 @@
 import { contributionTable } from "@/db/schema/contribution";
+import { NOTE_TARGET_TYPES, type NoteTargetType } from "@/app/common/note/noteScope";
+import type { NoteTargetInput } from "@/app/common/note/model/Note";
 import { communityCommentTable } from "@/db/schema/communityComment";
 import { communityVoteTable } from "@/db/schema/communityVote";
 import { communityFlagTable } from "@/db/schema/communityFlag";
@@ -20,6 +22,23 @@ export const CONTRIBUTION_SECTIONS: ContributionSection[] = [
 	"general",
 ];
 
+/**
+ * Scripture threads reuse the note scope vocabulary and the same canonical
+ * anchor — same four levels, same cross-translation matching — rather than
+ * inventing a second one. `noteScope` is deliberately free of db imports, so
+ * this is safe to pull into client components.
+ */
+export type ScriptureTargetType = NoteTargetType; // bible | book | chapter | verse
+export const SCRIPTURE_TARGET_TYPES = NOTE_TARGET_TYPES;
+export type ScriptureAnchor = NoteTargetInput;
+
+/** Where a new contribution hangs: an entity section, or a point in scripture. */
+export type ContributionTarget =
+	| { kind: "entity"; entityId: string; section: ContributionSection }
+	| ({ kind: "scripture" } & ScriptureAnchor);
+
+export type ContributionKind = "fact" | "analysis" | "correction";
+
 export type Author = { id: string; name: string; username: string; profilePicture: string | null };
 
 /** A comment plus its author, the caller's vote, and nested replies (full depth). */
@@ -37,3 +56,18 @@ export type ContributionFull = Contribution & {
 
 /** All published contributions for an entity, grouped by the AI section they augment. */
 export type CommunityData = Record<ContributionSection, ContributionFull[]>;
+
+/**
+ * Every published thread visible while reading one chapter: the chapter's own,
+ * its verses', and the book- and bible-level ones above it.
+ *
+ * Flat rather than grouped server-side. The entity page needs a fixed bucket
+ * per known section even when empty; scripture has one fixed level (chapter)
+ * and N dynamic ones (whichever verses happen to have threads), so the panel
+ * groups client-side the way NotesSection already does.
+ */
+export type ScriptureCommunityData = {
+	contributions: ContributionFull[];
+	/** Canonical book abbreviation -> reader link parts, for resolving citations. */
+	linkMap: Record<string, { bibleSlug: string; bookSlug: string }>;
+};

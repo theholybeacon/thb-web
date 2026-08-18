@@ -12,6 +12,12 @@ export type ReaderPanelSectionId =
 	| "progress";
 
 const OPEN_KEY = "reader-panel-open";
+/**
+ * Which sections a first-time reader sees open. Community is deliberately not
+ * here: the panel is already several sections deep, so a new one arrives
+ * collapsed behind its count badge and `revealSection` opens it on demand.
+ */
+const DEFAULT_EXPANDED: ReaderPanelSectionId[] = ["people", "notes"];
 const SECTIONS_KEY = "reader-panel-sections";
 
 function readStored<T>(key: string, fallback: T): T {
@@ -43,12 +49,12 @@ function writeStored(key: string, value: unknown): void {
  */
 export function useReaderPanel(defaultOpen = false) {
 	const [open, setOpen] = useState(defaultOpen);
-	const [expanded, setExpanded] = useState<ReaderPanelSectionId[]>(["people", "notes"]);
+	const [expanded, setExpanded] = useState<ReaderPanelSectionId[]>(DEFAULT_EXPANDED);
 	const [hydrated, setHydrated] = useState(false);
 
 	useEffect(() => {
 		setOpen(readStored(OPEN_KEY, defaultOpen));
-		setExpanded(readStored<ReaderPanelSectionId[]>(SECTIONS_KEY, ["people", "notes"]));
+		setExpanded(readStored<ReaderPanelSectionId[]>(SECTIONS_KEY, DEFAULT_EXPANDED));
 		setHydrated(true);
 		// defaultOpen is only an initial seed; re-running on its change would fight the user.
 		// eslint-disable-next-line react-hooks/exhaustive-deps

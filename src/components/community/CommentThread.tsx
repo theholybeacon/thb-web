@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
 import type { CommentNode } from "@/app/common/community/model/Community";
@@ -37,8 +36,7 @@ function CommentItem({
 	comment: CommentNode;
 	depth: number;
 }) {
-	const { requirePremium } = useCommunity();
-	const router = useRouter();
+	const { requirePremium, onChanged } = useCommunity();
 	const [replying, setReplying] = useState(false);
 	const [text, setText] = useState("");
 	const [busy, setBusy] = useState(false);
@@ -53,7 +51,7 @@ function CommentItem({
 			setText("");
 			setReplying(false);
 			toast.success("Reply posted");
-			router.refresh();
+			onChanged();
 		} else {
 			toast.error("Could not post reply");
 		}

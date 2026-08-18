@@ -7,7 +7,7 @@ import { EntityLite } from "@/app/common/entity/model/Entity";
 import { parseChapterBlocks } from "@/app/common/verse/model/verseLayout";
 import { ChapterText, VERSE_NUMBER_CLASS } from "@/components/reader/ChapterText";
 import { scrollVerseAnchorToTop } from "@/components/reader/scrollToVerse";
-import { AiContent } from "@/components/entity/AiContent";
+import { rangeIncludes, toVerseRange, VERSE_HIGHLIGHT_CLASS, type VerseRange } from "@/components/reader/verseHighlight";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
 import { useReadCompletion } from "@/components/reader/progress/useReadCompletion";
 import { BookOpen } from "lucide-react";
@@ -19,18 +19,24 @@ interface ReadModeProps {
 	endVerse?: number | null;
 	bookName?: string;
 	chapterNumber?: number;
-	explanation?: string | null;
 	/** People mentioned in each verse, for inline character links. */
 	mentionsByVerse?: Record<number, EntityLite[]>;
 	/** How many notes each verse already has, keyed by verse number. */
 	noteCountsByVerseNumber?: Record<number, number>;
 	/** Enables the per-verse note affordance when provided. */
 	onVerseNoteClick?: (verse: Verse) => void;
+	/**
+	 * Verses to mark in place — a short step passage or a `#verse-N` deep link.
+	 * Resolved by ReaderEngine, which owns the highlight-vs-dim decision.
+	 */
+	highlightRange?: VerseRange | null;
+	/** Greys out everything outside `startVerse`..`endVerse`. Long passages only. */
+	dimOutsideRange?: boolean;
 	/** The reader's scroll container, owned by ReaderEngine. */
 	scrollerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, explanation, mentionsByVerse, noteCountsByVerseNumber, onVerseNoteClick, scrollerRef }: ReadModeProps) {
+export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, mentionsByVerse, noteCountsByVerseNumber, onVerseNoteClick, highlightRange, dimOutsideRange = false, scrollerRef }: ReadModeProps) {
 	const t = useTranslations();
 	const progress = useOptionalSessionProgress();
 	const anchorsRef = useRef<Record<number, HTMLElement | null>>({});
@@ -52,31 +58,38 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 		progress?.reportModeProgress(0, 1, false);
 	}, [progress]);
 
-	// Auto-scroll to the first relevant verse
+	const passageRange = useMemo(() => toVerseRange(startVerse, endVerse), [startVerse, endVerse]);
+
+	// Auto-scroll to the first relevant verse. A highlight wins over the step's
+	// own start: when both exist the highlight is the more specific target, and
+	// with neither this scrolls the column back to the top on a chapter change.
+	const scrollTarget = highlightRange?.start ?? startVerse ?? 1;
 	useEffect(() => {
 		const timeout = setTimeout(() => {
-			scrollVerseAnchorToTop(scrollerRef?.current ?? null, anchorsRef.current[startVerse ?? 1] ?? null);
+			scrollVerseAnchorToTop(scrollerRef?.current ?? null, anchorsRef.current[scrollTarget] ?? null);
 		}, 100);
 		return () => clearTimeout(timeout);
-	}, [startVerse, endVerse, blocks, scrollerRef]);
+	}, [scrollTarget, blocks, scrollerRef]);
 
-	const isInRange = useCallback(
-		(verseNumber: number) => {
-			if (startVerse == null) return true;
-			const end = endVerse ?? startVerse;
-			return verseNumber >= startVerse && verseNumber <= end;
-		},
-		[startVerse, endVerse],
+	const isDimmed = useCallback(
+		(verseNumber: number) => dimOutsideRange && !rangeIncludes(passageRange, verseNumber),
+		[dimOutsideRange, passageRange],
 	);
 
 	/*
 	 * Out-of-range verses are dimmed by COLOUR, not opacity. Opacity on an inline
 	 * span opens a stacking context per verse and multiplies with the character
 	 * links inside it, which turns them muddy; colour composes cleanly.
+	 *
+	 * Highlighting is the other half of the same job — see verseHighlight.ts for
+	 * which of the two a given passage gets.
 	 */
 	const verseClassName = useCallback(
-		(verseNumber: number) => (isInRange(verseNumber) ? "text-foreground" : "text-muted-foreground/50"),
-		[isInRange],
+		(verseNumber: number) => {
+			if (rangeIncludes(highlightRange ?? null, verseNumber)) return VERSE_HIGHLIGHT_CLASS;
+			return isDimmed(verseNumber) ? "text-muted-foreground/50" : "text-foreground";
+		},
+		[highlightRange, isDimmed],
 	);
 
 	/*
@@ -88,10 +101,10 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 	const renderVerseNumber = useCallback(
 		(verseNumber: number) => {
 			const noteCount = noteCountsByVerseNumber?.[verseNumber] ?? 0;
-			const inRange = isInRange(verseNumber);
+			const dimmed = isDimmed(verseNumber);
 			if (!onVerseNoteClick) {
 				return (
-					<span className={cn(VERSE_NUMBER_CLASS, inRange ? "text-muted-foreground/70" : "text-muted-foreground/40")}>
+					<span className={cn(VERSE_NUMBER_CLASS, dimmed ? "text-muted-foreground/40" : "text-muted-foreground/70")}>
 						{verseNumber}
 					</span>
 				);
@@ -109,26 +122,20 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 						"rounded-[2px] transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
 						noteCount > 0
 							? "text-foreground underline decoration-dotted underline-offset-[3px]"
-							: inRange
-								? "text-muted-foreground/70"
-								: "text-muted-foreground/40",
+							: dimmed
+								? "text-muted-foreground/40"
+								: "text-muted-foreground/70",
 					)}
 				>
 					{verseNumber}
 				</button>
 			);
 		},
-		[noteCountsByVerseNumber, onVerseNoteClick, verses, isInRange, t],
+		[noteCountsByVerseNumber, onVerseNoteClick, verses, isDimmed, t],
 	);
 
 	return (
 		<div className="space-y-6">
-			{explanation && (
-				<AiContent>
-					<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
-				</AiContent>
-			)}
-
 			{reference && (
 				<div className="pb-4 border-b">
 					<h2 className="text-2xl md:text-3xl font-serif font-semibold text-center">

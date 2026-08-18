@@ -11,7 +11,6 @@ import { Slider } from "@/components/ui/slider";
 import {
 	Play, Pause, SkipBack, SkipForward, Volume2, Gauge, Loader2, Lock, Info, Download, Check,
 } from "lucide-react";
-import { AiContent } from "@/components/entity/AiContent";
 import { parseChapterBlocks } from "@/app/common/verse/model/verseLayout";
 import { ChapterText } from "@/components/reader/ChapterText";
 import { keepVerseAnchorInBand } from "@/components/reader/scrollToVerse";
@@ -29,7 +28,6 @@ interface ListenModeProps {
 	bookName?: string;
 	chapterNumber?: number;
 	bibleLanguage?: string;
-	explanation?: string | null;
 	/** People mentioned in each verse, for inline character links. */
 	mentionsByVerse?: Record<number, EntityLite[]>;
 
@@ -73,7 +71,6 @@ export function ListenMode({
 	bookName,
 	chapterNumber,
 	bibleLanguage,
-	explanation,
 	mentionsByVerse,
 	bibleId,
 	bookAbbreviation,
@@ -250,12 +247,6 @@ export function ListenMode({
 	return (
 		<div className="flex flex-col min-h-full">
 			<div className="flex-1 max-w-4xl mx-auto w-full space-y-6">
-				{explanation && (
-					<AiContent>
-						<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
-					</AiContent>
-				)}
-
 				{bookName && chapterNumber && (
 					<div className="text-center pb-4 border-b">
 						<h2 className="text-2xl font-serif font-semibold">

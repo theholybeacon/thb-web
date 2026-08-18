@@ -15,6 +15,14 @@ export class CommunityRepository {
 	listContributions(entityId: string): Promise<(Contribution & { author: Author })[]> {
 		return this.dao.listContributions(entityId);
 	}
+	listScriptureContributions(
+		bibleId: string,
+		bookAbbreviation: string,
+		chapter: number,
+		limit?: number,
+	): Promise<(Contribution & { author: Author })[]> {
+		return this.dao.listScriptureContributions(bibleId, bookAbbreviation, chapter, limit);
+	}
 	listComments(contributionIds: string[]): Promise<(CommunityComment & { author: Author })[]> {
 		return this.dao.listComments(contributionIds);
 	}

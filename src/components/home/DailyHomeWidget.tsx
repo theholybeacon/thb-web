@@ -11,6 +11,7 @@ import { streakGetSS } from "@/app/common/activity/service/server/streakGetSS";
 import { recordDailyActivitySS } from "@/app/common/activity/service/server/recordDailyActivitySS";
 import { dailyVerseGetSS } from "@/app/common/dailyVerse/service/server/dailyVerseGetSS";
 import { localDateString } from "@/lib/activityClient";
+import { verseHash } from "@/components/reader/verseHighlight";
 import { JourneyHomeCard } from "@/components/journey/JourneyHomeCard";
 
 /** Streak counter + verse-of-the-day, the daily reason to open the app. */
@@ -34,6 +35,12 @@ export function DailyHomeWidget() {
 
 	const current = streak?.current ?? 0;
 	const todayDone = streak?.todayDone ?? false;
+
+	// `#verse-N` is what the reader highlights on arrival — see verseHighlight.ts.
+	const readerHref =
+		verse?.bibleSlug && verse.bookSlug
+			? `/bible/${verse.bibleSlug}/${verse.bookSlug}/${verse.chapter}${verseHash(verse.verse)}`
+			: null;
 
 	const markRead = async () => {
 		if (marking) return;
@@ -82,8 +89,21 @@ export function DailyHomeWidget() {
 				</div>
 				{verse ? (
 					<>
-						<p className="text-sm leading-relaxed text-foreground">{verse.text}</p>
-						<p className="text-xs text-muted-foreground mt-1">{verse.reference}</p>
+						{/* The verse itself is the link — reading it is the point, and the
+						    reader marks it in place on arrival. */}
+						{readerHref ? (
+							<Link href={readerHref} className="group block rounded-sm outline-none focus-visible:ring-1 focus-visible:ring-ring">
+								<p className="text-sm leading-relaxed text-foreground group-hover:text-primary transition-colors">
+									{verse.text}
+								</p>
+								<p className="text-xs text-muted-foreground mt-1">{verse.reference}</p>
+							</Link>
+						) : (
+							<>
+								<p className="text-sm leading-relaxed text-foreground">{verse.text}</p>
+								<p className="text-xs text-muted-foreground mt-1">{verse.reference}</p>
+							</>
+						)}
 						<div className="flex gap-2 mt-3">
 							<Button
 								size="sm"
@@ -93,8 +113,8 @@ export function DailyHomeWidget() {
 							>
 								{todayDone ? "Read ✓" : "Mark as read"}
 							</Button>
-							{verse.bibleSlug && verse.bookSlug && (
-								<Link href={`/bible/${verse.bibleSlug}/${verse.bookSlug}/${verse.chapter}#verse-${verse.verse}`}>
+							{readerHref && (
+								<Link href={readerHref}>
 									<Button size="sm" variant="ghost">
 										Open in reader
 									</Button>

@@ -1,4 +1,5 @@
 import type { BookProgress } from "@/app/common/completion/model/Completion";
+import { OG_THEME, brandAlpha } from "./theme";
 
 /**
  * The coverage grid, for Satori.
@@ -12,7 +13,8 @@ import type { BookProgress } from "@/app/common/completion/model/Completion";
  * every element with more than one child needs an explicit `display: flex`.
  */
 
-export const OG_BRAND = "#7c3aed";
+/** Re-exported so the surfaces that only need the accent don't each import the theme. */
+export const OG_BRAND = OG_THEME.brand;
 
 /** One cell per canonical chapter, in canonical order. */
 export function gridCells(books: BookProgress[]): { key: string; times: number }[] {
@@ -28,9 +30,11 @@ export function gridCells(books: BookProgress[]): { key: string; times: number }
  * so more shades would only make the picture noisier.
  */
 export function cellColor(times: number): string {
-	if (times <= 0) return "rgba(255,255,255,0.09)";
-	if (times === 1) return "rgba(124,58,237,0.55)";
-	if (times === 2) return "rgba(124,58,237,0.8)";
+	// Gold needs a slightly wider spread than the purple this replaced: it is a
+	// lighter hue, so the lower steps wash out against the warm background sooner.
+	if (times <= 0) return "rgba(255,255,255,0.07)";
+	if (times === 1) return brandAlpha(0.45);
+	if (times === 2) return brandAlpha(0.72);
 	return OG_BRAND;
 }
 

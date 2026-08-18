@@ -2,7 +2,15 @@
 //
 // next/og's bundled default (Noto Sans) crashes Satori with
 // "lookupType: 5 - substFormat: 3 is not yet supported", so we supply our own
-// Satori-safe Inter TTFs.
+// Satori-safe TTFs: Inter for body text and Merriweather for headings, the same
+// pairing globals.css sets up for the app (--font-sans / --font-heading).
+//
+// Merriweather ships only as a variable font in google/fonts, which Satori would
+// render at its 400 default; this is the static 700 instance from the Google
+// Fonts CSS API, and its GSUB lookup set matches Inter's exactly — no lookupType
+// 5 anywhere. Both weights are bundled: 700 for headings, 400 because the
+// chapter card quotes scripture, and globals.css sets --font-reading to
+// Merriweather at normal weight for exactly that text.
 //
 // These OG routes must run on the NODE runtime (their data chain imports
 // node:crypto via BookExternalAPIDao, which edge can't resolve), so we read the
@@ -17,13 +25,17 @@ type FontOptions = NonNullable<ConstructorParameters<typeof ImageResponse>[1]>["
 const dir = path.join(process.cwd(), "src/lib/og");
 
 export async function ogFonts(): Promise<FontOptions> {
-  const [regular, bold] = await Promise.all([
+  const [regular, bold, serif, serifBold] = await Promise.all([
     readFile(path.join(dir, "Inter-400.ttf")),
     readFile(path.join(dir, "Inter-700.ttf")),
+    readFile(path.join(dir, "Merriweather-400.ttf")),
+    readFile(path.join(dir, "Merriweather-700.ttf")),
   ]);
   return [
     { name: "Inter", data: regular, weight: 400, style: "normal" },
     { name: "Inter", data: bold, weight: 700, style: "normal" },
+    { name: "Merriweather", data: serif, weight: 400, style: "normal" },
+    { name: "Merriweather", data: serifBold, weight: 700, style: "normal" },
   ];
 }
 

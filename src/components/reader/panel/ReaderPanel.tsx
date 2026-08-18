@@ -1,13 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { BookA, NotebookPen, PanelRightClose, Trophy, Users, X } from "lucide-react";
+import { BookA, MessagesSquare, NotebookPen, PanelRightClose, Trophy, Users, X } from "lucide-react";
 import type { ChapterMentions } from "@/app/common/entity/model/Entity";
 import type { Note } from "@/app/common/note/model/Note";
 import type { Verse } from "@/app/common/verse/model/Verse";
+import type { ContributionFull } from "@/app/common/community/model/Community";
+import type { RefLinkMap } from "@/components/entity/CitationLinks";
 import { Button } from "@/components/ui/button";
 import { NotesSection, type NoteComposeRequest, type NotesPanelContext } from "@/components/notes";
 import type { ReaderSelection } from "@/components/reader/selection/useTextSelection";
+import { CommunitySection, type CommunityPanelContext } from "./sections/CommunitySection";
 import { ReaderPanelSection } from "./ReaderPanelSection";
 import { DictionarySection } from "./sections/DictionarySection";
 import { PeopleSection } from "./sections/PeopleSection";
@@ -35,6 +38,13 @@ export interface ReaderPanelProps {
 	composeRequest?: NoteComposeRequest | null;
 	onNotesChanged: () => void;
 
+	/** Scripture discussion is premium; when absent the section is not rendered at all. */
+	communityContext?: CommunityPanelContext;
+	contributions: ContributionFull[];
+	communityLinkMap: RefLinkMap;
+	communityLoading: boolean;
+	onCommunityChanged: () => void;
+
 	isExpanded: (id: ReaderPanelSectionId) => boolean;
 	toggleSection: (id: ReaderPanelSectionId) => void;
 	/** Collapses the panel to its rail (desktop) or closes the drawer (mobile). */
@@ -46,8 +56,8 @@ export interface ReaderPanelProps {
  *
  * Rendered in-flow inside ReaderEngine — never viewport-fixed — so that opening
  * it reflows the reading column instead of covering it. Sections are additive:
- * community, chapter summary, parallel translations and progress slot in here
- * alongside the existing two.
+ * chapter summary and parallel translations still slot in here alongside the
+ * existing ones.
  */
 export function ReaderPanel({
 	bookName,
@@ -64,6 +74,11 @@ export function ReaderPanel({
 	verses,
 	composeRequest,
 	onNotesChanged,
+	communityContext,
+	contributions,
+	communityLinkMap,
+	communityLoading,
+	onCommunityChanged,
 	isExpanded,
 	toggleSection,
 	onClose,
@@ -150,6 +165,26 @@ export function ReaderPanel({
 							verses={verses}
 							composeRequest={composeRequest}
 							onChanged={onNotesChanged}
+						/>
+					</ReaderPanelSection>
+				)}
+
+				{/* Public discussion on the passage, below the reader's own private notes. */}
+				{communityContext && (
+					<ReaderPanelSection
+						icon={MessagesSquare}
+						title={t("panel.community")}
+						badge={contributions.length || undefined}
+						expanded={isExpanded("community")}
+						onToggle={() => toggleSection("community")}
+					>
+						<CommunitySection
+							contributions={contributions}
+							linkMap={communityLinkMap}
+							isLoading={communityLoading}
+							context={communityContext}
+							verses={verses}
+							onChanged={onCommunityChanged}
 						/>
 					</ReaderPanelSection>
 				)}

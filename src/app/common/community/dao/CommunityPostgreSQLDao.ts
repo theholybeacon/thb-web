@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { contributionTable } from "@/db/schema/contribution";
 import { communityCommentTable } from "@/db/schema/communityComment";
@@ -22,6 +22,45 @@ export class CommunityPostgreSQLDao {
 			where: and(eq(contributionTable.entityId, entityId), eq(contributionTable.status, "published")),
 			with: { author: { columns: AUTHOR_COLUMNS } },
 			orderBy: (t, { desc, asc }) => [desc(t.score), asc(t.createdAt)],
+		})) as (Contribution & { author: Author })[];
+	}
+
+	/**
+	 * Every published scripture thread relevant while reading one chapter: the
+	 * chapter's own and its verses' (both matched canonically, so they follow the
+	 * reader across translations), the book-level ones above them, and the
+	 * bible-level ones — those last matched on bibleId, since a thread about a
+	 * translation only belongs to that translation.
+	 *
+	 * Mirrors NotePostgreSQLDao.getByOwnerAndChapterContext, minus the owner
+	 * filter. Limited because a chapter like John 3 can accumulate far more
+	 * threads than a character page ever will.
+	 */
+	async listScriptureContributions(
+		bibleId: string,
+		bookAbbreviation: string,
+		chapter: number,
+		limit = 30,
+	): Promise<(Contribution & { author: Author })[]> {
+		return (await db.query.contributionTable.findMany({
+			where: and(
+				isNull(contributionTable.entityId),
+				eq(contributionTable.status, "published"),
+				or(
+					and(
+						eq(contributionTable.bookAbbreviation, bookAbbreviation),
+						eq(contributionTable.chapter, chapter),
+					),
+					and(
+						eq(contributionTable.targetType, "book"),
+						eq(contributionTable.bookAbbreviation, bookAbbreviation),
+					),
+					and(eq(contributionTable.targetType, "bible"), eq(contributionTable.bibleId, bibleId)),
+				),
+			),
+			with: { author: { columns: AUTHOR_COLUMNS } },
+			orderBy: (t, { desc, asc }) => [desc(t.score), asc(t.createdAt)],
+			limit,
 		})) as (Contribution & { author: Author })[];
 	}
 

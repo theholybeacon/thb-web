@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { MessageSquarePlus, Users } from "lucide-react";
 import { UpgradeModal } from "@/components/premium/UpgradeModal";
 import type { RefLinkMap } from "@/components/entity/CitationLinks";
@@ -29,6 +30,7 @@ export function SectionCommunity({
 	isPremium: boolean;
 	defaultOpen?: boolean;
 }) {
+	const router = useRouter();
 	const [open, setOpen] = useState(defaultOpen);
 	const [adding, setAdding] = useState(false);
 	const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -42,7 +44,7 @@ export function SectionCommunity({
 	const count = contributions.length;
 
 	return (
-		<CommunityContext.Provider value={{ isPremium, requirePremium }}>
+		<CommunityContext.Provider value={{ isPremium, requirePremium, onChanged: () => router.refresh() }}>
 			<div className="mt-2 border-t pt-2">
 				<div className="flex items-center justify-between">
 					<button
@@ -67,7 +69,10 @@ export function SectionCommunity({
 				{open && (
 					<div className="mt-2">
 						{adding && (
-							<AddContributionForm entityId={entityId} section={section} onDone={() => setAdding(false)} />
+							<AddContributionForm
+								target={{ kind: "entity", entityId, section }}
+								onDone={() => setAdding(false)}
+							/>
 						)}
 						{count === 0 && !adding && <p className="text-xs text-muted-foreground py-1">No community notes yet.</p>}
 						{contributions.map((c) => (

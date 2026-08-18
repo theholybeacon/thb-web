@@ -183,6 +183,41 @@
   .bible-block-poetry .bible-line[data-level="1"] {
     padding-left: 3.75em;
   }
+
+  /* A referenced verse or short passage, marked in place.
+     Inline-safe by construction: `box-decoration-clone` gives every wrapped
+     fragment its own rounded pill, and the horizontal padding is cancelled by
+     an equal negative margin so marking a verse never reflows the paragraph
+     around it. Same reasoning as Listen mode's active-verse treatment. */
+  .bible-verse-highlight {
+    background-color: hsl(var(--primary) / 0.16);
+    border-radius: 3px;
+    padding-inline: 0.15em;
+    margin-inline: -0.15em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    /* Arriving from a deep link, the mark is the answer to "where?" — a brief
+       stronger wash carries the eye to it before settling. */
+    animation: verse-highlight-in 1.4s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bible-verse-highlight {
+      animation: none;
+    }
+  }
+}
+
+@keyframes verse-highlight-in {
+  0% {
+    background-color: hsl(var(--primary) / 0);
+  }
+  25% {
+    background-color: hsl(var(--primary) / 0.4);
+  }
+  100% {
+    background-color: hsl(var(--primary) / 0.16);
+  }
 }
 
 /* Custom utility classes */

@@ -3,12 +3,14 @@ import { bibleGetByVersionSS } from "@/app/common/bible/service/server/bibleGetB
 import { bookGetByAbbreviationAndBibleIdSS } from "@/app/common/book/service/server/bookGetByAbbreviationAndBibleIdSS";
 import { chapterGetByBookIdSS } from "@/app/common/chapter/service/chapterGetByBookIdSS";
 import { ogFonts, ogText } from "@/lib/og/fonts";
+import { OG_THEME, brandAlpha } from "@/lib/og/theme";
+import { ogLogo } from "@/lib/og/logo";
 
 export const alt = "Read this chapter on The Holy Beacon";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const BRAND = "#7c3aed";
+const BRAND = OG_THEME.brand;
 
 type Params = { bibleSlug: string; bookSlug: string; chapter: string };
 
@@ -25,6 +27,8 @@ export default async function OgImage({ params }: { params: Promise<Params> }) {
   const translation = ogText(bible?.name ?? "");
   const firstVerse = ogText(chapterData?.verses?.[0]?.content?.slice(0, 180) ?? "");
 
+  const [fonts, logo] = await Promise.all([ogFonts(), ogLogo()]);
+
   return new ImageResponse(
     (
       <div
@@ -35,31 +39,40 @@ export default async function OgImage({ params }: { params: Promise<Params> }) {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "72px",
-          backgroundColor: "#0b0b0f",
-          backgroundImage: `radial-gradient(circle at 80% 15%, rgba(124,58,237,0.35), transparent 55%)`,
-          color: "#fafafa",
+          backgroundColor: OG_THEME.background,
+          backgroundImage: `radial-gradient(circle at 80% 15%, ${brandAlpha(0.2)}, transparent 55%)`,
+          color: OG_THEME.foreground,
           fontFamily: "Inter",
         }}
       >
         {/* Wordmark */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <img src={logo} width={60} height={60} alt="" />
           <div
             style={{
-              width: "18px",
-              height: "18px",
-              borderRadius: "9999px",
-              backgroundColor: BRAND,
-              boxShadow: `0 0 24px 6px rgba(124,58,237,0.7)`,
+              fontSize: "26px",
+              fontFamily: "Merriweather",
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              color: OG_THEME.foreground,
             }}
-          />
-          <div style={{ fontSize: "26px", letterSpacing: "0.28em", color: "#a1a1aa" }}>
+          >
             THE HOLY BEACON
           </div>
         </div>
 
         {/* Reference + verse */}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div style={{ display: "flex", fontSize: "96px", fontWeight: 700, lineHeight: 1 }}>
+          <div
+            style={{
+              display: "flex",
+              fontSize: "96px",
+              fontFamily: "Merriweather",
+              fontWeight: 700,
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
+            }}
+          >
             {reference}
           </div>
           {translation ? (
@@ -68,18 +81,27 @@ export default async function OgImage({ params }: { params: Promise<Params> }) {
             </div>
           ) : null}
           {firstVerse ? (
-            <div style={{ display: "flex", fontSize: "36px", color: "#d4d4d8", lineHeight: 1.4 }}>
+            <div
+              style={{
+                display: "flex",
+                fontSize: "36px",
+                fontFamily: "Merriweather",
+                fontWeight: 400,
+                color: OG_THEME.foreground,
+                lineHeight: 1.4,
+              }}
+            >
               “{firstVerse}…”
             </div>
           ) : null}
         </div>
 
         {/* Footer */}
-        <div style={{ display: "flex", fontSize: "28px", color: "#71717a" }}>
+        <div style={{ display: "flex", fontSize: "28px", color: OG_THEME.muted }}>
           Read free · theholybeacon.com
         </div>
       </div>
     ),
-    { ...size, fonts: await ogFonts() },
+    { ...size, fonts },
   );
 }

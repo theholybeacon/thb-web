@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { languageNameToIso } from "@/lib/bibleLanguage";
 import { useTranslations } from "next-intl";
 import { recordActivity } from "@/lib/activityClient";
-import { BookA, Eye, Keyboard, Headphones, BookOpen, Loader2, NotebookPen, PanelRight, Users } from "lucide-react";
+import { BookA, Eye, Keyboard, Headphones, BookOpen, Loader2, MessagesSquare, NotebookPen, PanelRight, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -13,14 +13,19 @@ import { ChapterMentions } from "@/app/common/entity/model/Entity";
 import { Note } from "@/app/common/note/model/Note";
 import { noteGetForChapterSS } from "@/app/common/note/service/server/noteGetForChapterSS";
 import { NoteComposeRequest } from "@/components/notes";
+import type { ContributionFull } from "@/app/common/community/model/Community";
+import type { RefLinkMap } from "@/components/entity/CitationLinks";
+import { scriptureCommunityListSS } from "@/app/common/community/service/server/scriptureCommunityListSS";
 import { ReadMode, TypeMode, ListenMode } from "@/app/(app)/session/[id]/components/modes";
 import { UpgradeModal } from "@/components/premium/UpgradeModal";
 import { ReaderPanel } from "./panel/ReaderPanel";
 import { useReaderPanel } from "./panel/useReaderPanel";
+import { StepExplanationBanner } from "./StepExplanationBanner";
 import { ChapterCompletionProvider } from "./progress/ChapterCompletionContext";
 import { ChapterCompleteButton } from "./progress/ChapterCompleteButton";
 import { useTextSelection } from "./selection/useTextSelection";
 import { scrollVerseAnchorToTop } from "./scrollToVerse";
+import { isShortRange, parseVerseHash, toVerseRange, type VerseRange } from "./verseHighlight";
 
 export type ReaderMode = "read" | "type" | "listen";
 
@@ -114,7 +119,15 @@ export function ReaderEngine({
 	const [notesLoading, setNotesLoading] = useState(false);
 	const [composeRequest, setComposeRequest] = useState<NoteComposeRequest | null>(null);
 
-	const canTakeNotes = Boolean(bibleId && bookAbbreviation && chapterNumber);
+	// Public discussion on the passage. Loaded eagerly rather than on expand:
+	// the section badge is a count, so the query happens either way.
+	const [contributions, setContributions] = useState<ContributionFull[]>([]);
+	const [communityLinkMap, setCommunityLinkMap] = useState<RefLinkMap>({});
+	const [communityLoading, setCommunityLoading] = useState(false);
+
+	// Canonical chapter coordinates. The precondition for notes and for community
+	// discussion alike — both anchor on bibleId + bookAbbreviation + chapter.
+	const hasChapterAnchor = Boolean(bibleId && bookAbbreviation && chapterNumber);
 
 	// Reading counts toward the daily streak (once/day/browser, signed-in only).
 	useEffect(() => {
@@ -122,20 +135,45 @@ export function ReaderEngine({
 	}, []);
 
 	/*
-	 * `#verse-N` deep links (daily emails, note links, character citations) can
-	 * only be honoured once the verses exist, and the reader scrolls inside a
-	 * nested container rather than the document — so native fragment scrolling
-	 * both races the fetch and lands under the toolbar. Handle it explicitly.
+	 * `#verse-N` / `#verse-N-M` deep links (verse of the day, daily emails, note
+	 * links, character citations). Kept in state rather than read once at scroll
+	 * time, because the target is also what gets highlighted — and re-read on
+	 * `hashchange` so a second link into the chapter already on screen moves the
+	 * mark instead of doing nothing.
+	 */
+	const [hashRange, setHashRange] = useState<VerseRange | null>(null);
+	useEffect(() => {
+		const read = () => setHashRange(parseVerseHash(window.location.hash));
+		read();
+		window.addEventListener("hashchange", read);
+		return () => window.removeEventListener("hashchange", read);
+	}, []);
+
+	/*
+	 * The jump can only be honoured once the verses exist, and the reader scrolls
+	 * inside a nested container rather than the document — so native fragment
+	 * scrolling both races the fetch and lands under the toolbar.
 	 */
 	useEffect(() => {
-		if (isLoading || verses.length === 0) return;
-		const match = /^#verse-(\d+)$/.exec(window.location.hash);
-		if (!match) return;
+		if (isLoading || verses.length === 0 || !hashRange) return;
 		const timeout = setTimeout(() => {
-			scrollVerseAnchorToTop(scrollerRef.current, document.getElementById(`verse-${match[1]}`));
+			scrollVerseAnchorToTop(scrollerRef.current, document.getElementById(`verse-${hashRange.start}`));
 		}, 100);
 		return () => clearTimeout(timeout);
-	}, [isLoading, verses]);
+	}, [isLoading, verses, hashRange]);
+
+	/*
+	 * How the passage in question is pointed at. A long range still dims what
+	 * falls outside it — that is what makes its extent readable at a glance — but
+	 * a step asking for a verse or two greys out a whole chapter to point at one
+	 * line, so those are marked in place instead and the context stays legible.
+	 *
+	 * The step's own range wins over a deep link: it is the passage the reader
+	 * was sent here to read.
+	 */
+	const passageRange = useMemo(() => toVerseRange(startVerse, endVerse), [startVerse, endVerse]);
+	const dimOutsideRange = passageRange != null && !isShortRange(passageRange);
+	const highlightRange = (passageRange && !dimOutsideRange ? passageRange : null) ?? hashRange;
 
 	/*
 	 * Instant-on-selection: highlighting reveals the dictionary rather than
@@ -152,18 +190,36 @@ export function ReaderEngine({
 	const loadNotes = useCallback(async () => {
 		// Notes are premium; skip the round trip entirely for everyone else, which
 		// keeps anonymous views of the public reader free of extra queries.
-		if (!canTakeNotes || !isPremium) return;
+		if (!hasChapterAnchor || !isPremium) return;
 		setNotesLoading(true);
 		try {
 			setNotes(await noteGetForChapterSS(bibleId!, bookAbbreviation!, chapterNumber!));
 		} finally {
 			setNotesLoading(false);
 		}
-	}, [canTakeNotes, isPremium, bibleId, bookAbbreviation, chapterNumber]);
+	}, [hasChapterAnchor, isPremium, bibleId, bookAbbreviation, chapterNumber]);
 
 	useEffect(() => {
 		void loadNotes();
 	}, [loadNotes]);
+
+	const loadCommunity = useCallback(async () => {
+		// Same reasoning as notes: scripture discussion is premium, so anonymous
+		// views of the public reader make no extra round trip.
+		if (!hasChapterAnchor || !isPremium) return;
+		setCommunityLoading(true);
+		try {
+			const data = await scriptureCommunityListSS(bibleId!, bookAbbreviation!, chapterNumber!);
+			setContributions(data.contributions);
+			setCommunityLinkMap(data.linkMap);
+		} finally {
+			setCommunityLoading(false);
+		}
+	}, [hasChapterAnchor, isPremium, bibleId, bookAbbreviation, chapterNumber]);
+
+	useEffect(() => {
+		void loadCommunity();
+	}, [loadCommunity]);
 
 	const noteCountsByVerseNumber = useMemo(() => {
 		const counts: Record<number, number> = {};
@@ -196,8 +252,13 @@ export function ReaderEngine({
 		panel.revealSection("notes");
 	};
 
-	const notesContext =
-		canTakeNotes && isPremium
+	/*
+	 * The canonical coordinates both premium panel sections need. Built once and
+	 * handed to notes and community alike, so there is no second condition to
+	 * keep in sync — and withholding it is what hides both sections.
+	 */
+	const chapterContext =
+		hasChapterAnchor && isPremium
 			? {
 					bibleId: bibleId!,
 					bibleName: bibleName ?? "",
@@ -216,12 +277,17 @@ export function ReaderEngine({
 		bibleVersion,
 		bookAbbreviation,
 		selectedVerseText,
-		notesContext,
+		notesContext: chapterContext,
 		notes,
 		notesLoading,
 		verses,
 		composeRequest,
 		onNotesChanged: loadNotes,
+		communityContext: chapterContext,
+		contributions,
+		communityLinkMap,
+		communityLoading,
+		onCommunityChanged: loadCommunity,
 		isExpanded: panel.isExpanded,
 		toggleSection: panel.toggleSection,
 	};
@@ -251,7 +317,7 @@ export function ReaderEngine({
 					<div className="mx-auto flex w-full max-w-4xl items-center justify-end gap-2 px-4 pt-4 md:px-6 md:pt-6">
 						<ChapterCompleteButton />
 
-						{canTakeNotes && (
+						{hasChapterAnchor && (
 							<Button
 								variant="ghost"
 								size="sm"
@@ -299,6 +365,12 @@ export function ReaderEngine({
 						)}
 					</div>
 
+					{/*
+					 * Pinned above the scroller, not inside it: the step insight has to stay
+					 * on screen while the chapter scrolls under it.
+					 */}
+					<StepExplanationBanner explanation={explanation} />
+
 					{/* Reader column — owns its own scrolling and centring */}
 					<div ref={scrollerRef} className="min-h-0 flex-1 overflow-y-auto">
 						<div className="mx-auto w-full max-w-4xl px-4 py-4 md:px-6 md:py-6">
@@ -314,17 +386,18 @@ export function ReaderEngine({
 											scrollerRef={scrollerRef}
 											startVerse={startVerse}
 											endVerse={endVerse}
+											highlightRange={highlightRange}
+											dimOutsideRange={dimOutsideRange}
 											bookName={bookName}
 											chapterNumber={chapterNumber}
-											explanation={explanation}
 											mentionsByVerse={mentions?.mentionsByVerse}
 											noteCountsByVerseNumber={noteCountsByVerseNumber}
-											onVerseNoteClick={canTakeNotes ? handleVerseNoteClick : undefined}
+											onVerseNoteClick={hasChapterAnchor ? handleVerseNoteClick : undefined}
 										/>
 									)}
 
 									{mode === "type" && (
-										<TypeMode verses={verses} startVerse={startVerse} endVerse={endVerse} explanation={explanation} />
+										<TypeMode verses={verses} startVerse={startVerse} endVerse={endVerse} />
 									)}
 
 									{mode === "listen" && (
@@ -336,7 +409,6 @@ export function ReaderEngine({
 											bookName={bookName}
 											chapterNumber={chapterNumber}
 											bibleLanguage={bibleLanguage}
-											explanation={explanation}
 											mentionsByVerse={mentions?.mentionsByVerse}
 											bibleId={bibleId}
 											bookAbbreviation={bookAbbreviation}
@@ -390,7 +462,7 @@ export function ReaderEngine({
 							>
 								<Users className="h-4 w-4" />
 							</Button>
-							{notesContext && (
+							{chapterContext && (
 								<Button
 									variant="ghost"
 									size="icon"
@@ -400,6 +472,18 @@ export function ReaderEngine({
 									aria-label={t("reader.panel.notes")}
 								>
 									<NotebookPen className="h-4 w-4" />
+								</Button>
+							)}
+							{chapterContext && (
+								<Button
+									variant="ghost"
+									size="icon"
+									className="h-9 w-9"
+									onClick={() => panel.revealSection("community")}
+									title={t("reader.panel.community")}
+									aria-label={t("reader.panel.community")}
+								>
+									<MessagesSquare className="h-4 w-4" />
 								</Button>
 							)}
 						</div>

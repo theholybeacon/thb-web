@@ -376,6 +376,10 @@
   },
   "reader": {
     "chapter": "Capítulo {number}",
+    "explanation": {
+      "collapse": "Ocultar reflexión",
+      "expand": "Mostrar reflexión"
+    },
     "panel": {
       "title": "Información del capítulo",
       "expand": "Mostrar información del capítulo",
@@ -383,7 +387,8 @@
       "people": "Personas",
       "notes": "Notas",
       "noPeople": "No hay personas registradas para este capítulo.",
-      "dictionary": "Diccionario"
+      "dictionary": "Diccionario",
+      "community": "Comunidad"
     },
     "dictionary": {
       "hint": "Resalta una palabra del texto para buscarla.",
@@ -400,6 +405,21 @@
       "loadingOriginal": "Cargando datos del idioma original…",
       "tierInferredBadge": "Emparejado por IA.",
       "tierInferred": "Esta traducción no tiene alineación palabra por palabra, así que la palabra original fue emparejada por IA a partir del griego del versículo. Suele acertar, pero verifícalo antes de basarte en ello."
+    },
+    "community": {
+      "newDiscussion": "Iniciar una conversación",
+      "noDiscussionsHere": "Todavía no hay conversación sobre este pasaje.",
+      "scope": "Alcance",
+      "onThisVerse": "Sobre este versículo",
+      "onThisChapter": "Sobre {reference}",
+      "onThisBook": "Sobre {reference}",
+      "onThisBible": "Sobre {reference}",
+      "selectVerse": "Elige un versículo",
+      "placeholder": "Comparte una reflexión sobre este pasaje…",
+      "sectionVerse": "Sobre este versículo",
+      "sectionChapter": "Sobre este capítulo",
+      "sectionBook": "Sobre este libro",
+      "sectionBible": "Sobre esta traducción"
     }
   },
   "settings": {

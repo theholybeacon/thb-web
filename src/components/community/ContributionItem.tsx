@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
@@ -22,8 +21,7 @@ export function ContributionItem({
 	contribution: ContributionFull;
 	linkMap: RefLinkMap;
 }) {
-	const { requirePremium } = useCommunity();
-	const router = useRouter();
+	const { requirePremium, onChanged } = useCommunity();
 	const [show, setShow] = useState(contribution.score > -3);
 	const [commenting, setCommenting] = useState(false);
 	const [text, setText] = useState("");
@@ -38,7 +36,7 @@ export function ContributionItem({
 			setText("");
 			setCommenting(false);
 			toast.success("Comment posted");
-			router.refresh();
+			onChanged();
 		} else {
 			toast.error("Could not post comment");
 		}

@@ -6,7 +6,6 @@ import { Verse } from "@/app/common/verse/model/Verse";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AiContent } from "@/components/entity/AiContent";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
 import { useOptionalChapterCompletion } from "@/components/reader/progress/ChapterCompletionContext";
 import { parseChapterBlocks, type ChapterBlock, type PoetryLevel } from "@/app/common/verse/model/verseLayout";
@@ -18,7 +17,6 @@ interface TypeModeProps {
 	verses: Verse[];
 	startVerse?: number | null;
 	endVerse?: number | null;
-	explanation?: string | null;
 }
 
 interface CharState {
@@ -107,7 +105,7 @@ function buildTypeDocument(blocks: ChapterBlock[]): { blocks: TypeBlock[]; expec
 	return { blocks: typeBlocks, expected };
 }
 
-export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeModeProps) {
+export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 	const t = useTranslations();
 	const sessionProgress = useOptionalSessionProgress();
 	const chapterCompletion = useOptionalChapterCompletion();
@@ -278,12 +276,6 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 
 	return (
 		<div className="flex flex-col gap-6 h-full">
-			{explanation && (
-				<AiContent>
-					<p className="text-sm leading-relaxed italic text-muted-foreground">{explanation}</p>
-				</AiContent>
-			)}
-
 			{/* Stats bar */}
 			<div className="flex items-center justify-between px-4 py-2 bg-muted/50 rounded-lg">
 				<div className="flex items-center gap-6 text-sm">
