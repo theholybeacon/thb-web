@@ -1,0 +1,4 @@
+# Bulk extraction artefacts — reproducible via extract_sword.py, far too large
+# to version (≈85 MB of JSONL, ≈40 MB of downloaded SWORD modules).
+data/
+.modules/

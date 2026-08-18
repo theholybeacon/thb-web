@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl";
 import { sessionGetAllByOwnerId } from "@/app/common/session/service/sessionGetAllByOwnerIdSS";
 import { sessionDeleteSS } from "@/app/common/session/service/sessionDeleteSS";
 import { SessionFull } from "@/app/common/session/model/Session";
-import { StudyStep } from "@/app/common/studyStep/model/StudyStep";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/app";
 import {
@@ -27,40 +26,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
-import { Play, MoreVertical, Trash2, BookOpen } from "lucide-react";
+import { Play, MoreVertical, Trash2, BookOpen, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { logger } from "@/app/utils/logger";
 import { toast } from "@/lib/toast";
 import { PremiumGate } from "@/components/premium";
+import { ShareStoryButton } from "@/components/share/ShareStoryButton";
+import { formatStepReference } from "@/app/common/studyStep/model/reference";
 
-// Helper function to format bible reference using canonical fields
-function formatBibleReference(step: StudyStep): string {
-  const bookAbbr = step.bookAbbreviation;
-  if (!bookAbbr) return "";
-
-  const startChapter = step.startChapter;
-  const endChapter = step.endChapter;
-  const startVerse = step.startVerse;
-  const endVerse = step.endVerse;
-
-  if (!startChapter) {
-    return bookAbbr;
-  }
-
-  if (startVerse && endVerse && startVerse !== endVerse) {
-    return `${bookAbbr} ${startChapter}:${startVerse}-${endVerse}`;
-  }
-
-  if (startVerse) {
-    return `${bookAbbr} ${startChapter}:${startVerse}`;
-  }
-
-  if (endChapter && endChapter !== startChapter) {
-    return `${bookAbbr} ${startChapter}-${endChapter}`;
-  }
-
-  return `${bookAbbr} ${startChapter}`;
-}
+// Shared with the reader and the completion recap so the same step never reads
+// differently in two places.
+const formatBibleReference = formatStepReference;
 
 export default function SessionPage() {
   const t = useTranslations("session");
@@ -114,6 +90,9 @@ export default function SessionPage() {
   };
 
   const getProgress = (session: SessionFull) => {
+    // A finished session is finished regardless of where currentStepId points —
+    // that cursor never advances past the last step, so it can never reach 100%.
+    if (session.completedAt) return 100;
     if (!session.study?.steps?.length) return 0;
     const currentStepIndex = session.study.steps.findIndex(
       (step) => step.id === session.currentStepId
@@ -166,6 +145,7 @@ export default function SessionPage() {
           <div className="space-y-4">
             {data?.map((session) => {
               const progress = getProgress(session);
+              const isCompleted = Boolean(session.completedAt);
               return (
                 <div
                   key={session.id}
@@ -173,7 +153,15 @@ export default function SessionPage() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-xl font-semibold">{session.study.name}</h2>
+                      <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold">
+                        {session.study.name}
+                        {isCompleted && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                            <CheckCircle2 className="h-3 w-3" />
+                            {t("complete.completed")}
+                          </span>
+                        )}
+                      </h2>
                       {session.study.description && (
                         <p className="text-muted-foreground mt-1 line-clamp-2">
                           {session.study.description}
@@ -215,12 +203,22 @@ export default function SessionPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
+                      {isCompleted && (
+                        <ShareStoryButton
+                          kind="session"
+                          sessionId={session.id}
+                          label={t("complete.shareThis")}
+                        />
+                      )}
                       <Button
                         onClick={() => handleGoToSession(session)}
-                        className="bg-primary hover:bg-primary/90"
+                        variant={isCompleted ? "outline" : "default"}
+                        className={isCompleted ? undefined : "bg-primary hover:bg-primary/90"}
                       >
                         <Play className="mr-2 h-4 w-4" />
-                        <span className="hidden sm:inline">{t("continue")}</span>
+                        <span className="hidden sm:inline">
+                          {isCompleted ? t("complete.done") : t("continue")}
+                        </span>
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Search, BookOpen, ChevronRight, Globe, ArrowUpDown, Headphones } from "lucide-react";
 import { ListenableIndicator } from "@/components/audio/ListenableIndicator";
+import { RECOMMENDED_BIBLES } from "@/lib/recommendedBible";
 
 interface BibleSelectorProps {
   bibles: Bible[];
@@ -84,8 +85,53 @@ export function BibleSelector({ bibles }: BibleSelectorProps) {
     return result;
   }, [bibles, selectedLanguage, searchQuery, sortBy, listenableOnly]);
 
+  /*
+   * The recommendations, in registry order, for the languages we curate. Shown
+   * above the catalogue rather than replacing it: 404 translations is genuine
+   * value for someone who knows what they want, and noise for everyone else.
+   */
+  const recommended = useMemo(
+    () =>
+      RECOMMENDED_BIBLES.map((rec) => ({ rec, bible: bibles.find((b) => b.slug === rec.slug) }))
+        .filter((x): x is { rec: (typeof RECOMMENDED_BIBLES)[number]; bible: Bible } => !!x.bible),
+    [bibles],
+  );
+
+  const showRecommended = !searchQuery && selectedLanguage === "all" && !listenableOnly;
+
   return (
     <div className="space-y-6">
+      {showRecommended && recommended.length > 0 && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold">{t("recommendedTitle")}</h2>
+            <p className="text-sm text-muted-foreground">{t("recommendedSubtitle")}</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {recommended.map(({ rec, bible }) => (
+              <Link
+                key={rec.slug}
+                href={`/bible/${bible.slug}`}
+                className="group rounded-lg border border-primary/30 bg-primary/5 p-4 transition-colors hover:border-primary/60"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{rec.label}</p>
+                    <p className="text-xs text-muted-foreground">{bible.language}</p>
+                  </div>
+                  <ListenableIndicator audioEnabled={bible.audioEnabled} />
+                </div>
+                <p className="mt-2 text-xs leading-snug text-muted-foreground">{rec.why}</p>
+                <span className="mt-2 inline-flex items-center text-xs font-medium text-primary">
+                  {t("readNow")}
+                  <ChevronRight className="ml-0.5 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Filters bar */}
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Search */}

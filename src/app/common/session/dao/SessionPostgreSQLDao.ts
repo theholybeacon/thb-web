@@ -2,7 +2,7 @@ import { logger } from "@/app/utils/logger";
 import { db } from "@/db";
 import { Session, SessionFull, SessionInsert } from "../model/Session";
 import { sessionTable } from "@/db/schema/session";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 const log = logger.child({ module: 'SessionPostgreSQLDao' });
 
@@ -67,6 +67,27 @@ export class SessionPostgreSQLDao {
             currentStepId: stepId,
             updatedAt: new Date(),
         }).where(eq(sessionTable.id, sessionId));
+    }
+
+    /**
+     * Stamps a session finished, once.
+     *
+     * Guarded on `completedAt IS NULL` rather than checked-then-written: the Neon
+     * HTTP driver has no interactive transactions, so a double-click on Finish is
+     * two racing requests, and the guard is what keeps the first completion time —
+     * the true one — instead of the last.
+     *
+     * Returns true only for the call that actually stamped it, so the caller can
+     * celebrate once.
+     */
+    async markCompleted(sessionId: string): Promise<boolean> {
+        log.trace("markCompleted");
+        const updated = await db
+            .update(sessionTable)
+            .set({ completedAt: new Date(), updatedAt: new Date() })
+            .where(and(eq(sessionTable.id, sessionId), isNull(sessionTable.completedAt)))
+            .returning({ id: sessionTable.id });
+        return updated.length > 0;
     }
 
     async updateProgress(

@@ -7,6 +7,7 @@ import { ChevronRight, Trophy } from "lucide-react";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { completionStatsGetSS } from "@/app/common/completion/service/server/completionStatsGetSS";
 import { localDateString } from "@/lib/activityClient";
+import { useJourneyScope } from "@/lib/journeyScope";
 
 /**
  * A one-line read on how far through the Bible the user is, on the home page.
@@ -14,16 +15,21 @@ import { localDateString } from "@/lib/activityClient";
  * The point of surfacing it here is that progress is invisible by design in this
  * app — you start wherever you need — so it has to be shown somewhere the user
  * already goes, not only on a page they have to remember to visit.
+ *
+ * Follows the zoom level chosen on /journey, and shares its query key, so the
+ * card and the page always agree and the second of the two to render is a cache
+ * hit rather than another round trip.
  */
 export function JourneyHomeCard() {
 	const t = useTranslations("journey");
 	const { user } = useLoggedUserContext();
 	const today = localDateString();
+	const { scope, ready } = useJourneyScope();
 
 	const { data: stats } = useQuery({
-		queryKey: ["completionStats", today, user?.id ?? null],
-		queryFn: () => completionStatsGetSS(today),
-		enabled: Boolean(user?.id),
+		queryKey: ["completionStats", today, user?.id ?? null, scope],
+		queryFn: () => completionStatsGetSS(today, scope),
+		enabled: Boolean(user?.id) && ready,
 	});
 
 	if (!stats) return null;
@@ -56,6 +62,7 @@ export function JourneyHomeCard() {
 						</div>
 
 						<p className="mt-2 text-xs text-muted-foreground">
+							{stats.scope.label && `${stats.scope.label} · `}
 							{stats.timeframe.week > 0
 								? `${stats.timeframe.week} ${t("chaptersShort")} · ${t("week")}`
 								: t("title")}

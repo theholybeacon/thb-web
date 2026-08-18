@@ -32,6 +32,10 @@ export class UserRepository {
         return await this.dao.setTimezone(id, timezone);
     }
 
+    async setDefaultBible(id: string, bibleId: string): Promise<void> {
+        return await this.dao.setDefaultBible(id, bibleId);
+    }
+
     async setEmailReminders(id: string, enabled: boolean): Promise<void> {
         return await this.dao.setEmailReminders(id, enabled);
     }

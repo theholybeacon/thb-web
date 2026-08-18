@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { EntityLite } from "@/app/common/entity/model/Entity";
-import { renderVerseContent } from "@/components/entity/VerseText";
+import { parseChapterBlocks } from "@/app/common/verse/model/verseLayout";
+import { ChapterText, VERSE_NUMBER_CLASS } from "@/components/reader/ChapterText";
+import { scrollVerseAnchorToTop } from "@/components/reader/scrollToVerse";
 import { AiContent } from "@/components/entity/AiContent";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
 import { useReadCompletion } from "@/components/reader/progress/useReadCompletion";
-import { BookOpen, StickyNote } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ReadModeProps {
@@ -24,22 +26,22 @@ interface ReadModeProps {
 	noteCountsByVerseNumber?: Record<number, number>;
 	/** Enables the per-verse note affordance when provided. */
 	onVerseNoteClick?: (verse: Verse) => void;
+	/** The reader's scroll container, owned by ReaderEngine. */
+	scrollerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, explanation, mentionsByVerse, noteCountsByVerseNumber, onVerseNoteClick }: ReadModeProps) {
+export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber, explanation, mentionsByVerse, noteCountsByVerseNumber, onVerseNoteClick, scrollerRef }: ReadModeProps) {
 	const t = useTranslations();
 	const progress = useOptionalSessionProgress();
-	const firstVerseRef = useRef<HTMLParagraphElement>(null);
-	const lastVerseRef = useRef<HTMLParagraphElement>(null);
+	const anchorsRef = useRef<Record<number, HTMLElement | null>>({});
+	const endSentinelRef = useRef<HTMLDivElement>(null);
 
-	const sortedVerses = useMemo(
-		() => [...verses].sort((a, b) => a.verseNumber - b.verseNumber),
-		[verses]
-	);
+	const blocks = useMemo(() => parseChapterBlocks(verses), [verses]);
+	const verseCount = verses.length;
 
 	// Reading has no natural completion event, so it is inferred from reaching
-	// the last verse plus a length-scaled dwell. See useReadCompletion.
-	useReadCompletion(lastVerseRef, sortedVerses.length, sortedVerses.length > 0);
+	// the end plus a length-scaled dwell. See useReadCompletion.
+	useReadCompletion(endSentinelRef, verseCount, verseCount > 0);
 
 	const reference = bookName && chapterNumber
 		? `${bookName} ${chapterNumber}${startVerse ? `:${startVerse}${endVerse && endVerse !== startVerse ? `-${endVerse}` : ""}` : ""}`
@@ -52,13 +54,72 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 
 	// Auto-scroll to the first relevant verse
 	useEffect(() => {
-		if (firstVerseRef.current) {
-			const timeout = setTimeout(() => {
-				firstVerseRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-			}, 100);
-			return () => clearTimeout(timeout);
-		}
-	}, [startVerse, endVerse]);
+		const timeout = setTimeout(() => {
+			scrollVerseAnchorToTop(scrollerRef?.current ?? null, anchorsRef.current[startVerse ?? 1] ?? null);
+		}, 100);
+		return () => clearTimeout(timeout);
+	}, [startVerse, endVerse, blocks, scrollerRef]);
+
+	const isInRange = useCallback(
+		(verseNumber: number) => {
+			if (startVerse == null) return true;
+			const end = endVerse ?? startVerse;
+			return verseNumber >= startVerse && verseNumber <= end;
+		},
+		[startVerse, endVerse],
+	);
+
+	/*
+	 * Out-of-range verses are dimmed by COLOUR, not opacity. Opacity on an inline
+	 * span opens a stacking context per verse and multiplies with the character
+	 * links inside it, which turns them muddy; colour composes cleanly.
+	 */
+	const verseClassName = useCallback(
+		(verseNumber: number) => (isInRange(verseNumber) ? "text-foreground" : "text-muted-foreground/50"),
+		[isInRange],
+	);
+
+	/*
+	 * The note affordance is the verse number itself. A hover-revealed icon after
+	 * every verse worked when each verse was its own block, but mid-paragraph it
+	 * reflows the rest of the paragraph on every hover. The count deliberately
+	 * lives in the tooltip rather than beside the number, for the same reason.
+	 */
+	const renderVerseNumber = useCallback(
+		(verseNumber: number) => {
+			const noteCount = noteCountsByVerseNumber?.[verseNumber] ?? 0;
+			const inRange = isInRange(verseNumber);
+			if (!onVerseNoteClick) {
+				return (
+					<span className={cn(VERSE_NUMBER_CLASS, inRange ? "text-muted-foreground/70" : "text-muted-foreground/40")}>
+						{verseNumber}
+					</span>
+				);
+			}
+			const verse = verses.find((v) => v.verseNumber === verseNumber);
+			const label = noteCount > 0 ? t("notes.viewVerseNotes") : t("notes.addVerseNote");
+			return (
+				<button
+					type="button"
+					onClick={() => verse && onVerseNoteClick(verse)}
+					title={label}
+					aria-label={label}
+					className={cn(
+						VERSE_NUMBER_CLASS,
+						"rounded-[2px] transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+						noteCount > 0
+							? "text-foreground underline decoration-dotted underline-offset-[3px]"
+							: inRange
+								? "text-muted-foreground/70"
+								: "text-muted-foreground/40",
+					)}
+				>
+					{verseNumber}
+				</button>
+			);
+		},
+		[noteCountsByVerseNumber, onVerseNoteClick, verses, isInRange, t],
+	);
 
 	return (
 		<div className="space-y-6">
@@ -76,64 +137,24 @@ export function ReadMode({ verses, startVerse, endVerse, bookName, chapterNumber
 				</div>
 			)}
 
-			{sortedVerses.length > 0 ? (
-				<div className="space-y-4">
-					{sortedVerses.map((verse, index) => {
-						const hasVerseRange = startVerse != null;
-						const startV = startVerse ?? 1;
-						const endV = endVerse ?? startV;
-						const isHighlighted = !hasVerseRange || (verse.verseNumber >= startV && verse.verseNumber <= endV);
-						const isFirstRelevant = verse.verseNumber === (startVerse ?? 1);
-						const isLast = index === sortedVerses.length - 1;
-						const noteCount = noteCountsByVerseNumber?.[verse.verseNumber] ?? 0;
-
-						return (
-							<p
-								key={verse.id}
-								id={`verse-${verse.verseNumber}`}
-								// A one-verse chapter is both the first relevant verse and the
-								// last, so both refs have to be assignable to the same node.
-								ref={(node) => {
-									if (isFirstRelevant) firstVerseRef.current = node;
-									if (isLast) lastVerseRef.current = node;
-								}}
-								className={cn(
-									"group leading-relaxed text-base md:text-lg transition-opacity scroll-mt-24",
-									!isHighlighted && "opacity-30"
-								)}
-							>
-								<sup
-									className={cn(
-										"text-xs font-semibold mr-1.5 select-none",
-										isHighlighted ? "text-primary" : "text-muted-foreground"
-									)}
-								>
-									{verse.verseNumber}
-								</sup>
-								<span className={isHighlighted ? "text-foreground" : "text-muted-foreground"}>
-									{renderVerseContent(verse.content, mentionsByVerse?.[verse.verseNumber])}
-								</span>
-								{onVerseNoteClick && (
-									<button
-										type="button"
-										onClick={() => onVerseNoteClick(verse)}
-										title={noteCount > 0 ? t("notes.viewVerseNotes") : t("notes.addVerseNote")}
-										aria-label={noteCount > 0 ? t("notes.viewVerseNotes") : t("notes.addVerseNote")}
-										className={cn(
-											"ml-1.5 inline-flex items-center gap-0.5 align-middle rounded px-1 py-0.5 text-xs transition-opacity hover:bg-primary/10",
-											noteCount > 0
-												? "text-primary opacity-100"
-												: "text-muted-foreground opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
-										)}
-									>
-										<StickyNote className="h-3.5 w-3.5" />
-										{noteCount > 0 && <span className="font-medium">{noteCount}</span>}
-									</button>
-								)}
-							</p>
-						);
-					})}
-				</div>
+			{blocks.length > 0 ? (
+				<>
+					<ChapterText
+						blocks={blocks}
+						mentionsByVerse={mentionsByVerse}
+						verseClassName={verseClassName}
+						renderVerseNumber={renderVerseNumber}
+						registerVerseAnchor={(verseNumber, el) => {
+							anchorsRef.current[verseNumber] = el;
+						}}
+					/>
+					{/*
+					 * Bottom-of-chapter sentinel. Flowing text has no "last verse" box to
+					 * observe, and observing the final paragraph instead would mark a
+					 * chapter read as soon as its top edge appeared.
+					 */}
+					<div ref={endSentinelRef} aria-hidden="true" className="h-px w-full" />
+				</>
 			) : (
 				<div className="text-center py-12">
 					<BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />

@@ -3,6 +3,7 @@
 import { bibleGetAllSS } from "../../../bible/service/bibleGetAllSS";
 import { BookRepository } from "../../../book/repository/BookRepository";
 import { EntityRepository } from "../../repository/EntityRepository";
+import { FALLBACK_RECOMMENDED_SLUG } from "@/lib/recommendedBible";
 
 export type EntityReferenceGroup = {
 	bookAbbreviation: string;
@@ -30,8 +31,15 @@ export async function entityGetReferencesSS(
 	bibleId?: string,
 ): Promise<EntityReferences> {
 	const bibles = await bibleGetAllSS();
+	/*
+	 * Falls back to the recommended English translation, not to "whichever
+	 * English row the database happened to return first" — `SELECT *` is
+	 * unordered, so the old heuristic picked a different translation in different
+	 * environments, and could land on an obscure duplicate.
+	 */
 	const bible =
 		(bibleId && bibles.find((b) => b.id === bibleId)) ||
+		bibles.find((b) => b.slug === FALLBACK_RECOMMENDED_SLUG) ||
 		bibles.find((b) => b.language?.toLowerCase() === "english") ||
 		bibles[0];
 

@@ -27,6 +27,8 @@ interface ExplorerViewProps {
   audioEnabled?: boolean;
   /** Labels the "This Bible" option in the notes scope picker. */
   bibleName?: string;
+  /** `bible.version` verbatim — how the alignment registry matches a source. */
+  bibleVersion?: string | null;
 }
 
 export function ExplorerView({
@@ -43,6 +45,7 @@ export function ExplorerView({
   bibleId,
   bibleLanguage,
   bibleName,
+  bibleVersion,
   bookAbbreviation,
   audioEnabled = false,
 }: ExplorerViewProps) {
@@ -93,6 +96,7 @@ export function ExplorerView({
           isPremium={isPremium}
           bibleLanguage={bibleLanguage}
           bibleName={bibleName}
+          bibleVersion={bibleVersion}
           bibleId={bibleId}
           bookAbbreviation={bookAbbreviation}
           audioEnabled={audioEnabled}

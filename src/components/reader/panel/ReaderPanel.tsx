@@ -1,13 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { NotebookPen, PanelRightClose, Trophy, Users, X } from "lucide-react";
+import { BookA, NotebookPen, PanelRightClose, Trophy, Users, X } from "lucide-react";
 import type { ChapterMentions } from "@/app/common/entity/model/Entity";
 import type { Note } from "@/app/common/note/model/Note";
 import type { Verse } from "@/app/common/verse/model/Verse";
 import { Button } from "@/components/ui/button";
 import { NotesSection, type NoteComposeRequest, type NotesPanelContext } from "@/components/notes";
+import type { ReaderSelection } from "@/components/reader/selection/useTextSelection";
 import { ReaderPanelSection } from "./ReaderPanelSection";
+import { DictionarySection } from "./sections/DictionarySection";
 import { PeopleSection } from "./sections/PeopleSection";
 import { ProgressSection } from "./sections/ProgressSection";
 import type { ReaderPanelSectionId } from "./useReaderPanel";
@@ -16,6 +18,14 @@ export interface ReaderPanelProps {
 	bookName?: string;
 	chapterNumber?: number;
 	mentions?: ChapterMentions;
+
+	/** Current text selection, and what the dictionary needs to resolve it. */
+	selection: ReaderSelection | null;
+	dictionaryLang: string | null;
+	bibleVersion?: string | null;
+	bookAbbreviation?: string;
+	/** Text of the verse the selection is in, for inferred alignment. */
+	selectedVerseText?: string;
 
 	/** Notes are premium; when absent the section is not rendered at all. */
 	notesContext?: NotesPanelContext;
@@ -43,6 +53,11 @@ export function ReaderPanel({
 	bookName,
 	chapterNumber,
 	mentions,
+	selection,
+	dictionaryLang,
+	bibleVersion,
+	bookAbbreviation,
+	selectedVerseText,
 	notesContext,
 	notes,
 	notesLoading,
@@ -80,6 +95,26 @@ export function ReaderPanel({
 			</header>
 
 			<div className="min-h-0 flex-1 overflow-y-auto">
+				{/*
+				 * First in the panel: a selection reveals this section, and a reader who
+				 * just highlighted a word should not have to scroll to find the answer.
+				 */}
+				<ReaderPanelSection
+					icon={BookA}
+					title={t("panel.dictionary")}
+					expanded={isExpanded("dictionary")}
+					onToggle={() => toggleSection("dictionary")}
+				>
+					<DictionarySection
+						selection={selection}
+						lang={dictionaryLang}
+						bibleVersion={bibleVersion}
+						bookAbbreviation={bookAbbreviation}
+						chapterNumber={chapterNumber}
+						verseText={selectedVerseText}
+					/>
+				</ReaderPanelSection>
+
 				{/* Renders nothing for anonymous readers — there is no journey to show. */}
 				<ReaderPanelSection
 					icon={Trophy}

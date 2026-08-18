@@ -1,6 +1,12 @@
 import { addDays } from "@/app/common/activity/model/streak";
 import { NT_CHAPTERS, OT_CHAPTERS, TOTAL_CHAPTERS, TOTAL_BOOKS } from "@/app/common/canon/model/canon";
-import { CompletionMode, CompletionStats, ModeTotals, TimeframeCounts } from "./Completion";
+import {
+	ALL_BIBLES_SCOPE,
+	CompletionMode,
+	CompletionStats,
+	ModeTotals,
+	TimeframeCounts,
+} from "./Completion";
 import { buildBookProgress } from "./stats";
 
 /**
@@ -80,5 +86,8 @@ export function emptyStats(): CompletionStats {
 		badges: [],
 		timeframe: { today: 0, week: 0, month: 0, year: 0 },
 		streak: { current: 0, longest: 0, todayDone: false },
+		scope: ALL_BIBLES_SCOPE,
+		scopeAvailableChapters: null,
+		scopeOptions: [],
 	};
 }

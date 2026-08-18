@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { languageNameToIso } from "@/lib/bibleLanguage";
 import { useTranslations } from "next-intl";
 import { recordActivity } from "@/lib/activityClient";
-import { Eye, Keyboard, Headphones, BookOpen, Loader2, NotebookPen, PanelRight, Users } from "lucide-react";
+import { BookA, Eye, Keyboard, Headphones, BookOpen, Loader2, NotebookPen, PanelRight, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,8 @@ import { ReaderPanel } from "./panel/ReaderPanel";
 import { useReaderPanel } from "./panel/useReaderPanel";
 import { ChapterCompletionProvider } from "./progress/ChapterCompletionContext";
 import { ChapterCompleteButton } from "./progress/ChapterCompleteButton";
+import { useTextSelection } from "./selection/useTextSelection";
+import { scrollVerseAnchorToTop } from "./scrollToVerse";
 
 export type ReaderMode = "read" | "type" | "listen";
 
@@ -42,6 +45,12 @@ interface ReaderEngineProps {
 	bibleLanguage?: string;
 	/** Shown in the notes scope picker, e.g. "This Bible (KJV)". */
 	bibleName?: string;
+	/**
+	 * `bible.version` verbatim (KJV, BSB, RVR09). Kept separate from `bibleName`,
+	 * which falls back to the full title when a version is missing — the
+	 * alignment registry matches on the version code and must not be fed a title.
+	 */
+	bibleVersion?: string | null;
 	isLoading?: boolean;
 
 	/** Audio context. Without bibleId/bookAbbreviation, Listen narrates our own content only. */
@@ -73,6 +82,7 @@ export function ReaderEngine({
 	isPremium = true,
 	bibleLanguage,
 	bibleName,
+	bibleVersion,
 	isLoading = false,
 	bibleId,
 	bookAbbreviation,
@@ -84,6 +94,19 @@ export function ReaderEngine({
 	const t = useTranslations();
 	const [upgradeOpen, setUpgradeOpen] = useState(false);
 	const panel = useReaderPanel();
+	const scrollerRef = useRef<HTMLDivElement>(null);
+
+	// Type mode renders its own select-none tree, so it yields no selection and
+	// needs no exclusion here.
+	const selection = useTextSelection();
+	const dictionaryLang = useMemo(() => languageNameToIso(bibleLanguage), [bibleLanguage]);
+
+	// The selected verse's own text. Languages with no editorial alignment infer
+	// their original-language match from it, so it has to reach the panel.
+	const selectedVerseText = useMemo(
+		() => (selection ? verses.find((v) => v.verseNumber === selection.verseNumber)?.content ?? undefined : undefined),
+		[selection, verses],
+	);
 
 	// Notes. The anchor is canonical (bibleId + bookAbbreviation + chapter), so a
 	// note written here is found again from any translation of the same passage.
@@ -97,6 +120,34 @@ export function ReaderEngine({
 	useEffect(() => {
 		void recordActivity("read");
 	}, []);
+
+	/*
+	 * `#verse-N` deep links (daily emails, note links, character citations) can
+	 * only be honoured once the verses exist, and the reader scrolls inside a
+	 * nested container rather than the document — so native fragment scrolling
+	 * both races the fetch and lands under the toolbar. Handle it explicitly.
+	 */
+	useEffect(() => {
+		if (isLoading || verses.length === 0) return;
+		const match = /^#verse-(\d+)$/.exec(window.location.hash);
+		if (!match) return;
+		const timeout = setTimeout(() => {
+			scrollVerseAnchorToTop(scrollerRef.current, document.getElementById(`verse-${match[1]}`));
+		}, 100);
+		return () => clearTimeout(timeout);
+	}, [isLoading, verses]);
+
+	/*
+	 * Instant-on-selection: highlighting reveals the dictionary rather than
+	 * requiring a second action. Keyed on `nonce` so re-selecting the same word
+	 * re-opens a panel the reader has since collapsed.
+	 */
+	useEffect(() => {
+		if (!selection) return;
+		panel.revealSection("dictionary");
+		// `panel` is rebuilt each render; depending on it would loop.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selection?.nonce]);
 
 	const loadNotes = useCallback(async () => {
 		// Notes are premium; skip the round trip entirely for everyone else, which
@@ -160,6 +211,11 @@ export function ReaderEngine({
 		bookName,
 		chapterNumber,
 		mentions,
+		selection,
+		dictionaryLang,
+		bibleVersion,
+		bookAbbreviation,
+		selectedVerseText,
 		notesContext,
 		notes,
 		notesLoading,
@@ -244,7 +300,7 @@ export function ReaderEngine({
 					</div>
 
 					{/* Reader column — owns its own scrolling and centring */}
-					<div className="min-h-0 flex-1 overflow-y-auto">
+					<div ref={scrollerRef} className="min-h-0 flex-1 overflow-y-auto">
 						<div className="mx-auto w-full max-w-4xl px-4 py-4 md:px-6 md:py-6">
 							{isLoading ? (
 								<div className="flex items-center justify-center py-16">
@@ -255,6 +311,7 @@ export function ReaderEngine({
 									{mode === "read" && (
 										<ReadMode
 											verses={verses}
+											scrollerRef={scrollerRef}
 											startVerse={startVerse}
 											endVerse={endVerse}
 											bookName={bookName}
@@ -273,12 +330,14 @@ export function ReaderEngine({
 									{mode === "listen" && (
 										<ListenMode
 											verses={verses}
+											scrollerRef={scrollerRef}
 											startVerse={startVerse}
 											endVerse={endVerse}
 											bookName={bookName}
 											chapterNumber={chapterNumber}
 											bibleLanguage={bibleLanguage}
 											explanation={explanation}
+											mentionsByVerse={mentions?.mentionsByVerse}
 											bibleId={bibleId}
 											bookAbbreviation={bookAbbreviation}
 											audioEnabled={audioEnabled}
@@ -311,6 +370,16 @@ export function ReaderEngine({
 						<ReaderPanel {...panelProps} onClose={panel.closePanel} />
 					) : (
 						<div className="flex flex-col items-center gap-1 py-3">
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-9 w-9"
+								onClick={() => panel.revealSection("dictionary")}
+								title={t("reader.panel.dictionary")}
+								aria-label={t("reader.panel.dictionary")}
+							>
+								<BookA className="h-4 w-4" />
+							</Button>
 							<Button
 								variant="ghost"
 								size="icon"

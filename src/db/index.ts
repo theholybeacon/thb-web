@@ -26,6 +26,10 @@ import * as audioAssetSchema from "@/db/schema/audioAsset";
 import * as noteSchema from "@/db/schema/note";
 import * as chapterCompletionSchema from "@/db/schema/chapterCompletion";
 import * as userBadgeSchema from "@/db/schema/userBadge";
+import * as dictionaryEntrySchema from "@/db/schema/dictionaryEntry";
+import * as alignmentSchema from "@/db/schema/alignment";
+import * as alignmentBookSchema from "@/db/schema/alignmentBook";
+import * as alignmentInferredSchema from "@/db/schema/alignmentInferred";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -56,5 +60,9 @@ export const db = drizzle(sql, {
 		...noteSchema,
 		...chapterCompletionSchema,
 		...userBadgeSchema,
+		...dictionaryEntrySchema,
+		...alignmentSchema,
+		...alignmentBookSchema,
+		...alignmentInferredSchema,
 	}
 });

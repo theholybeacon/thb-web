@@ -2,8 +2,8 @@
 
 import { useTranslations, useFormatter } from "next-intl";
 import { Award, Lock } from "lucide-react";
-import { BADGES } from "@/app/common/completion/model/badges";
-import { EarnedBadge } from "@/app/common/completion/model/Completion";
+import { badgesForZoom } from "@/app/common/completion/model/badges";
+import { EarnedBadge, JourneyScope } from "@/app/common/completion/model/Completion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -12,18 +12,29 @@ import { cn } from "@/lib/utils";
  * Locked ones are shown deliberately: the next milestone is the reason to come
  * back, and hiding it would turn a map into a scoreboard. Ordered by `tier` so
  * the list reads as a path rather than an inventory.
+ *
+ * Zoomed into one translation the streak milestones disappear entirely rather
+ * than sitting there permanently locked: a streak counts days shown up, not which
+ * Bible was open, so there is no way to earn them at this level and showing them
+ * would promise something unreachable.
  */
-export function BadgeGrid({ badges }: { badges: EarnedBadge[] }) {
+export function BadgeGrid({ badges, scope }: { badges: EarnedBadge[]; scope?: JourneyScope }) {
 	const t = useTranslations("journey");
 	const format = useFormatter();
 	const earned = new Map(badges.map((b) => [b.key, b.earnedAt]));
+	const scopeLabel = scope?.label ?? null;
 
 	return (
 		<div className="rounded-lg border bg-card p-5">
-			<h2 className="mb-4 font-heading text-lg font-semibold">{t("badgesTitle")}</h2>
+			<div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+				<h2 className="font-heading text-lg font-semibold">{t("badgesTitle")}</h2>
+				{scopeLabel && (
+					<p className="text-xs text-muted-foreground">{t("scopeIn", { bible: scopeLabel })}</p>
+				)}
+			</div>
 
 			<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-				{[...BADGES]
+				{[...badgesForZoom(scopeLabel ? "bible" : "global")]
 					.sort((a, b) => a.tier - b.tier)
 					.map((badge) => {
 						const isEarned = earned.has(badge.key);

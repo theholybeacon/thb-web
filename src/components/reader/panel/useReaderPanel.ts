@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 export type ReaderPanelSectionId =
+	| "dictionary"
 	| "people"
 	| "notes"
 	| "community"

@@ -55,6 +55,9 @@ const config = {
 			fontFamily: {
 				sans: ["var(--font-sans)"],
 				heading: ["var(--font-heading)"],
+				// `font-serif` was used by the reader headings but never mapped, so it
+				// fell through to the browser's default serif instead of Merriweather.
+				serif: ["var(--font-reading)", "ui-serif", "Georgia", "serif"],
 			},
 			borderRadius: {
 				lg: "var(--radius)",

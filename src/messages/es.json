@@ -1,11 +1,26 @@
 {
   "authPanel": {
     "verses": {
-      "verse1": { "text": "Tu palabra es lámpara", "ref": "Salmo 119:105" },
-      "verse2": { "text": "La luz brilla en las tinieblas", "ref": "Juan 1:5" },
-      "verse3": { "text": "Yo soy el camino, la verdad", "ref": "Juan 14:6" },
-      "verse4": { "text": "Estad quietos y conoced", "ref": "Salmo 46:10" },
-      "verse5": { "text": "Fe, esperanza y amor", "ref": "1 Cor 13:13" }
+      "verse1": {
+        "text": "Tu palabra es lámpara",
+        "ref": "Salmo 119:105"
+      },
+      "verse2": {
+        "text": "La luz brilla en las tinieblas",
+        "ref": "Juan 1:5"
+      },
+      "verse3": {
+        "text": "Yo soy el camino, la verdad",
+        "ref": "Juan 14:6"
+      },
+      "verse4": {
+        "text": "Estad quietos y conoced",
+        "ref": "Salmo 46:10"
+      },
+      "verse5": {
+        "text": "Fe, esperanza y amor",
+        "ref": "1 Cor 13:13"
+      }
     }
   },
   "auth": {
@@ -179,7 +194,10 @@
     "prevChapter": "Capítulo Anterior",
     "nextChapter": "Capítulo Siguiente",
     "nextBook": "Siguiente Libro",
-    "noContent": "No hay contenido disponible para este capítulo."
+    "noContent": "No hay contenido disponible para este capítulo.",
+    "recommendedTitle": "Traducciones recomendadas",
+    "recommendedSubtitle": "Una traducción confiable por idioma — todas con audio, diccionario y apoyo del idioma original.",
+    "readNow": "Leer ahora"
   },
   "home": {
     "welcome": "Bienvenido de nuevo, {name}",
@@ -242,9 +260,24 @@
     "allTranslations": "Todas las traducciones",
     "bibleHint": "Elige qué versión de la Biblia usar para las referencias bíblicas en tu estudio.",
     "creating": "Creando...",
-    "create": "Crear Estudio"
+    "create": "Crear Estudio",
+    "showAllTranslations": "Ver las {count} traducciones",
+    "recommendedBadge": "Recomendada"
   },
   "session": {
+    "complete": {
+      "title": "Estudio completado",
+      "steps": "Pasos",
+      "chapters": "Capítulos",
+      "engaged": "Dedicado",
+      "done": "Listo",
+      "mode_read": "leídos",
+      "mode_type": "escritos",
+      "mode_listen": "escuchados",
+      "mode_dictation": "dictado",
+      "completed": "Completado",
+      "shareThis": "Compartir esto"
+    },
     "title": "Mis Sesiones",
     "noSessions": "No tienes sesiones activas.",
     "startStudy": "Comienza un estudio para crear una sesión",
@@ -349,7 +382,24 @@
       "collapse": "Ocultar información del capítulo",
       "people": "Personas",
       "notes": "Notas",
-      "noPeople": "No hay personas registradas para este capítulo."
+      "noPeople": "No hay personas registradas para este capítulo.",
+      "dictionary": "Diccionario"
+    },
+    "dictionary": {
+      "hint": "Resalta una palabra del texto para buscarla.",
+      "loading": "Buscando…",
+      "noDefinition": "No hay entrada de diccionario para esta palabra.",
+      "originalLanguage": "Idioma original",
+      "tierSibling": "Coincidencia vía {source}, que traduce este pasaje con la misma palabra.",
+      "tierVerse": "Esta traducción no tiene alineación palabra por palabra, así que estas son las palabras en el idioma original del versículo {verse}.",
+      "showAll": "Ver las {count} palabras",
+      "creditDictionary": "Definiciones de Wiktionary vía FreeDictionaryAPI.com (CC BY-SA 4.0).",
+      "creditWiktionaryLink": "Ver entrada",
+      "creditLexicon": "Léxico: Strong's vía openscriptures (CC BY-SA).",
+      "title": "Diccionario",
+      "loadingOriginal": "Cargando datos del idioma original…",
+      "tierInferredBadge": "Emparejado por IA.",
+      "tierInferred": "Esta traducción no tiene alineación palabra por palabra, así que la palabra original fue emparejada por IA a partir del griego del versículo. Suele acertar, pero verifícalo antes de basarte en ello."
     }
   },
   "settings": {
@@ -682,7 +732,10 @@
             "Resúmenes de capítulo y temas clave",
             "Comparación de traducciones lado a lado",
             "Búsqueda de texto completo por versículo",
-            { "text": "Progreso de lectura por libro", "done": true }
+            {
+              "text": "Progreso de lectura por libro",
+              "done": true
+            }
           ]
         },
         {
@@ -750,6 +803,8 @@
     "markCompleteHint": "Contar este capítulo como leído",
     "chapterComplete": "Leído",
     "chapterCompleteTimes": "Leído {count} veces",
+    "chapterCompleteHereTimes": "Leído {count}× en esta traducción",
+    "chapterNotCompleteHere": "Aún no en esta traducción",
     "chaptersComplete": "{done} de {total} capítulos",
     "percentComplete": "de la Biblia",
     "chaptersRead": "Capítulos",
@@ -780,6 +835,11 @@
     "gridHint": "Cada cuadro es un capítulo. Más oscuro significa que has vuelto.",
     "gridCellRead": "{book} {chapter} — leído {count}×",
     "gridCellUnread": "{book} {chapter} — todavía no",
+    "scopeAll": "Todas las Biblias",
+    "scopeIn": "en {bible}",
+    "scopeSearch": "Busca entre tus traducciones…",
+    "scopeEmpty": "No se encontraron traducciones.",
+    "scopeCarries": "Esta traducción incluye {carried} de los {total} capítulos canónicos.",
     "badgesTitle": "Hitos",
     "badgeLocked": "Todavía no",
     "badges": {
@@ -798,6 +858,9 @@
       "year": "Un año de días",
       "thirdLap": "Tres veces completa"
     },
+    "shareStory": "Compartir como historia",
+    "shareStoryHint": "Una imagen vertical para Instagram o TikTok.",
+    "shareStoryFailed": "No se pudo crear la imagen. Inténtalo de nuevo.",
     "shareTitle": "Comparte tu camino",
     "shareButton": "Compartir",
     "shareCopy": "Copiar enlace",

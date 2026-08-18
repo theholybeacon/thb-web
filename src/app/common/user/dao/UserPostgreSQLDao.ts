@@ -92,6 +92,19 @@ export class UserPostgreSQLDao {
         }).where(eq(userTable.id, id));
     }
 
+    /**
+     * The reader's preferred translation.
+     *
+     * A narrow setter for the same reason as setLifetimePremium: `update` writes
+     * an explicit column whitelist, so this would be silently dropped there.
+     * Until now the column had five readers and no writer at all, so it was
+     * always NULL and every consumer fell back to a guess.
+     */
+    async setDefaultBible(id: string, bibleId: string): Promise<void> {
+        log.trace("setDefaultBible");
+        await db.update(userTable).set({ defaultBibleId: bibleId }).where(eq(userTable.id, id));
+    }
+
     async setEmailReminders(id: string, enabled: boolean): Promise<void> {
         log.trace("setEmailReminders");
         await db.update(userTable).set({ emailRemindersEnabled: enabled }).where(eq(userTable.id, id));

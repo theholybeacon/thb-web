@@ -3,12 +3,16 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
-import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
-import { useOptionalChapterCompletion } from "@/components/reader/progress/ChapterCompletionContext";
 import { Button } from "@/components/ui/button";
-import { AiContent } from "@/components/entity/AiContent";
 import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AiContent } from "@/components/entity/AiContent";
+import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
+import { useOptionalChapterCompletion } from "@/components/reader/progress/ChapterCompletionContext";
+import { parseChapterBlocks, type ChapterBlock, type PoetryLevel } from "@/app/common/verse/model/verseLayout";
+import { foldTypedChar } from "@/app/common/verse/model/typingFold";
+import { VERSE_NUMBER_CLASS } from "@/components/reader/ChapterText";
+import { keepVerseAnchorInBand } from "@/components/reader/scrollToVerse";
 
 interface TypeModeProps {
 	verses: Verse[];
@@ -18,19 +22,89 @@ interface TypeModeProps {
 }
 
 interface CharState {
+	/** The folded keystroke accepted here — not necessarily what is painted. */
 	char: string;
 	state: "pending" | "correct" | "incorrect";
 }
 
-function normalizeForTyping(text: string): string {
-	return text
-		.replace(/[\u2018\u2019\u02BC]/g, "'")   // curly single quotes → straight
-		.replace(/[\u201C\u201D]/g, '"')          // curly double quotes → straight
-		.replace(/[\u2013\u2014]/g, '-')          // en/em dash → hyphen
-		.replace(/\u2026/g, '...')                // ellipsis → three dots
-		.replace(/^\s+/gm, '')                   // remove leading whitespace (indentation)
-		.replace(/\s+/g, ' ')                    // collapse multiple spaces
-		.trim();
+interface TypeChar {
+	/** Position in the flat charStates array. */
+	index: number;
+	display: string;
+	expected: string;
+}
+
+interface TypeSegment {
+	verseNumber: number;
+	isVerseStart: boolean;
+	chars: TypeChar[];
+}
+
+interface TypeLine {
+	level: PoetryLevel;
+	segments: TypeSegment[];
+	/** The keystroke that carries the reader over a line or paragraph break. */
+	breakChar?: TypeChar;
+}
+
+interface TypeBlock {
+	kind: "prose" | "poetry";
+	lines: TypeLine[];
+}
+
+/**
+ * The only transform that changes what is PAINTED. Everything else — curly
+ * quotes, dashes, accents — is handled by folding at comparison time, so the
+ * typist sees the translation's real text and still gets credit for typing the
+ * plain-ASCII version. The ellipsis is the exception: one glyph no keyboard
+ * produces and no 1:1 fold can represent, so it has to become three dots.
+ */
+function typingDisplay(text: string): string {
+	return text.replace(/…/g, "...").replace(/ /g, " ");
+}
+
+/**
+ * Lays the chapter out for typing: the same blocks and lines the reader sees,
+ * with a global index assigned to every typable character as we walk.
+ *
+ * Indices are assigned during the walk rather than mapped afterwards, so each
+ * rendered character already knows its slot in the flat `charStates` array that
+ * the cursor, stats and progress all read from.
+ */
+function buildTypeDocument(blocks: ChapterBlock[]): { blocks: TypeBlock[]; expected: string[] } {
+	const expected: string[] = [];
+	const take = (display: string): TypeChar => {
+		const folded = foldTypedChar(display);
+		expected.push(folded);
+		return { index: expected.length - 1, display, expected: folded };
+	};
+
+	const typeBlocks: TypeBlock[] = blocks.map((block) => ({
+		kind: block.kind,
+		lines: block.lines.map((line) => ({
+			level: line.level,
+			segments: line.parts.map((part, partIndex) => ({
+				verseNumber: part.verseNumber,
+				isVerseStart: part.isVerseStart,
+				chars: [
+					...(partIndex > 0 ? [take(" ")] : []),
+					...Array.from(typingDisplay(part.text), take),
+				],
+			})),
+		})),
+	}));
+
+	// A line break is worth one keystroke, accepted from Space or Enter, so a
+	// typist who instinctively hits either at the end of a line is not punished.
+	// The last line of the chapter gets none — there is nothing to carry into.
+	typeBlocks.forEach((block, blockIndex) => {
+		block.lines.forEach((line, lineIndex) => {
+			const isLast = blockIndex === typeBlocks.length - 1 && lineIndex === block.lines.length - 1;
+			if (!isLast) line.breakChar = take(" ");
+		});
+	});
+
+	return { blocks: typeBlocks, expected };
 }
 
 export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeModeProps) {
@@ -50,10 +124,10 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 		return filtered.sort((a, b) => a.verseNumber - b.verseNumber);
 	}, [verses, startVerse, endVerse]);
 
-	// Build the full text to type with verse numbers
-	const fullText = filteredVerses
-		.map((v) => `${v.verseNumber} ${normalizeForTyping(v.content)}`)
-		.join(" ");
+	const document_ = useMemo(
+		() => buildTypeDocument(parseChapterBlocks(filteredVerses)),
+		[filteredVerses],
+	);
 
 	const [charStates, setCharStates] = useState<CharState[]>([]);
 	const [currentIndex, setCurrentIndex] = useState(0);
@@ -63,16 +137,11 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 
 	// Initialize char states
 	useEffect(() => {
-		setCharStates(
-			fullText.split("").map((char) => ({
-				char,
-				state: "pending" as const,
-			}))
-		);
+		setCharStates(document_.expected.map((char) => ({ char, state: "pending" as const })));
 		setCurrentIndex(0);
 		setStartTime(null);
 		setIsComplete(false);
-	}, [fullText]);
+	}, [document_]);
 
 	// Focus input on mount
 	useEffect(() => {
@@ -114,13 +183,16 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 				return;
 			}
 
-			// Ignore modifier keys and special keys
-			if (e.key.length !== 1) return;
+			// Enter is accepted wherever a Space is — the line breaks in poetry read
+			// like somewhere you should press it.
+			const typed = e.key === "Enter" ? " " : e.key;
+			if (typed.length !== 1) return;
 
 			const expectedChar = charStates[currentIndex]?.char;
 			if (!expectedChar) return;
 
-			const isCorrect = e.key === expectedChar;
+			// Lenient comparison: typing "e" satisfies "é". See typingFold.ts.
+			const isCorrect = foldTypedChar(typed) === expectedChar;
 
 			setCharStates((prev) => {
 				const newStates = [...prev];
@@ -153,27 +225,18 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 	);
 
 	const handleReset = () => {
-		setCharStates(
-			fullText.split("").map((char) => ({
-				char,
-				state: "pending" as const,
-			}))
-		);
+		setCharStates(document_.expected.map((char) => ({ char, state: "pending" as const })));
 		setCurrentIndex(0);
 		setStartTime(null);
 		setIsComplete(false);
 		inputRef.current?.focus();
 	};
 
-	// Auto-scroll to keep cursor visible
+	// Keep the cursor in view. Only when it drifts out of a comfortable band —
+	// re-centring on every keystroke in a dense column is jittery.
 	useEffect(() => {
-		if (containerRef.current) {
-			const container = containerRef.current;
-			const cursorElement = container.querySelector('[data-cursor="true"]');
-			if (cursorElement) {
-				cursorElement.scrollIntoView({ block: "center", behavior: "smooth" });
-			}
-		}
+		const cursor = containerRef.current?.querySelector('[data-cursor="true"]');
+		keepVerseAnchorInBand(containerRef.current, cursor as HTMLElement | null);
 	}, [currentIndex]);
 
 	// Calculate current stats while typing
@@ -189,6 +252,29 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 		startTime && currentIndex > 0
 			? Math.round((currentIndex / 5) / ((Date.now() - startTime) / 60000))
 			: 0;
+
+	const renderChar = (char: TypeChar, extraClassName?: string) => {
+		const state = charStates[char.index]?.state ?? "pending";
+		return (
+			<span
+				key={char.index}
+				data-cursor={char.index === currentIndex ? "true" : undefined}
+				className={cn(
+					"transition-colors",
+					state === "pending" && "text-muted-foreground/40",
+					state === "correct" && "text-foreground",
+					state === "incorrect" && "text-destructive bg-destructive/20 box-decoration-clone",
+					// An inset shadow rather than a border: a border would add 2px to the
+					// cursor character and shove the rest of the paragraph on every
+					// keystroke.
+					char.index === currentIndex && "shadow-[inset_2px_0_0_0_hsl(var(--primary))] animate-pulse",
+					extraClassName,
+				)}
+			>
+				{char.display}
+			</span>
+		);
+	};
 
 	return (
 		<div className="flex flex-col gap-6 h-full">
@@ -239,56 +325,35 @@ export function TypeMode({ verses, startVerse, endVerse, explanation }: TypeMode
 					autoFocus
 				/>
 
-				{/* Rendered text */}
-				<div className="font-mono text-lg leading-loose select-none">
-					{(() => {
-						// Group characters into words for proper line wrapping
-						const words: { startIndex: number; chars: CharState[] }[] = [];
-						let currentWord: CharState[] = [];
-						let wordStartIndex = 0;
-
-						charStates.forEach((charState, index) => {
-							if (charState.char === " ") {
-								if (currentWord.length > 0) {
-									words.push({ startIndex: wordStartIndex, chars: currentWord });
-									currentWord = [];
-								}
-								words.push({ startIndex: index, chars: [charState] });
-								wordStartIndex = index + 1;
-							} else {
-								if (currentWord.length === 0) {
-									wordStartIndex = index;
-								}
-								currentWord.push(charState);
-							}
-						});
-						if (currentWord.length > 0) {
-							words.push({ startIndex: wordStartIndex, chars: currentWord });
-						}
-
-						return words.map((word, wordIndex) => (
-							<span key={wordIndex} className="inline">
-								{word.chars.map((charState, charIndex) => {
-									const globalIndex = word.startIndex + charIndex;
-									return (
-										<span
-											key={globalIndex}
-											data-cursor={globalIndex === currentIndex ? "true" : undefined}
-											className={cn(
-												"transition-colors",
-												charState.state === "pending" && "text-muted-foreground/40",
-												charState.state === "correct" && "text-foreground",
-												charState.state === "incorrect" && "text-destructive bg-destructive/20",
-												globalIndex === currentIndex && "border-l-2 border-primary animate-pulse"
+				{/*
+				 * The same block/line structure and typography as Read and Listen, so
+				 * you are copying the page you were just reading. `whitespace-pre-wrap`
+				 * keeps the space characters — which are typable slots of their own —
+				 * from collapsing, while still allowing lines to wrap at them.
+				 */}
+				<div className="bible-text whitespace-pre-wrap select-none">
+					{document_.blocks.map((block, blockIndex) => (
+						<p
+							key={blockIndex}
+							className={cn("bible-block", block.kind === "poetry" ? "bible-block-poetry" : "bible-block-prose")}
+						>
+							{block.lines.map((line, lineIndex) => (
+								<span key={lineIndex} className="bible-line" data-level={line.level}>
+									{line.segments.map((segment, segmentIndex) => (
+										<span key={`${segment.verseNumber}-${segmentIndex}`}>
+											{segment.isVerseStart && (
+												<span className={cn(VERSE_NUMBER_CLASS, "text-muted-foreground/70")}>
+													{segment.verseNumber}
+												</span>
 											)}
-										>
-											{charState.char === " " ? "\u00A0" : charState.char}
+											{segment.chars.map((char) => renderChar(char))}
 										</span>
-									);
-								})}
-							</span>
-						));
-					})()}
+									))}
+									{line.breakChar && renderChar(line.breakChar, "inline-block w-[0.35em]")}
+								</span>
+							))}
+						</p>
+					))}
 				</div>
 
 				{/* Click to focus hint */}

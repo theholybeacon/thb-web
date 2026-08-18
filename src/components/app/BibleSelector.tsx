@@ -20,6 +20,11 @@ import {
 } from "@/components/ui/popover";
 import { Bible } from "@/app/common/bible/model/Bible";
 import { ListenableIndicator } from "@/components/audio/ListenableIndicator";
+import {
+  recommendedForLanguageCode,
+  recommendedBySlug,
+  type RecommendedBible,
+} from "@/lib/recommendedBible";
 
 interface BibleSelectorProps {
   bibles: Bible[] | undefined;
@@ -79,20 +84,16 @@ function BibleOption({ bible, selected, onSelect }: BibleOptionProps) {
   );
 }
 
-// Map locale codes to language names used in the Bible API
-const localeToLanguage: Record<string, string[]> = {
-  en: ["English", "Inglés"],
-  es: ["Spanish", "Español", "Castellano"],
-  pt: ["Portuguese", "Português"],
-  fr: ["French", "Français"],
-  de: ["German", "Deutsch"],
-  it: ["Italian", "Italiano"],
-  zh: ["Chinese", "中文"],
-  ko: ["Korean", "한국어"],
-  ja: ["Japanese", "日本語"],
-  ar: ["Arabic", "العربية"],
-  ru: ["Russian", "Русский"],
-};
+/**
+ * Why this translation, shown under the recommendation.
+ *
+ * Replaces the old locale -> language-name map, which grouped by language and so
+ * put all 36 English rows under a heading that said "Recommended for you" — a
+ * list nobody can evaluate, which is the problem this picker had.
+ */
+function RecommendedNote({ rec }: { rec: RecommendedBible }) {
+  return <p className="px-2 pb-1.5 text-xs leading-snug text-muted-foreground">{rec.why}</p>;
+}
 
 export function BibleSelector({
   bibles,
@@ -106,6 +107,7 @@ export function BibleSelector({
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -120,45 +122,43 @@ export function BibleSelector({
     return bibles?.find((bible) => bible.id === value);
   }, [bibles, value]);
 
-  // Sort and filter bibles
-  const { priorityBibles, otherBibles } = useMemo(() => {
-    if (!bibles) return { priorityBibles: [], otherBibles: [] };
+  const recommendation = useMemo(() => recommendedForLanguageCode(locale), [locale]);
 
-    const userLanguages = localeToLanguage[locale] || localeToLanguage["en"];
+  /*
+   * One recommendation, everything else behind a disclosure.
+   *
+   * The catalogue is ~404 rows and api.bible lists each translation once per
+   * canon, so the honest default is to choose for the reader and keep the rest
+   * reachable rather than prominent. Searching opens the full list implicitly —
+   * someone typing a translation name has already opted out of the default.
+   */
+  const { recommendedBible, otherBibles } = useMemo(() => {
+    if (!bibles) return { recommendedBible: undefined, otherBibles: [] };
 
-    // Filter by search term
+    const recommendedRow = recommendation
+      ? bibles.find((b) => b.slug === recommendation.slug)
+      : undefined;
+
     const filtered = search
       ? bibles.filter((bible) => {
-          const searchLower = search.toLowerCase();
+          const q = search.toLowerCase();
           return (
-            bible.name.toLowerCase().includes(searchLower) ||
-            bible.language.toLowerCase().includes(searchLower) ||
-            bible.version?.toLowerCase().includes(searchLower)
+            bible.name.toLowerCase().includes(q) ||
+            bible.language.toLowerCase().includes(q) ||
+            bible.version?.toLowerCase().includes(q)
           );
         })
       : bibles;
 
-    // Separate priority (user's language) from others
-    const priority: Bible[] = [];
-    const others: Bible[] = [];
-
-    filtered.forEach((bible) => {
-      const isUserLanguage = userLanguages.some((lang) =>
-        bible.language.toLowerCase().includes(lang.toLowerCase())
+    const others = filtered
+      .filter((b) => b.id !== recommendedRow?.id)
+      .sort(
+        (a, b) =>
+          a.language.localeCompare(b.language) || a.name.localeCompare(b.name),
       );
-      if (isUserLanguage) {
-        priority.push(bible);
-      } else {
-        others.push(bible);
-      }
-    });
 
-    // Sort each group alphabetically by name
-    priority.sort((a, b) => a.name.localeCompare(b.name));
-    others.sort((a, b) => a.language.localeCompare(b.language) || a.name.localeCompare(b.name));
-
-    return { priorityBibles: priority, otherBibles: others };
-  }, [bibles, locale, search]);
+    return { recommendedBible: recommendedRow, otherBibles: others };
+  }, [bibles, recommendation, search]);
 
   if (isLoading) {
     return (
@@ -183,6 +183,9 @@ export function BibleSelector({
             <span className="truncate">
               {selectedBible.name}{" "}
               <span className="text-muted-foreground">({selectedBible.language})</span>
+              {recommendedBySlug(selectedBible.slug) && (
+                <span className="ml-1.5 text-xs text-primary">{t("recommendedBadge")}</span>
+              )}
             </span>
           ) : (
             <span className="text-muted-foreground">{t("selectBible")}</span>
@@ -204,33 +207,46 @@ export function BibleSelector({
           <CommandList className="max-h-[300px]">
             <CommandEmpty>{t("noBibleFound")}</CommandEmpty>
 
-            {priorityBibles.length > 0 && (
-              <CommandGroup heading={t("recommended")}>
-                {priorityBibles.map((bible) => (
+            {recommendedBible && !search && (
+              <>
+                <CommandGroup heading={t("recommended")}>
                   <BibleOption
-                    key={bible.id}
-                    bible={bible}
-                    selected={value === bible.id}
+                    bible={recommendedBible}
+                    selected={value === recommendedBible.id}
                     onSelect={handleSelect}
                   />
-                ))}
-              </CommandGroup>
-            )}
-
-            {priorityBibles.length > 0 && otherBibles.length > 0 && (
-              <CommandSeparator />
+                  {recommendation && <RecommendedNote rec={recommendation} />}
+                </CommandGroup>
+                <CommandSeparator />
+              </>
             )}
 
             {otherBibles.length > 0 && (
-              <CommandGroup heading={t("allTranslations")}>
-                {otherBibles.map((bible) => (
-                  <BibleOption
-                    key={bible.id}
-                    bible={bible}
-                    selected={value === bible.id}
-                    onSelect={handleSelect}
-                  />
-                ))}
+              <CommandGroup
+                heading={
+                  search
+                    ? t("allTranslations")
+                    : `${t("allTranslations")} (${otherBibles.length})`
+                }
+              >
+                {showAll || search ? (
+                  otherBibles.map((bible) => (
+                    <BibleOption
+                      key={bible.id}
+                      bible={bible}
+                      selected={value === bible.id}
+                      onSelect={handleSelect}
+                    />
+                  ))
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowAll(true)}
+                    className="w-full px-2 py-2 text-left text-sm text-primary hover:underline"
+                  >
+                    {t("showAllTranslations", { count: otherBibles.length })}
+                  </button>
+                )}
               </CommandGroup>
             )}
           </CommandList>

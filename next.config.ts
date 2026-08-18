@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
     "/bible/[bibleSlug]/[bookSlug]/[chapter]/opengraph-image": ["./src/lib/og/*.ttf"],
     "/bible/people/[slug]/opengraph-image": ["./src/lib/og/*.ttf"],
     "/u/[username]/opengraph-image": ["./src/lib/og/*.ttf"],
+    "/u/[username]/[bibleSlug]/opengraph-image": ["./src/lib/og/*.ttf"],
+    "/api/share/story": ["./src/lib/og/*.ttf"],
   },
 };
 

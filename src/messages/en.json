@@ -1,11 +1,26 @@
 {
   "authPanel": {
     "verses": {
-      "verse1": { "text": "Thy word is a lamp", "ref": "Psalm 119:105" },
-      "verse2": { "text": "The light shines in darkness", "ref": "John 1:5" },
-      "verse3": { "text": "I am the way, the truth", "ref": "John 14:6" },
-      "verse4": { "text": "Be still and know", "ref": "Psalm 46:10" },
-      "verse5": { "text": "Faith, hope, and love", "ref": "1 Cor 13:13" }
+      "verse1": {
+        "text": "Thy word is a lamp",
+        "ref": "Psalm 119:105"
+      },
+      "verse2": {
+        "text": "The light shines in darkness",
+        "ref": "John 1:5"
+      },
+      "verse3": {
+        "text": "I am the way, the truth",
+        "ref": "John 14:6"
+      },
+      "verse4": {
+        "text": "Be still and know",
+        "ref": "Psalm 46:10"
+      },
+      "verse5": {
+        "text": "Faith, hope, and love",
+        "ref": "1 Cor 13:13"
+      }
     }
   },
   "auth": {
@@ -179,7 +194,10 @@
     "prevChapter": "Previous Chapter",
     "nextChapter": "Next Chapter",
     "nextBook": "Next Book",
-    "noContent": "No content available for this chapter."
+    "noContent": "No content available for this chapter.",
+    "recommendedTitle": "Recommended translations",
+    "recommendedSubtitle": "One trusted translation per language — each one listenable, with dictionary and original-language support.",
+    "readNow": "Read now"
   },
   "home": {
     "welcome": "Welcome back, {name}",
@@ -242,9 +260,24 @@
     "allTranslations": "All translations",
     "bibleHint": "Choose which Bible version to use for scripture references in your study.",
     "creating": "Creating...",
-    "create": "Create Study"
+    "create": "Create Study",
+    "showAllTranslations": "Show all {count} translations",
+    "recommendedBadge": "Recommended"
   },
   "session": {
+    "complete": {
+      "title": "Study complete",
+      "steps": "Steps",
+      "chapters": "Chapters",
+      "engaged": "Engaged",
+      "done": "Done",
+      "mode_read": "read",
+      "mode_type": "typed",
+      "mode_listen": "listened",
+      "mode_dictation": "dictation",
+      "completed": "Completed",
+      "shareThis": "Share this"
+    },
     "title": "My Sessions",
     "noSessions": "You don't have any active sessions.",
     "startStudy": "Start a study to create a session",
@@ -349,7 +382,24 @@
       "collapse": "Hide chapter info",
       "people": "People",
       "notes": "Notes",
-      "noPeople": "No people are recorded for this chapter."
+      "noPeople": "No people are recorded for this chapter.",
+      "dictionary": "Dictionary"
+    },
+    "dictionary": {
+      "hint": "Highlight a word in the text to look it up.",
+      "loading": "Looking up…",
+      "noDefinition": "No dictionary entry for this word.",
+      "originalLanguage": "Original language",
+      "tierSibling": "Matched via {source}, which renders this passage with the same word.",
+      "tierVerse": "This translation has no word-level alignment, so these are the original-language words of verse {verse}.",
+      "showAll": "Show all {count} words",
+      "creditDictionary": "Definitions from Wiktionary via FreeDictionaryAPI.com (CC BY-SA 4.0).",
+      "creditWiktionaryLink": "View entry",
+      "creditLexicon": "Lexicon: Strong's via openscriptures (CC BY-SA).",
+      "title": "Dictionary",
+      "loadingOriginal": "Loading original-language data…",
+      "tierInferredBadge": "AI-matched.",
+      "tierInferred": "This translation has no word-level alignment, so the original word was matched by AI from the verse's Greek. Usually right, but verify before relying on it."
     }
   },
   "settings": {
@@ -682,7 +732,10 @@
             "Chapter summaries and key themes",
             "Side-by-side translation compare",
             "Full-text verse search",
-            { "text": "Reading progress per book", "done": true }
+            {
+              "text": "Reading progress per book",
+              "done": true
+            }
           ]
         },
         {
@@ -750,6 +803,8 @@
     "markCompleteHint": "Count this chapter as read",
     "chapterComplete": "Read",
     "chapterCompleteTimes": "Read {count} times",
+    "chapterCompleteHereTimes": "Read {count}× in this translation",
+    "chapterNotCompleteHere": "Not yet in this translation",
     "chaptersComplete": "{done} of {total} chapters",
     "percentComplete": "of the Bible",
     "chaptersRead": "Chapters",
@@ -780,6 +835,11 @@
     "gridHint": "Each square is a chapter. Darker means you've been back.",
     "gridCellRead": "{book} {chapter} — read {count}×",
     "gridCellUnread": "{book} {chapter} — not yet",
+    "scopeAll": "All Bibles",
+    "scopeIn": "in {bible}",
+    "scopeSearch": "Search your translations…",
+    "scopeEmpty": "No translations found.",
+    "scopeCarries": "This translation carries {carried} of the {total} canonical chapters.",
     "badgesTitle": "Milestones",
     "badgeLocked": "Not yet",
     "badges": {
@@ -798,6 +858,9 @@
       "year": "A year of days",
       "thirdLap": "Three times through"
     },
+    "shareStory": "Share as story",
+    "shareStoryHint": "A vertical image for Instagram or TikTok.",
+    "shareStoryFailed": "Couldn't create the image. Try again.",
     "shareTitle": "Share your journey",
     "shareButton": "Share",
     "shareCopy": "Copy link",

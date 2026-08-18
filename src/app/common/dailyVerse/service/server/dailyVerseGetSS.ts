@@ -4,6 +4,7 @@ import { chapterGetByCanonicalRefSS } from "../../../chapter/service/chapterGetB
 import { bibleGetAllSS } from "../../../bible/service/bibleGetAllSS";
 import { bookGetByAbbreviationAndBibleIdSS } from "../../../book/service/server/bookGetByAbbreviationAndBibleIdSS";
 import { DAILY_VERSES } from "@/lib/dailyVerses";
+import { FALLBACK_RECOMMENDED_SLUG } from "@/lib/recommendedBible";
 
 export type DailyVerse = {
 	reference: string;
@@ -28,8 +29,15 @@ export async function dailyVerseGetSS(localDate: string, bibleId?: string): Prom
 	const ref = DAILY_VERSES[dayOfYear(useDate) % DAILY_VERSES.length];
 
 	const bibles = await bibleGetAllSS();
+	/*
+	 * Falls back to the recommended English translation, not to "whichever
+	 * English row the database happened to return first" — `SELECT *` is
+	 * unordered, so the old heuristic picked a different translation in different
+	 * environments, and could land on an obscure duplicate.
+	 */
 	const bible =
 		(bibleId && bibles.find((b) => b.id === bibleId)) ||
+		bibles.find((b) => b.slug === FALLBACK_RECOMMENDED_SLUG) ||
 		bibles.find((b) => b.language?.toLowerCase() === "english") ||
 		bibles[0];
 	if (!bible) return null;

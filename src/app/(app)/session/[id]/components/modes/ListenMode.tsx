@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
+import { EntityLite } from "@/app/common/entity/model/Entity";
 import { useOptionalSessionProgress } from "../../context/SessionProgressContext";
 import { useOptionalChapterCompletion } from "@/components/reader/progress/ChapterCompletionContext";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,9 @@ import {
 	Play, Pause, SkipBack, SkipForward, Volume2, Gauge, Loader2, Lock, Info, Download, Check,
 } from "lucide-react";
 import { AiContent } from "@/components/entity/AiContent";
-import { cn } from "@/lib/utils";
+import { parseChapterBlocks } from "@/app/common/verse/model/verseLayout";
+import { ChapterText } from "@/components/reader/ChapterText";
+import { keepVerseAnchorInBand } from "@/components/reader/scrollToVerse";
 import { useAudioPlayer } from "@/app/state/AudioPlayerContext";
 import {
 	AUDIO_VOICES, AudioTrack, AudioVoice, VOICE_LABEL_KEY, chapterCacheKey, stepIntroCacheKey,
@@ -27,6 +30,8 @@ interface ListenModeProps {
 	chapterNumber?: number;
 	bibleLanguage?: string;
 	explanation?: string | null;
+	/** People mentioned in each verse, for inline character links. */
+	mentionsByVerse?: Record<number, EntityLite[]>;
 
 	/** Required for scripture narration. Without it, only our own content is narrated. */
 	bibleId?: string;
@@ -40,6 +45,8 @@ interface ListenModeProps {
 	sessionId?: string;
 	isLastChapterInStep?: boolean;
 	onUpgradeClick?: () => void;
+	/** The reader's scroll container, owned by ReaderEngine. */
+	scrollerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 function formatTime(ms: number): string {
@@ -67,6 +74,7 @@ export function ListenMode({
 	chapterNumber,
 	bibleLanguage,
 	explanation,
+	mentionsByVerse,
 	bibleId,
 	bookAbbreviation,
 	audioEnabled = false,
@@ -75,13 +83,14 @@ export function ListenMode({
 	sessionId,
 	isLastChapterInStep,
 	onUpgradeClick,
+	scrollerRef,
 }: ListenModeProps) {
 	const t = useTranslations();
 	const player = useAudioPlayer();
 	const sessionProgress = useOptionalSessionProgress();
 	const chapterCompletion = useOptionalChapterCompletion();
 
-	const verseRefs = useRef<Record<number, HTMLParagraphElement | null>>({});
+	const verseAnchors = useRef<Record<number, HTMLElement | null>>({});
 	const [downloaded, setDownloaded] = useState(false);
 
 	const filteredVerses = useMemo(
@@ -96,6 +105,8 @@ export function ListenMode({
 	);
 
 	const canNarrateScripture = Boolean(isPremium && audioEnabled && bibleId && bookAbbreviation && chapterNumber);
+
+	const blocks = useMemo(() => parseChapterBlocks(filteredVerses), [filteredVerses]);
 
 	// Build the listening queue: our own step intro first, then the scripture.
 	// A step is a WINDOW into the shared chapter asset, so one cached chapter serves
@@ -169,13 +180,12 @@ export function ListenMode({
 
 	// Keep the spoken verse on screen. The old player never did this, so on a long
 	// chapter the highlight simply walked off the bottom and you had to chase it.
+	// Now that the text flows, a screenful holds a dozen verses — so only scroll
+	// when the active one drifts out of a comfortable band, not on every verse.
 	useEffect(() => {
 		if (activeVerse == null) return;
-		const el = verseRefs.current[activeVerse];
-		if (!el) return;
-		const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-		el.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
-	}, [activeVerse]);
+		keepVerseAnchorInBand(scrollerRef?.current ?? null, verseAnchors.current[activeVerse] ?? null);
+	}, [activeVerse, scrollerRef]);
 
 	useEffect(() => {
 		const idx = activeVerse ? filteredVerses.findIndex((v) => v.verseNumber === activeVerse) : 0;
@@ -202,6 +212,25 @@ export function ListenMode({
 			toast.error(t("audio.downloadFailed"));
 		}
 	};
+
+	/*
+	 * Inline-safe highlighting. The old treatment (scale + block padding + a
+	 * negative margin) cannot work on flowing text: transforms do nothing to a
+	 * non-atomic inline box, and padding would only land on the first and last
+	 * line fragments. `box-decoration-clone` gives every wrapped fragment its own
+	 * rounded pill, and the padding is cancelled by an equal negative margin so
+	 * the paragraph does not reflow as the highlight advances.
+	 */
+	const verseClassName = useCallback(
+		(verseNumber: number) => {
+			if (verseNumber === activeVerse) {
+				return "bg-primary/15 text-foreground rounded-[3px] px-[0.15em] -mx-[0.15em] box-decoration-clone";
+			}
+			if (activeVerse != null && verseNumber < activeVerse) return "text-foreground";
+			return "text-muted-foreground/50";
+		},
+		[activeVerse],
+	);
 
 	const busy = player.status === "loading" || player.status === "generating";
 	const isPlaying = player.status === "playing";
@@ -250,37 +279,16 @@ export function ListenMode({
 					</div>
 				)}
 
-				<div className="space-y-4 p-4 pb-32">
-					{filteredVerses.map((verse) => {
-						const isActive = verse.verseNumber === activeVerse;
-						const isPast = activeVerse != null && verse.verseNumber < activeVerse;
-						return (
-							<p
-								key={verse.id}
-								ref={(el) => { verseRefs.current[verse.verseNumber] = el; }}
-								onClick={() => canNarrateScripture && player.seekToVerse(verse.verseNumber)}
-								className={cn(
-									"leading-relaxed text-base md:text-lg transition-all duration-300",
-									canNarrateScripture && "cursor-pointer",
-									isActive
-										? "text-foreground scale-[1.02] bg-primary/10 p-3 rounded-lg -mx-3"
-										: isPast
-											? "text-foreground"
-											: "text-muted-foreground/50"
-								)}
-							>
-								<sup
-									className={cn(
-										"text-xs font-semibold mr-1.5 select-none",
-										isActive || isPast ? "text-primary" : "text-muted-foreground"
-									)}
-								>
-									{verse.verseNumber}
-								</sup>
-								<span>{verse.content}</span>
-							</p>
-						);
-					})}
+				<div className="pb-32">
+					<ChapterText
+						blocks={blocks}
+						mentionsByVerse={mentionsByVerse}
+						verseClassName={verseClassName}
+						onVerseClick={canNarrateScripture ? player.seekToVerse : undefined}
+						registerVerseAnchor={(verseNumber, el) => {
+							verseAnchors.current[verseNumber] = el;
+						}}
+					/>
 				</div>
 			</div>
 

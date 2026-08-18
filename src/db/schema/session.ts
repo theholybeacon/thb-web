@@ -20,6 +20,8 @@ export const sessionTable = pgTable("session", {
 	progressDetail: text(),
 
 	startedAt: timestamp().defaultNow(),
+	/** Set once the last chapter of the last step is finished. NULL = still in progress. */
+	completedAt: timestamp(),
 	updatedAt: timestamp().defaultNow(),
 });
 

@@ -4,8 +4,6 @@
 
 @layer base {
   :root {
-    --font-sans: var(--font-inter);
-    --font-heading: var(--font-merriweather);
 
     /* Simplified color palette - warm, spiritual, high contrast */
     --background: 40 20% 98%;
@@ -82,6 +80,19 @@
   }
 
   body {
+    /*
+     * These live on `body`, not `:root`. next/font puts --font-inter and
+     * --font-merriweather on the <body> class, so an alias declared on :root
+     * resolves against an undefined variable, computes to nothing, and is then
+     * INHERITED as nothing — which is why font-sans and every heading silently
+     * rendered in the browser's default serif.
+     */
+    --font-sans: var(--font-inter);
+    --font-heading: var(--font-merriweather);
+    /* Kept separate from --font-heading so reading text and headings can
+       diverge later without touching every call site. */
+    --font-reading: var(--font-merriweather);
+
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
@@ -107,6 +118,70 @@
   /* Improve text readability */
   p, li, span {
     @apply leading-relaxed;
+  }
+}
+
+/* The reading column — book-like flowing scripture. See verseLayout.ts for how
+   blocks and lines are derived from the verse text. */
+@layer components {
+  .bible-text {
+    font-family: var(--font-reading);
+    max-width: 65ch;
+    margin-inline: auto;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    text-wrap: pretty;
+  }
+
+  @media (min-width: 768px) {
+    .bible-text {
+      font-size: 1.1875rem;
+      line-height: 1.8;
+    }
+  }
+
+  /* The global `p, li, span` leading rule would otherwise give every inline
+     verse span its own line-height, which makes the leading visibly uneven. */
+  .bible-text span {
+    line-height: inherit;
+  }
+
+  .bible-block {
+    margin: 0;
+  }
+
+  /* Book convention: a new paragraph is marked by an indent, not a gap. The
+     first paragraph of a chapter stays flush — an indent only means something
+     relative to the paragraph above it. */
+  .bible-block-prose + .bible-block-prose {
+    text-indent: 1.5em;
+  }
+
+  .bible-block-poetry {
+    margin-block: 0.75em;
+  }
+
+  /* Every line is its own block box, so a hard line break inside a verse holds
+     even in prose (a second speaker on their own line, say). */
+  .bible-line {
+    display: block;
+  }
+
+  /* Only the paragraph's FIRST line takes the indent. */
+  .bible-block-prose .bible-line ~ .bible-line {
+    text-indent: 0;
+  }
+
+  /* The negative text-indent makes a long poetic line wrap DEEPER than it
+     starts — the standard hanging indent, without which a wrapped line reads as
+     a new line of verse. */
+  .bible-block-poetry .bible-line {
+    padding-left: 2.25em;
+    text-indent: -1.25em;
+  }
+
+  .bible-block-poetry .bible-line[data-level="1"] {
+    padding-left: 3.75em;
   }
 }
 

@@ -10,13 +10,18 @@ import { bibleTable } from "./bible";
  * chapterId FK, because `chapter` rows are per-translation. A user who reads
  * Genesis 1 in KJV and later in RVR60 is at the same place in their journey.
  *
- * `lap` is the count of this user's passes through THIS chapter (1 = first
- * time). Computing it at write time makes "times through the whole Bible" a
- * plain `min(lap)` across the 1189 canonical chapters at read time, with no
- * extra query. The unique index on (user, book, chapter, lap) is what keeps that
- * honest: the Neon HTTP driver has no interactive transactions, so the
- * read-max-then-insert in the DAO is a race, and the constraint turns a
- * double-submit into a no-op instead of a phantom extra lap.
+ * `lap` is this user's Nth pass through this chapter IN THIS TRANSLATION, and is
+ * WRITE-ONLY: rows written before progress became per-translation were numbered
+ * globally across translations, so a per-bible `max(lap)` would be wrong for
+ * them and would never self-heal. Read-side "times" is `count(*)` everywhere.
+ * What `lap` still earns its place for is the unique constraint: the Neon HTTP
+ * driver has no interactive transactions, so the read-max-then-insert in the DAO
+ * is a race, and the constraint turns a double-submit into a no-op instead of a
+ * phantom extra lap.
+ *
+ * The constraint uses NULLS NOT DISTINCT so that `bibleId IS NULL` (a manual
+ * mark made with no reader context) still collides with itself instead of
+ * admitting unlimited duplicates the way Postgres' default NULL handling would.
  *
  * `completedDate` is the user's LOCAL date, the same convention as
  * user_daily_activity — it makes the today/week/month/year stats a plain range
@@ -39,7 +44,10 @@ export const chapterCompletionTable = pgTable("chapter_completion", {
 }, (t) => ({
 	userRefIdx: index("chapter_completion_user_ref_idx").on(t.userId, t.bookAbbreviation, t.chapter),
 	userDateIdx: index("chapter_completion_user_date_idx").on(t.userId, t.completedDate),
-	lapUnique: unique("chapter_completion_lap_unique").on(t.userId, t.bookAbbreviation, t.chapter, t.lap),
+	userBibleIdx: index("chapter_completion_user_bible_idx").on(t.userId, t.bibleId),
+	lapUnique: unique("chapter_completion_lap_unique")
+		.on(t.userId, t.bookAbbreviation, t.chapter, t.bibleId, t.lap)
+		.nullsNotDistinct(),
 }));
 
 export const insertChapterCompletionSchema = createInsertSchema(chapterCompletionTable);

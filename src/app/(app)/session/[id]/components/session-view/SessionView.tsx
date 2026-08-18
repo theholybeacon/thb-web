@@ -36,52 +36,18 @@ import { recordActivity } from "@/lib/activityClient";
 import { recordAppRoute } from "@/lib/lastAppRoute";
 import { PremiumGate } from "@/components/premium";
 import { SessionProgressProvider, useSessionProgress } from "../../context/SessionProgressContext";
+import { SessionCompleteDialog } from "./SessionCompleteDialog";
+import { sessionFinishSS } from "@/app/common/session/service/sessionFinishSS";
+import type { SessionSummary } from "@/app/common/session/model/SessionSummary";
+import { formatStepReference } from "@/app/common/studyStep/model/reference";
 
 interface SessionViewParams {
   session: SessionFull;
 }
 
-// Helper function to format bible reference using canonical fields
-function formatBibleReference(step: StudyStep | undefined, bookName?: string, currentChapter?: number): string {
-  if (!step) return "";
-
-  const book = bookName || step.bookAbbreviation;
-  if (!book) return "";
-
-  const startChapter = step.startChapter;
-  const endChapter = step.endChapter;
-  const startVerse = step.startVerse;
-  const endVerse = step.endVerse;
-
-  // If currentChapter is provided, show the current chapter being viewed
-  if (currentChapter) {
-    if (startVerse && endVerse && startVerse !== endVerse) {
-      return `${book} ${currentChapter}:${startVerse}-${endVerse}`;
-    }
-    if (startVerse) {
-      return `${book} ${currentChapter}:${startVerse}`;
-    }
-    return `${book} ${currentChapter}`;
-  }
-
-  if (!startChapter) {
-    return book;
-  }
-
-  if (startVerse && endVerse && startVerse !== endVerse) {
-    return `${book} ${startChapter}:${startVerse}-${endVerse}`;
-  }
-
-  if (startVerse) {
-    return `${book} ${startChapter}:${startVerse}`;
-  }
-
-  if (endChapter && endChapter !== startChapter) {
-    return `${book} ${startChapter}-${endChapter}`;
-  }
-
-  return `${book} ${startChapter}`;
-}
+// Reference formatting lives in studyStep/model/reference so the reader, the
+// sessions list and the completion recap cannot drift apart on the same step.
+const formatBibleReference = formatStepReference;
 
 export default function SessionView({ session: initialSession }: SessionViewParams) {
   const steps = (initialSession.study?.steps || []) as StudyStep[];
@@ -187,6 +153,9 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
     };
   };
 
+  const [summary, setSummary] = useState<SessionSummary | null>(null);
+  const [isFinishing, setIsFinishing] = useState(false);
+
   const chapterRange = getChapterRange();
   const isMultiChapterStep = chapterRange.total > 1;
   const actualChapterNumber = chapterRange.start + currentChapterInStep - 1;
@@ -277,6 +246,41 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
       // Move to next chapter within the step
       setCurrentChapterInStep(currentChapterInStep + 1);
     }
+  };
+
+  // Finish the whole study: record the final step, stamp the session complete,
+  // then show the recap.
+  //
+  // handleCompleteChapter() has to run here because on the last step the footer's
+  // "Next" button — its only other caller — is REPLACED by this one. Without it
+  // the final step's session_step_completion row was never written in read mode,
+  // so the recap (and the sessions list) under-reported every finished study by
+  // exactly one step.
+  const handleFinishStudy = async () => {
+    if (isFinishing) return;
+    setIsFinishing(true);
+
+    handleCompleteChapter();
+
+    posthog.capture("session_completed", {
+      sessionId: initialSession.id,
+      studyId: initialSession.study?.id,
+    });
+
+    try {
+      const res = await sessionFinishSS(initialSession.id);
+      if (res.summary) {
+        setSummary(res.summary);
+        return;
+      }
+    } catch {
+      // Falling through to the old behaviour beats trapping someone on the last
+      // page of a study they have finished.
+    } finally {
+      setIsFinishing(false);
+    }
+
+    router.push("/session");
   };
 
   // Navigate to previous chapter within step
@@ -539,6 +543,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                 isPremium
                 bibleLanguage={sessionBible?.language}
                 bibleName={sessionBible?.version || sessionBible?.name}
+                bibleVersion={sessionBible?.version}
                 bibleId={sessionBible?.id}
                 bookAbbreviation={currentStep?.bookAbbreviation ?? undefined}
                 audioEnabled={sessionBible?.audioEnabled ?? false}
@@ -591,13 +596,8 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
               {/* Right side: Next/Finish button */}
               {isLastStep && isLastChapterInStep ? (
                 <Button
-                  onClick={() => {
-                    posthog.capture("session_completed", {
-                      sessionId: initialSession.id,
-                      studyId: initialSession.study?.id,
-                    });
-                    router.push("/session");
-                  }}
+                  onClick={() => void handleFinishStudy()}
+                  disabled={isFinishing}
                   className="bg-primary hover:bg-primary/90"
                 >
                   <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -628,6 +628,14 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
           </footer>
         </main>
         </div>
+        <SessionCompleteDialog
+          summary={summary}
+          open={summary !== null}
+          onClose={() => {
+            setSummary(null);
+            router.push("/session");
+          }}
+        />
       </PremiumGate>
     </AppShell>
   );

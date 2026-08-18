@@ -7,20 +7,30 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/lib/toast";
 import { userSetPublicProfileSS } from "@/app/common/completion/service/server/userSetPublicProfileSS";
+import { ShareStoryButton } from "@/components/share/ShareStoryButton";
+import { localDateString } from "@/lib/activityClient";
 
 /**
  * Turns a private journey into a shareable one.
  *
  * Public sharing is opt-in and starts off: reading habits are personal, and a
- * progress page keyed to a username says a lot about someone. The share controls
+ * progress page keyed to a username says a lot about someone. The link controls
  * only appear once the user has actually chosen to publish.
+ *
+ * The story export is deliberately NOT behind that opt-in: it hands the user an
+ * image of their own progress to post wherever they like. Nothing is published
+ * and no URL is created, so gating it behind a public profile would be asking
+ * permission to do something private.
  */
 export function ShareJourney({
 	username,
 	isPublic,
+	scope,
 }: {
 	username: string;
 	isPublic: boolean;
+	/** Translation slug the story should be scoped to, or null for All Bibles. */
+	scope?: string | null;
 }) {
 	const t = useTranslations("journey");
 	const [enabled, setEnabled] = useState(isPublic);
@@ -72,6 +82,11 @@ export function ShareJourney({
 	return (
 		<div className="rounded-lg border bg-card p-5">
 			<h2 className="mb-4 font-heading text-lg font-semibold">{t("shareTitle")}</h2>
+
+			<div className="mb-5 flex flex-wrap items-center gap-3 border-b pb-5">
+				<ShareStoryButton kind="journey" bible={scope} date={localDateString()} />
+				<span className="text-xs text-muted-foreground">{t("shareStoryHint")}</span>
+			</div>
 
 			<label className="flex cursor-pointer items-start gap-3">
 				<Checkbox

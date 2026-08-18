@@ -18,7 +18,7 @@ import { useOptionalChapterCompletion } from "./ChapterCompletionContext";
  * Dwell only accrues while the tab is actually visible, so a chapter left open
  * overnight earns nothing.
  *
- * @param lastVerseRef element to observe — the final verse of the chapter
+ * @param lastVerseRef element to observe — a sentinel at the end of the chapter
  * @param verseCount   scales the dwell requirement to the chapter's length
  * @param ready        false while verses are still loading
  */
@@ -55,9 +55,11 @@ export function useReadCompletion(
 							if (entry.isIntersecting) reachedEndRef.current = true;
 						}
 					},
-					// A sliver of the last verse counts as reaching the end; requiring it
-					// fully on screen fails when the verse is taller than the viewport.
-					{ threshold: 0.1 },
+					// The target is a 1px sentinel at the bottom of the chapter, so any
+					// intersection at all means the end is on screen. A ratio threshold
+					// would be meaningless here — and against a tall final paragraph it
+					// would fire as soon as that paragraph's top edge appeared.
+					{ threshold: 0 },
 				)
 			: null;
 		if (observer && el) observer.observe(el);

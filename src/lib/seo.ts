@@ -11,15 +11,22 @@
  * The reader supports ALL translations; this only governs indexing.
  */
 
-// One canonical slug per flagship public-domain English version (the DB has
-// duplicates like kjv-en/kjv-en-2 and web-en..web-en-4 — index one each).
-// All four are also audio-licensed (see bibleLicense.ts). Edit freely; add
-// Spanish public-domain slugs (rvr09-es, vbl-es) when ES indexing goes live.
+import { RECOMMENDED_SLUGS } from "@/lib/recommendedBible";
+
+// One canonical slug per indexed version (the DB has duplicates like
+// kjv-en/kjv-en-2 and web-en..web-en-4 — index one each). All are audio-licensed
+// (see bibleLicense.ts).
+//
+// The six recommended translations (src/lib/recommendedBible.ts) are indexed by
+// definition: they are what we point readers at, so they are what search should
+// find. The extra English entries are kept because they were already indexed and
+// carry existing search equity. Note the real slugs are rvr09-sp / blt-po /
+// l1912-ge — the suffix follows the api.bible language *name*, not the ISO code.
 export const INDEXED_TRANSLATION_SLUGS: ReadonlySet<string> = new Set([
+  ...RECOMMENDED_SLUGS, // bsb-en, rvr09-sp, jnd-fr, l1912-ge, blt-po, db1885-it
   "kjv-en", // King James Version
   "web-en", // World English Bible
   "asv-en", // American Standard Version
-  "bsb-en", // Berean Standard Bible
 ]);
 
 export function isIndexedTranslation(slug: string | null | undefined): boolean {

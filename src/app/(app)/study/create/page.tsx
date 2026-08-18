@@ -3,12 +3,14 @@
 import { StudyInsert } from "@/app/common/study/model/Study";
 import { studyCreateSS } from "@/app/common/study/service/server/studyCreateSS";
 import { bibleGetAllSS } from "@/app/common/bible/service/bibleGetAllSS";
+import { recommendedSlugForLocale } from "@/lib/recommendedBible";
+import { userSetDefaultBibleSS } from "@/app/common/user/service/server/userSetDefaultBibleSS";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import posthog from "posthog-js";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +25,7 @@ export default function CreateStudyPage() {
   const t = useTranslations("createStudy");
   const { user: loggedUser } = useLoggedUserContext();
   const router = useRouter();
+  const locale = useLocale();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -40,6 +43,24 @@ export default function CreateStudyPage() {
       return await bibleGetAllSS();
     },
   });
+
+  /*
+   * Preselect the recommended translation for the reader's language. Before
+   * this, bibleId started as "" and creation hard-failed until the user opened a
+   * 404-entry picker and chose something they had no basis to evaluate.
+   * Only seeds an empty value, so it never overrides a deliberate choice.
+   */
+  useEffect(() => {
+    if (!bibles?.length || formData.bibleId) return;
+    // A stored preference wins over the language default — it is a real choice
+    // the reader made, whereas the default is only our best guess.
+    const stored = loggedUser?.defaultBibleId
+      ? bibles.find((b) => b.id === loggedUser.defaultBibleId)
+      : undefined;
+    const slug = recommendedSlugForLocale(locale);
+    const match = stored ?? bibles.find((b) => b.slug === slug) ?? bibles.find((b) => b.slug === "bsb-en");
+    if (match) setFormData((prev) => (prev.bibleId ? prev : { ...prev, bibleId: match.id }));
+  }, [bibles, locale, formData.bibleId, loggedUser?.defaultBibleId]);
 
   const createProgramMutation = useMutation({
     mutationFn: async () => {
@@ -123,7 +144,12 @@ export default function CreateStudyPage() {
               <BibleSelector
                 bibles={bibles}
                 value={formData.bibleId}
-                onValueChange={(value) => setFormData({ ...formData, bibleId: value })}
+                onValueChange={(value) => {
+                  setFormData({ ...formData, bibleId: value });
+                  // Remember it: an explicit pick is the strongest signal we get
+                  // about which translation this reader actually wants.
+                  void userSetDefaultBibleSS(value);
+                }}
                 disabled={biblesLoading}
                 isLoading={biblesLoading}
               />

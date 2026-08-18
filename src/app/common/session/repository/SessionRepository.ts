@@ -30,6 +30,11 @@ export class SessionRepository {
         return await this.sessionPostgreSQLDao.updateProgress(sessionId, bookAbbreviation, chapter, verse);
     }
 
+    /** True only for the call that actually stamped it — see the DAO's note on the race. */
+    async markCompleted(sessionId: string): Promise<boolean> {
+        return await this.sessionPostgreSQLDao.markCompleted(sessionId);
+    }
+
     async delete(id: string): Promise<void> {
         return await this.sessionPostgreSQLDao.delete(id);
     }
