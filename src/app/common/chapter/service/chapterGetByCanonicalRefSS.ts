@@ -1,7 +1,7 @@
 'use server';
 
 import { ChapterVer } from "../model/Chapter";
-import { ChapterRepository } from "../repository/ChapterRepository";
+import { loadFullChapter } from "./chapterLoad";
 import { BookRepository } from "../../book/repository/BookRepository";
 import { logger } from "@/app/utils/logger";
 
@@ -25,7 +25,6 @@ export async function chapterGetByCanonicalRefSS(
 
     try {
         const bookRepository = new BookRepository();
-        const chapterRepository = new ChapterRepository();
 
         log.debug(`Fetching chapter: bibleId=${bibleId}, book=${bookAbbreviation}, chapter=${chapterNumber}`);
 
@@ -49,7 +48,7 @@ export async function chapterGetByCanonicalRefSS(
         log.debug(`Found book: ${book.name} (${book.abbreviation})`);
 
         // Get the full chapter with verses
-        const chapter = await chapterRepository.getFullChapter(book.id, chapterNumber);
+        const chapter = await loadFullChapter(book.id, chapterNumber);
 
         return {
             ...chapter,

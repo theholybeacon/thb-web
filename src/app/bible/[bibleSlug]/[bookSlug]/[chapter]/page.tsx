@@ -39,7 +39,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   // Only the curated core translations are indexed (see src/lib/seo.ts); the
   // rest stay readable but noindex to avoid ~480k near-duplicate pages.
-  const indexable = isIndexedTranslation(bibleSlug);
+  //
+  // A chapter we could not fetch is never indexable, whatever its translation:
+  // letting Google crawl an empty page during an upstream outage costs ranking
+  // that does not come back when the text does.
+  const indexable = isIndexedTranslation(bibleSlug) && !chapterData?.loadError;
 
   return {
     title,
@@ -116,7 +120,11 @@ export default async function ChapterPage({ params }: PageProps) {
       inLanguage: bible.language,
     },
     position: chapterNum,
-    text: chapterData?.verses?.map((v) => `${v.verseNumber}. ${v.content}`).join(" "),
+    // Omitted rather than emitted empty when the fetch failed — an empty `text`
+    // on a Chapter node is worse than no `text` at all.
+    ...(chapterData?.verses?.length
+      ? { text: chapterData.verses.map((v) => `${v.verseNumber}. ${v.content}`).join(" ") }
+      : {}),
     provider: {
       "@type": "Organization",
       name: "The Holy Beacon",
@@ -128,6 +136,7 @@ export default async function ChapterPage({ params }: PageProps) {
     <>
       <ExplorerView
         verses={chapterData?.verses || []}
+        loadError={chapterData?.loadError ?? null}
         bookName={book.name}
         chapterNumber={chapterNum}
         bibleSlug={bibleSlug}

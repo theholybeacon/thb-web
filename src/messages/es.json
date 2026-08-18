@@ -196,6 +196,8 @@
     "nextChapter": "Capítulo Siguiente",
     "nextBook": "Siguiente Libro",
     "noContent": "No hay contenido disponible para este capítulo.",
+    "unavailableTitle": "Este capítulo no está disponible en este momento.",
+    "unavailableBody": "No pudimos cargar el texto de nuestro proveedor de escrituras. Inténtalo de nuevo en unos minutos.",
     "recommendedTitle": "Traducciones recomendadas",
     "recommendedSubtitle": "Una traducción confiable por idioma — todas con audio, diccionario y apoyo del idioma original.",
     "readNow": "Leer ahora"
@@ -314,7 +316,6 @@
     "accuracy": "Precisión",
     "wpm": "PPM",
     "timeSpent": "Tiempo",
-    "clickToStart": "Haz clic aquí y comienza a escribir",
     "typeComplete": "¡Escritura Completada!",
     "tryAgain": "Intentar de Nuevo",
     "completeStep": "Completar Paso",
@@ -428,6 +429,10 @@
   },
   "reader": {
     "chapter": "Capítulo {number}",
+    "fontSize": {
+      "decrease": "Texto más pequeño",
+      "increase": "Texto más grande"
+    },
     "explanation": {
       "collapse": "Ocultar reflexión",
       "expand": "Mostrar reflexión"

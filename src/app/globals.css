@@ -124,18 +124,23 @@
 /* The reading column — book-like flowing scripture. See verseLayout.ts for how
    blocks and lines are derived from the verse text. */
 @layer components {
+  /* `--reader-font-scale` is set by the reader's A-/A+ control on the column
+     wrapper. Defaulting to 1 in the `var()` keeps every other use of
+     `.bible-text` — and the server's first paint — at the original size. Only
+     the font-size is scaled: `line-height` is unitless and `max-width` is in
+     `ch`, so both follow on their own. */
   .bible-text {
     font-family: var(--font-reading);
     max-width: 65ch;
     margin-inline: auto;
-    font-size: 1.0625rem;
+    font-size: calc(1.0625rem * var(--reader-font-scale, 1));
     line-height: 1.75;
     text-wrap: pretty;
   }
 
   @media (min-width: 768px) {
     .bible-text {
-      font-size: 1.1875rem;
+      font-size: calc(1.1875rem * var(--reader-font-scale, 1));
       line-height: 1.8;
     }
   }

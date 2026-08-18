@@ -14,6 +14,21 @@ export class VersePostgreSQLDao {
 		return returned[0];
 	}
 
+	/**
+	 * Writes a whole chapter's verses in one statement.
+	 *
+	 * `onConflictDoNothing` is untargeted on purpose: naming the (chapterId,
+	 * verseNumber) constraint would fail on any database where the migration
+	 * that adds it has not been applied yet, and this path must survive being
+	 * deployed in either order. Once the constraint exists it makes a losing
+	 * concurrent hydration a no-op instead of a duplicate-row error.
+	 */
+	async createMany(verses: VerseInsert[]): Promise<Verse[]> {
+		log.trace("createMany");
+		if (verses.length === 0) return [];
+		return await db.insert(verseTable).values(verses).onConflictDoNothing().returning();
+	}
+
 	async getById(id: string): Promise<Verse> {
 		log.trace("getById");
 		const returned = await db.query.verseTable.findFirst({

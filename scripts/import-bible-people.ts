@@ -100,6 +100,24 @@ function parseYear(v: unknown): number | null {
 	return Number.isFinite(n) ? Math.trunc(n) : null;
 }
 
+/** Longest value `entity.slug` can hold before Postgres rejects the insert. */
+const MAX_SLUG_LENGTH = 160;
+
+/**
+ * A slug not already taken by an earlier row. Collisions are resolved by
+ * appending the dataset id (and, if that is somehow taken too, a counter), so
+ * the same input always produces the same slug and re-running stays idempotent.
+ */
+function uniqueSlug(base: string, datasetId: string, taken: Set<string>): string {
+	const clamped = base.slice(0, MAX_SLUG_LENGTH);
+	if (!taken.has(clamped)) return clamped;
+	for (let n = 1; ; n++) {
+		const suffix = n === 1 ? `-${datasetId}` : `-${datasetId}-${n}`;
+		const candidate = base.slice(0, MAX_SLUG_LENGTH - suffix.length) + suffix;
+		if (!taken.has(candidate)) return candidate;
+	}
+}
+
 function chunk<T>(arr: T[], size: number): T[][] {
 	const out: T[][] = [];
 	for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
@@ -129,8 +147,37 @@ async function main() {
 		};
 	});
 
+	/*
+	 * `datasetId` and `slug` both carry UNIQUE constraints, but the upsert below can
+	 * only name one conflict target. A slug shared by two dataset rows raises
+	 * entity_slug_unique and kills the whole 500-row statement, and a datasetId
+	 * repeated inside one statement makes Postgres reject the ON CONFLICT outright
+	 * ("cannot affect row a second time"). Resolve both here, before any SQL runs.
+	 */
+	const byDatasetId = new Map<string, (typeof entityRows)[number]>();
+	let droppedDuplicateIds = 0;
+	for (const row of entityRows) {
+		if (byDatasetId.has(row.datasetId)) {
+			droppedDuplicateIds++;
+			continue;
+		}
+		byDatasetId.set(row.datasetId, row);
+	}
+
+	const takenSlugs = new Set<string>();
+	let rewrittenSlugs = 0;
+	const dedupedRows = Array.from(byDatasetId.values()).map((row) => {
+		const slug = uniqueSlug(row.slug, row.datasetId, takenSlugs);
+		takenSlugs.add(slug);
+		if (slug !== row.slug) rewrittenSlugs++;
+		return slug === row.slug ? row : { ...row, slug };
+	});
+	console.log(
+		`Deduped entities: ${dedupedRows.length} unique (dropped ${droppedDuplicateIds} duplicate datasetIds, rewrote ${rewrittenSlugs} colliding slugs)`,
+	);
+
 	let upserted = 0;
-	for (const batch of chunk(entityRows, 500)) {
+	for (const batch of chunk(dedupedRows, 500)) {
 		await db
 			.insert(entityTable)
 			.values(batch)

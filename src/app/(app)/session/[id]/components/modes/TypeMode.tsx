@@ -141,7 +141,10 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 		setIsComplete(false);
 	}, [document_]);
 
-	// Focus input on mount
+	// The hidden input is kept for touch devices — tapping the passage is what
+	// raises the soft keyboard — but it is not what reads the keys. Listening on
+	// the document (below) means the passage is typable the moment Type mode is on
+	// screen, and stays typable after a click elsewhere steals focus.
 	useEffect(() => {
 		inputRef.current?.focus();
 	}, []);
@@ -159,8 +162,23 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 	}, [isComplete, stats.timeSpentSeconds, chapterCompletion]);
 
 	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLInputElement>) => {
+		(e: KeyboardEvent) => {
 			if (isComplete) return;
+
+			// Leave browser and OS shortcuts alone — Cmd+R should reload, not type "r".
+			if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+			// The notes panel and comment forms are siblings on this page, so a
+			// document-level listener has to yield to whatever field is focused. Our
+			// own hidden input is the exception: it is where mobile keystrokes land.
+			const target = e.target as HTMLElement | null;
+			if (
+				target &&
+				target !== inputRef.current &&
+				(target.isContentEditable || /^(input|textarea|select)$/i.test(target.tagName))
+			) {
+				return;
+			}
 
 			// Start timer on first keypress
 			if (startTime === null) {
@@ -221,6 +239,11 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 		},
 		[charStates, currentIndex, startTime, isComplete]
 	);
+
+	useEffect(() => {
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [handleKeyDown]);
 
 	const handleReset = () => {
 		setCharStates(document_.expected.map((char) => ({ char, state: "pending" as const })));
@@ -309,13 +332,7 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 				onClick={() => inputRef.current?.focus()}
 			>
 				{/* Hidden input for capturing keystrokes */}
-				<input
-					ref={inputRef}
-					type="text"
-					className="absolute opacity-0 h-0 w-0"
-					onKeyDown={handleKeyDown}
-					autoFocus
-				/>
+				<input ref={inputRef} type="text" className="absolute opacity-0 h-0 w-0" autoFocus />
 
 				{/*
 				 * The same block/line structure and typography as Read and Listen, so
@@ -347,13 +364,6 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 						</p>
 					))}
 				</div>
-
-				{/* Click to focus hint */}
-				{!startTime && (
-					<div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
-						<p className="text-muted-foreground">{t("session.clickToStart")}</p>
-					</div>
-				)}
 			</div>
 
 			{/* Completion stats */}

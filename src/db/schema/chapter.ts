@@ -1,4 +1,4 @@
-import { integer, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { integer, pgTable, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/relations";
 import { bookTable } from "./book";
 import { verseTable } from "./verse";
@@ -8,6 +8,11 @@ export const chapterTable = pgTable("chapter", {
 	id: uuid().defaultRandom().primaryKey(),
 	bookId: uuid().notNull(),
 	chapterNumber: integer().notNull(),
+	/**
+	 * Verse count as api.bible reports it, written when the chapter is hydrated.
+	 * A row holding fewer verses than this is incomplete and re-fetches on read.
+	 * -1 means upstream has no such chapter — deliberately empty, never retried.
+	 */
 	numVerses: integer().default(0),
 	/**
 	 * sha256 of this chapter's verse text; see src/lib/chapterHash.ts.
@@ -20,7 +25,11 @@ export const chapterTable = pgTable("chapter", {
 	contentHash: varchar({ length: 64 }),
 	createdAt: timestamp().defaultNow(),
 	updatedAt: timestamp().defaultNow(),
-});
+}, (t) => ({
+	// Two readers racing to hydrate a cold chapter used to mint two rows, and
+	// the verses would land on whichever one the reader did not get back.
+	uniqueChapter: unique("chapter_book_number_unique").on(t.bookId, t.chapterNumber),
+}));
 
 export const chapterRelations = relations(chapterTable, ({ one, many }) => ({
 	book: one(bookTable, {

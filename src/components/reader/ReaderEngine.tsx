@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, type CSSProperties } from "react";
 import { languageNameToIso } from "@/lib/bibleLanguage";
 import { useTranslations } from "next-intl";
 import { recordActivity } from "@/lib/activityClient";
-import { BookA, Eye, Keyboard, Headphones, BookOpen, Loader2, MessagesSquare, NotebookPen, PanelRight, Share2, Users } from "lucide-react";
+import { AArrowDown, AArrowUp, BookA, CloudOff, Eye, Keyboard, Headphones, BookOpen, Loader2, MessagesSquare, NotebookPen, PanelRight, Share2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Verse } from "@/app/common/verse/model/Verse";
+import type { ChapterLoadError } from "@/app/common/chapter/model/ChapterFetchError";
 import { ChapterMentions } from "@/app/common/entity/model/Entity";
 import { Note } from "@/app/common/note/model/Note";
 import { noteGetForChapterSS } from "@/app/common/note/service/server/noteGetForChapterSS";
@@ -20,6 +21,7 @@ import { ReadMode, TypeMode, ListenMode } from "@/app/(app)/session/[id]/compone
 import { UpgradeModal } from "@/components/premium/UpgradeModal";
 import { ReaderPanel } from "./panel/ReaderPanel";
 import { useReaderPanel } from "./panel/useReaderPanel";
+import { useReaderFontScale } from "./useReaderFontScale";
 import { StepExplanationBanner } from "./StepExplanationBanner";
 import { ChapterCompletionProvider } from "./progress/ChapterCompletionContext";
 import { ChapterCompleteButton } from "./progress/ChapterCompleteButton";
@@ -63,6 +65,13 @@ interface ReaderEngineProps {
 	bibleSlug?: string;
 	bookSlug?: string;
 	isLoading?: boolean;
+	/**
+	 * Set when the chapter text could not be fetched from our scripture
+	 * provider. Without it an outage is indistinguishable from a chapter that
+	 * genuinely has no text, and readers were told scripture was "not
+	 * available" when the fetch had simply failed.
+	 */
+	loadError?: ChapterLoadError | null;
 
 	/** Audio context. Without bibleId/bookAbbreviation, Listen narrates our own content only. */
 	bibleId?: string;
@@ -97,6 +106,7 @@ export function ReaderEngine({
 	bibleSlug,
 	bookSlug,
 	isLoading = false,
+	loadError = null,
 	bibleId,
 	bookAbbreviation,
 	audioEnabled = false,
@@ -107,6 +117,7 @@ export function ReaderEngine({
 	const t = useTranslations();
 	const [upgradeOpen, setUpgradeOpen] = useState(false);
 	const panel = useReaderPanel();
+	const fontScale = useReaderFontScale();
 	const scrollerRef = useRef<HTMLDivElement>(null);
 
 	// Type mode renders its own select-none tree, so it yields no selection and
@@ -338,8 +349,12 @@ export function ReaderEngine({
 			 */}
 			<div className="flex h-full min-h-0 w-full">
 				<div className="flex min-w-0 flex-1 flex-col">
-					{/* Mode selector */}
-					<div className="mx-auto flex w-full max-w-4xl items-center justify-end gap-2 px-4 pt-4 md:px-6 md:pt-6">
+					{/*
+					 * Mode selector. `flex-wrap` because this row has outgrown one line on a
+					 * narrow reading column — without it the leading controls are laid out
+					 * past the row's left edge and disappear under the books sidebar.
+					 */}
+					<div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-end gap-2 px-4 pt-4 md:px-6 md:pt-6">
 						<ChapterCompleteButton />
 
 						{hasChapterAnchor && (
@@ -359,6 +374,36 @@ export function ReaderEngine({
 								)}
 							</Button>
 						)}
+
+						{/*
+						 * Text size. Scales the scripture column only — which is the point,
+						 * and what browser zoom cannot do: it would take the toolbar, the
+						 * steps sidebar and the panel with it.
+						 */}
+						<div className="flex items-center">
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-8 w-8"
+								onClick={fontScale.decrease}
+								disabled={!fontScale.canDecrease}
+								title={t("reader.fontSize.decrease")}
+								aria-label={t("reader.fontSize.decrease")}
+							>
+								<AArrowDown className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-8 w-8"
+								onClick={fontScale.increase}
+								disabled={!fontScale.canIncrease}
+								title={t("reader.fontSize.increase")}
+								aria-label={t("reader.fontSize.increase")}
+							>
+								<AArrowUp className="h-4 w-4" />
+							</Button>
+						</div>
 
 						<div className="flex items-center gap-1 bg-muted rounded-lg p-1">
 							{MODES.map((m) => (
@@ -398,7 +443,15 @@ export function ReaderEngine({
 
 					{/* Reader column — owns its own scrolling and centring */}
 					<div ref={scrollerRef} className="min-h-0 flex-1 overflow-y-auto">
-						<div className="mx-auto w-full max-w-4xl px-4 py-4 md:px-6 md:py-6">
+						{/*
+						 * Every mode renders inside here, so one custom property sizes all
+						 * three — including Type mode, which builds its own per-character
+						 * tree but still opens it with `.bible-text`.
+						 */}
+						<div
+							className="mx-auto w-full max-w-4xl px-4 py-4 md:px-6 md:py-6"
+							style={{ "--reader-font-scale": fontScale.scale } as CSSProperties}
+						>
 							{isLoading ? (
 								<div className="flex items-center justify-center py-16">
 									<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -446,6 +499,14 @@ export function ReaderEngine({
 										/>
 									)}
 								</>
+							) : loadError ? (
+								<div className="text-center py-12">
+									<CloudOff className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+									<p className="font-medium">{t("bible.unavailableTitle")}</p>
+									<p className="mt-1 text-sm text-muted-foreground">
+										{t("bible.unavailableBody")}
+									</p>
+								</div>
 							) : (
 								<div className="text-center py-12">
 									<BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />

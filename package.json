@@ -13,6 +13,7 @@
     "seed:people": "tsx scripts/import-bible-people.ts",
     "seed:studies": "tsx scripts/seed-global-studies.ts",
     "seed:alignment": "tsx scripts/import-alignment.ts",
+    "warm:bible": "tsx scripts/warm-bible-text.ts",
     "upload:alignment": "tsx scripts/upload-alignment-blobs.ts"
   },
   "dependencies": {

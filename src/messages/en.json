@@ -196,6 +196,8 @@
     "nextChapter": "Next Chapter",
     "nextBook": "Next Book",
     "noContent": "No content available for this chapter.",
+    "unavailableTitle": "This chapter isn't available right now.",
+    "unavailableBody": "We couldn't load the text from our scripture provider. Please try again in a few minutes.",
     "recommendedTitle": "Recommended translations",
     "recommendedSubtitle": "One trusted translation per language — each one listenable, with dictionary and original-language support.",
     "readNow": "Read now"
@@ -314,7 +316,6 @@
     "accuracy": "Accuracy",
     "wpm": "WPM",
     "timeSpent": "Time",
-    "clickToStart": "Click here and start typing",
     "typeComplete": "Typing Complete!",
     "tryAgain": "Try Again",
     "completeStep": "Complete Step",
@@ -428,6 +429,10 @@
   },
   "reader": {
     "chapter": "Chapter {number}",
+    "fontSize": {
+      "decrease": "Smaller text",
+      "increase": "Larger text"
+    },
     "explanation": {
       "collapse": "Hide insight",
       "expand": "Show insight"

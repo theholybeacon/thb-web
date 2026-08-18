@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { readStored, writeStored } from "../readerPrefs";
 
 export type ReaderPanelSectionId =
 	| "dictionary"
@@ -20,25 +21,6 @@ const OPEN_KEY = "reader-panel-open";
  */
 const DEFAULT_EXPANDED: ReaderPanelSectionId[] = ["people", "notes"];
 const SECTIONS_KEY = "reader-panel-sections";
-
-function readStored<T>(key: string, fallback: T): T {
-	if (typeof window === "undefined") return fallback;
-	try {
-		const raw = window.localStorage.getItem(key);
-		return raw === null ? fallback : (JSON.parse(raw) as T);
-	} catch {
-		return fallback;
-	}
-}
-
-function writeStored(key: string, value: unknown): void {
-	if (typeof window === "undefined") return;
-	try {
-		window.localStorage.setItem(key, JSON.stringify(value));
-	} catch {
-		/* storage disabled — the panel still works, it just won't remember */
-	}
-}
 
 /**
  * Open/collapsed state for the reader info panel, plus which sections are

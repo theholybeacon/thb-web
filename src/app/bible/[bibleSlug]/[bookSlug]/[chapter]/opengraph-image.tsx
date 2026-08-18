@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { bibleGetByVersionSS } from "@/app/common/bible/service/server/bibleGetByVersionSS";
 import { bookGetByAbbreviationAndBibleIdSS } from "@/app/common/book/service/server/bookGetByAbbreviationAndBibleIdSS";
-import { chapterGetByBookIdSS } from "@/app/common/chapter/service/chapterGetByBookIdSS";
+import { chapterGetStoredSS } from "@/app/common/chapter/service/chapterGetStoredSS";
 import { ogFonts, ogText } from "@/lib/og/fonts";
 import { OG_THEME, brandAlpha } from "@/lib/og/theme";
 import { ogLogo } from "@/lib/og/logo";
@@ -20,8 +20,10 @@ export default async function OgImage({ params }: { params: Promise<Params> }) {
 
   const bible = await bibleGetByVersionSS(bibleSlug);
   const book = bible ? await bookGetByAbbreviationAndBibleIdSS(bible.id, bookSlug) : null;
-  const chapterData =
-    bible && book ? await chapterGetByBookIdSS(book.id, book.name, chapterNum) : null;
+  // Stored text only. This runs in its own request, so it cannot share the
+  // page's fetch, and it is mostly hit by crawlers — hydrating here would spend
+  // api.bible quota on an image rather than on a reader.
+  const chapterData = bible && book ? await chapterGetStoredSS(book.id, chapterNum) : null;
 
   const reference = ogText(book ? `${book.name} ${chapterNum}` : "The Holy Beacon");
   const translation = ogText(bible?.name ?? "");

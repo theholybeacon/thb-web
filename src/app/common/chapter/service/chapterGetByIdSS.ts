@@ -1,6 +1,7 @@
 'use server';
 
 import { ChapterRepository } from "../repository/ChapterRepository";
+import { loadFullChapter } from "./chapterLoad";
 import { ChapterFull } from "../model/Chapter";
 
 export async function chapterGetByIdSS(chapterId: string): Promise<ChapterFull | null> {
@@ -11,9 +12,11 @@ export async function chapterGetByIdSS(chapterId: string): Promise<ChapterFull |
         const chapterWithBook = await chapterRepo.getByIdWithBook(chapterId);
         if (!chapterWithBook) return null;
 
-        // If we need to fetch verses from external API
+        // Short of the verse count upstream reported: hydrate the rest. This
+        // was dead code until hydration began writing numVerses — the column
+        // read 0 for every chapter, so nothing ever looked incomplete.
         if (chapterWithBook.verses.length < (chapterWithBook.numVerses || 0)) {
-            const fullChapter = await chapterRepo.getFullChapter(chapterWithBook.bookId, chapterWithBook.chapterNumber);
+            const fullChapter = await loadFullChapter(chapterWithBook.bookId, chapterWithBook.chapterNumber);
             return {
                 ...fullChapter,
                 book: chapterWithBook.book

@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { ChapterMentions } from "@/app/common/entity/model/Entity";
+import type { ChapterLoadError } from "@/app/common/chapter/model/ChapterFetchError";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, BookOpen, Loader2 } from "lucide-react";
 import { ReaderEngine, ReaderMode } from "@/components/reader/ReaderEngine";
 
 interface ExplorerViewProps {
   verses: Verse[];
+  /** Set when the chapter text could not be fetched — see ChapterFetchError. */
+  loadError?: ChapterLoadError | null;
   bookName: string;
   chapterNumber: number;
   bibleSlug: string;
@@ -33,6 +36,7 @@ interface ExplorerViewProps {
 
 export function ExplorerView({
   verses,
+  loadError = null,
   bookName,
   chapterNumber,
   bibleSlug,
@@ -88,6 +92,7 @@ export function ExplorerView({
       <div className="min-h-0 flex-1">
         <ReaderEngine
           verses={verses}
+          loadError={loadError}
           mode={currentMode}
           onModeChange={setCurrentMode}
           bookName={bookName}
