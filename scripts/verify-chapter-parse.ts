@@ -47,6 +47,7 @@ async function main() {
 	const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 	let mismatches = 0;
 	let checked = 0;
+	let quotaBlocked = false;
 
 	for (const t of targets()) {
 		const { rows: meta } = await pool.query<{ bible_api_id: string; chapter_id: string }>(
@@ -79,7 +80,9 @@ async function main() {
 			`&include-verse-spans=false&use-org-id=false`;
 		const res = await fetch(url, { headers: { "api-key": API_KEY } });
 		if (!res.ok) {
-			console.log(`FAIL ${t.bible} ${t.book} ${t.chapter} — HTTP ${res.status} ${(await res.text()).slice(0, 100)}`);
+			const body = await res.text();
+			if (res.status === 403 && /limit/i.test(body)) quotaBlocked = true;
+			console.log(`FAIL ${t.bible} ${t.book} ${t.chapter} — HTTP ${res.status} ${body.slice(0, 100)}`);
 			mismatches++;
 			continue;
 		}
@@ -112,9 +115,20 @@ async function main() {
 	}
 
 	console.log(`\n${"=".repeat(52)}`);
-	if (checked === 0) console.log("Nothing checked.");
-	else if (mismatches === 0) console.log("PASS — parsed text matches stored text.");
-	else console.log(`REVIEW — ${mismatches} chapter(s) did not match. Do not warm until resolved.`);
+	if (quotaBlocked) {
+		// Not a verdict on the parser — we never got a payload to judge it by.
+		console.log("BLOCKED — api.bible daily limit exceeded; nothing could be verified.");
+		console.log("Re-run once the quota resets, BEFORE warming.");
+		process.exitCode = 2;
+	} else if (checked === 0) {
+		console.log("BLOCKED — no chapter could be fetched or compared.");
+		process.exitCode = 2;
+	} else if (mismatches === 0) {
+		console.log(`PASS — ${checked} chapter(s) parsed identically to the stored text.`);
+	} else {
+		console.log(`REVIEW — ${mismatches} of ${checked + mismatches} chapter(s) did not match. Do not warm until resolved.`);
+		process.exitCode = 1;
+	}
 
 	await pool.end();
 }

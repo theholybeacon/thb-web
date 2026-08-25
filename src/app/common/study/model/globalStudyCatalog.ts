@@ -1,5 +1,6 @@
 import { GlobalStudyDef } from "./globalStudy";
 import { CHRONOLOGICAL_PLAN } from "./plans/chronological";
+import { COVER_TO_COVER_PLAN } from "./plans/coverToCover";
 
 /**
  * Every plan offered in the global catalog, in display order.
@@ -10,6 +11,7 @@ import { CHRONOLOGICAL_PLAN } from "./plans/chronological";
  */
 export const GLOBAL_STUDIES: GlobalStudyDef[] = [
 	CHRONOLOGICAL_PLAN,
+	COVER_TO_COVER_PLAN,
 ];
 
 export function globalStudyDef(slug: string): GlobalStudyDef | undefined {

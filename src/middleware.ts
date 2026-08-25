@@ -16,6 +16,11 @@ const isPublicRoute = createRouteMatcher([
   // unauthenticated API requests, so leaving these protected silently breaks them.
   '/api/cron(.*)',
   '/api/email(.*)',
+  // Read-only content API for our own tooling. Carries its own API-key auth
+  // (src/lib/contentApi/auth.ts) and must bypass Clerk for the same reason as
+  // the two above — Clerk answers 404 to unauthenticated API requests, which
+  // would look like a routing bug rather than an auth failure.
+  '/api/content(.*)',
   '/bible(.*)',
   // Shared journey pages. These are opened by people who are not signed in (that
   // is the point of sharing), and Clerk answers 404 rather than 401 to anonymous

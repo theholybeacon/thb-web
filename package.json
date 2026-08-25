@@ -8,12 +8,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
     "studio": "tsx studio/cli.ts",
     "migrate": "tsx scripts/apply-migration.ts",
     "seed:people": "tsx scripts/import-bible-people.ts",
     "seed:studies": "tsx scripts/seed-global-studies.ts",
     "seed:alignment": "tsx scripts/import-alignment.ts",
     "warm:bible": "tsx scripts/warm-bible-text.ts",
+    "knowledge:refresh": "tsx scripts/knowledge-refresh.ts",
     "upload:alignment": "tsx scripts/upload-alignment-blobs.ts"
   },
   "dependencies": {
@@ -89,6 +91,7 @@
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
   }
 }

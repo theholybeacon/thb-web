@@ -24,12 +24,15 @@ import { GlobalStudyDef } from "../globalStudy";
  *
  * Every canonical chapter appears exactly once — enforced by
  * validateGlobalStudy, which the seed script runs before writing anything.
+ *
+ * The plain canonical-order alternative, one whole book at a time, is
+ * plans/coverToCover.ts.
  */
 export const CHRONOLOGICAL_PLAN: GlobalStudyDef = {
 	slug: "chronological",
 	name: "Just Read the Bible",
 	description:
-		"The whole Bible, in the order the events happened. Job sits with the patriarchs, Chronicles beside Samuel and Kings, each prophet in the reign he preached to, and the letters of Paul interleaved into the journeys of Acts. 102 readings covering all 1,189 chapters exactly once. Chronological by book and section rather than chapter by chapter: the Psalms are read as their own five books beside David's reign, and the four Gospels one after another rather than harmonized.",
+		"The Bible read with some variance to keep it fresh: the whole thing, in the order the events happened. Job sits with the patriarchs, Chronicles beside Samuel and Kings, each prophet in the reign he preached to, and the letters of Paul interleaved into the journeys of Acts. 102 readings covering all 1,189 chapters exactly once. Chronological by book and section rather than chapter by chapter: the Psalms are read as their own five books beside David's reign, and the four Gospels one after another rather than harmonized.",
 	topic:
 		"Read the entire Bible from Genesis to Revelation in chronological order, with each book and section placed at the point in history where it belongs.",
 	length: 10,

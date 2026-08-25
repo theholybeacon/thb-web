@@ -24,7 +24,11 @@ export default async function BibleReaderLayout({ children, params }: LayoutProp
     // toolbars do not push the reader's sticky footer out of view.
     <div className="flex h-[calc(100dvh-var(--thb-header-h,3.5rem))]">
       <ExplorerSidebar bible={bible} books={books} />
-      <main className="flex-1 overflow-y-auto">
+      {/* min-w-0: a flex item defaults to min-width:auto, so without it the
+          books sidebar props this row past the viewport on narrow screens.
+          AppShell carries the same guard, but the signed-out branch of
+          app/bible/layout.tsx has no equivalent wrapper. */}
+      <main className="flex-1 min-w-0 overflow-y-auto">
         {children}
       </main>
     </div>

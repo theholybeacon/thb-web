@@ -22,9 +22,12 @@ import {
   X,
   ArrowLeft,
   Loader2,
+  PanelLeft,
+  PanelLeftClose,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ListenableIndicator } from "@/components/audio/ListenableIndicator";
+import { useExplorerSidebar } from "./useExplorerSidebar";
 
 interface ExplorerSidebarProps {
   bible: Bible;
@@ -48,6 +51,7 @@ export function ExplorerSidebar({ bible, books }: ExplorerSidebarProps) {
   const currentChapter = pathParts[4] ? parseInt(pathParts[4], 10) : undefined;
 
   const [expandedBooks, setExpandedBooks] = useState<Set<string>>(new Set());
+  const { open, openSidebar, closeSidebar } = useExplorerSidebar();
 
   // Clear loading state when pathname changes (navigation completed)
   useEffect(() => {
@@ -81,6 +85,15 @@ export function ExplorerSidebar({ bible, books }: ExplorerSidebarProps) {
 
   const filteredOT = filterBooks(oldTestament);
   const filteredNT = filterBooks(newTestament);
+
+  /**
+   * Below `lg` the book list covers the reader, so picking a chapter has to
+   * dismiss it — otherwise the reader lands on a chapter they cannot see.
+   * Read in a handler, never during render, so SSR stays honest.
+   */
+  const dismissOnNarrow = () => {
+    if (!window.matchMedia("(min-width: 1024px)").matches) closeSidebar();
+  };
 
   const toggleBook = (abbr: string) => {
     const newExpanded = new Set(expandedBooks);
@@ -135,6 +148,7 @@ export function ExplorerSidebar({ bible, books }: ExplorerSidebarProps) {
                   key={chapter}
                   href={`/bible/${bibleSlug}/${bookSlug}/${chapter}`}
                   onClick={(e) => {
+                    dismissOnNarrow();
                     if (isCurrentChapter) return;
                     e.preventDefault();
                     setLoadingChapter({ book: bookSlug, chapter });
@@ -165,8 +179,13 @@ export function ExplorerSidebar({ bible, books }: ExplorerSidebarProps) {
     );
   };
 
-  return (
-    <aside className="w-72 border-r bg-card flex flex-col h-full flex-shrink-0">
+  /**
+   * Rendered twice: in flow inside the aside on `lg`, and as a full-screen
+   * overlay below it. Hoisted rather than duplicated, the same way SessionView
+   * shares its steps sidebar between breakpoints.
+   */
+  const panelBody = (
+    <>
       {/* Header */}
       <div className="p-4 border-b space-y-3">
         <div className="flex items-center gap-2">
@@ -182,13 +201,26 @@ export function ExplorerSidebar({ bible, books }: ExplorerSidebarProps) {
               <ListenableIndicator audioEnabled={bible.audioEnabled} />
             </p>
           </div>
+          {/* Collapse. On desktop this shrinks the aside to its rail; below `lg`
+              it dismisses the overlay, so the icon says so. */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 flex-shrink-0"
+            onClick={closeSidebar}
+            title={t("hideBooks")}
+            aria-label={t("hideBooks")}
+          >
+            <PanelLeftClose className="h-4 w-4 hidden lg:block" />
+            <X className="h-4 w-4 lg:hidden" />
+          </Button>
         </div>
 
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search books..."
+            placeholder={t("searchBooks")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8 h-8 text-sm"
@@ -244,6 +276,59 @@ export function ExplorerSidebar({ bible, books }: ExplorerSidebarProps) {
           )}
         </div>
       </ScrollArea>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/*
+       * The aside stays in flow at every breakpoint so the reader is never
+       * covered by a sidebar it cannot see the edge of. Collapsed it is a 48px
+       * rail; expanded it is the full panel on `lg`, and the overlay below.
+       */}
+      <aside
+        className={cn(
+          "flex h-full flex-shrink-0 flex-col border-r bg-card transition-[width] duration-300",
+          open === false ? "w-12" : "w-12 lg:w-72"
+        )}
+      >
+        {/* Rail. Below `lg` it is the only thing the aside ever shows — the
+            expanded panel lives in the overlay, so the reading column keeps its
+            width whether the list is open or not. */}
+        <div
+          className={cn(
+            "flex flex-col items-center gap-1 py-3",
+            open !== false && "lg:hidden"
+          )}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={openSidebar}
+            title={t("showBooks")}
+            aria-label={t("showBooks")}
+          >
+            <PanelLeft className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Desktop: the panel in flow, reflowing the reader instead of covering it. */}
+        {open !== false && (
+          <div className="hidden min-h-0 flex-1 flex-col lg:flex">{panelBody}</div>
+        )}
+      </aside>
+
+      {/*
+       * Mobile: no room to reflow, so the panel takes the screen below the
+       * chrome. --thb-header-h inherits down here, so this sits flush under
+       * both the public header (3.5rem) and the app shell's (4rem).
+       */}
+      {open === true && (
+        <div className="fixed inset-x-0 bottom-0 top-[var(--thb-header-h,3.5rem)] z-40 flex flex-col bg-card lg:hidden">
+          {panelBody}
+        </div>
+      )}
+    </>
   );
 }

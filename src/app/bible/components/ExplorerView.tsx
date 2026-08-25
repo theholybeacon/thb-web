@@ -128,8 +128,10 @@ export function ExplorerView({
             <span className="sm:hidden">{t("common.previous")}</span>
           </Button>
 
-          {/* Center - Chapter indicator */}
-          <div className="text-center">
+          {/* Center - Chapter indicator. Hidden on the narrowest screens, where
+              the two nav buttons alone fill the row — the sticky header above
+              already names the chapter. */}
+          <div className="hidden text-center sm:block">
             <p className="text-sm font-medium">
               {bookName} {chapterNumber}
             </p>
