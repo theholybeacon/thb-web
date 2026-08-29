@@ -2,15 +2,21 @@ import { defineConfig } from "vitest/config";
 import path from "node:path";
 
 /**
- * Test setup exists ONLY for the Content API (docs/content-api.md).
+ * Test setup started life as the Content API's alone (docs/content-api.md).
  *
- * This repo had no test runner before it; the rest of the app is unchanged and
- * untested by this config. `include` is scoped deliberately so `npm run test`
- * cannot start reporting on code nobody has written tests for.
+ * This repo had no test runner before it, so `include` stays an explicit list
+ * rather than a repo-wide test glob: `npm run test` must never start reporting
+ * on code nobody has written tests for. Add a path here when you add a test.
  */
 export default defineConfig({
 	test: {
-		include: ["src/lib/contentApi/**/*.test.ts", "src/app/api/content/**/*.test.ts"],
+		include: [
+			"src/lib/contentApi/**/*.test.ts",
+			"src/app/api/content/**/*.test.ts",
+			"src/lib/username.test.ts",
+			"src/lib/prices.test.ts",
+			"src/lib/warmPriority.test.ts",
+		],
 		environment: "node",
 	},
 	resolve: {

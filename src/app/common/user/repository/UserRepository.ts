@@ -20,6 +20,10 @@ export class UserRepository {
         return await this.dao.getByEmail(email);
     }
 
+    async getByUsername(username: string): Promise<User | null> {
+        return await this.dao.getByUsername(username);
+    }
+
     async update(u: User): Promise<void> {
         return await this.dao.update(u);
     }

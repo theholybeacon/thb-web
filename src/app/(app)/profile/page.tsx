@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { useUser } from "@clerk/nextjs";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { userUpdateProfileSS } from "@/app/common/user/service/server/userUpdateProfileSS";
 import { AppShell } from "@/components/app";
@@ -18,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EmailRemindersToggle } from "@/components/profile/EmailRemindersToggle";
+import { UsernameField, UsernameStatus } from "@/app/auth/components/UsernameField";
+import { normalizeUsername } from "@/lib/username";
 import { User, Mail, Globe, Camera, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
@@ -61,6 +64,7 @@ const COUNTRIES = [
 export default function ProfilePage() {
 	const t = useTranslations();
 	const { user, loading, reload } = useLoggedUserContext();
+	const { user: clerkUser } = useUser();
 	const queryClient = useQueryClient();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,6 +72,7 @@ export default function ProfilePage() {
 	const [username, setUsername] = useState("");
 	const [profilePicture, setProfilePicture] = useState("");
 	const [country, setCountry] = useState("");
+	const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("empty");
 	const [saved, setSaved] = useState(false);
 	const [uploading, setUploading] = useState(false);
 
@@ -75,7 +80,10 @@ export default function ProfilePage() {
 	useEffect(() => {
 		if (user) {
 			setName(user.name || "");
-			setUsername(user.username || "");
+			// Normalized on load, not just on edit: a legacy handle derived from an
+			// email prefix ("jane.doe") is not valid under the current rules, and
+			// leaving it as typed would block saving the rest of the form.
+			setUsername(normalizeUsername(user.username || ""));
 			setProfilePicture(user.profilePicture || "");
 			setCountry(user.country || "");
 		}
@@ -84,13 +92,31 @@ export default function ProfilePage() {
 	const updateMutation = useMutation({
 		mutationFn: async () => {
 			if (!user?.id) throw new Error("User not found");
-			return await userUpdateProfileSS({
-				userId: user.id,
+
+			// Clerk first: it owns handle uniqueness across the whole instance, and
+			// sign-up writes the same value there. Letting the DB win here would
+			// leave the two identities pointing at different names.
+			if (username !== user.username) {
+				try {
+					await clerkUser?.update({ username });
+				} catch (err: unknown) {
+					const clerkError = err as { errors?: Array<{ code: string }> };
+					throw new Error(
+						clerkError.errors?.[0]?.code === "form_identifier_exists"
+							? "taken"
+							: "invalid"
+					);
+				}
+			}
+
+			const result = await userUpdateProfileSS({
 				name,
 				username,
 				profilePicture,
 				country,
 			});
+			if (!result.ok) throw new Error(result.error);
+			return result.user;
 		},
 		onSuccess: () => {
 			reload?.();
@@ -99,8 +125,14 @@ export default function ProfilePage() {
 			setSaved(true);
 			setTimeout(() => setSaved(false), 2000);
 		},
-		onError: () => {
-			toast.error(t("toast.failed"));
+		onError: (error: Error) => {
+			if (error.message === "taken") {
+				toast.error(t("auth.username.taken"));
+			} else if (error.message === "invalid") {
+				toast.error(t("auth.username.invalid"));
+			} else {
+				toast.error(t("toast.failed"));
+			}
 		},
 	});
 
@@ -227,18 +259,12 @@ export default function ProfilePage() {
 						</div>
 
 						{/* Username */}
-						<div className="space-y-2">
-							<Label htmlFor="username" className="flex items-center gap-2">
-								<span className="text-muted-foreground">@</span>
-								{t("profile.username")}
-							</Label>
-							<Input
-								id="username"
-								value={username}
-								onChange={(e) => setUsername(e.target.value)}
-								placeholder={t("profile.usernamePlaceholder")}
-							/>
-						</div>
+						<UsernameField
+							value={username}
+							onChange={setUsername}
+							onStatusChange={setUsernameStatus}
+							disabled={updateMutation.isPending}
+						/>
 
 						{/* Email (read-only) */}
 						<div className="space-y-2">
@@ -282,7 +308,7 @@ export default function ProfilePage() {
 						<div className="flex items-center gap-4">
 							<Button
 								type="submit"
-								disabled={updateMutation.isPending || uploading}
+								disabled={updateMutation.isPending || uploading || usernameStatus !== "available"}
 								className={cn(
 									"min-w-[140px]",
 									saved && "bg-green-600 hover:bg-green-600"

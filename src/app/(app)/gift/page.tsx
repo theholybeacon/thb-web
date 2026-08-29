@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,17 +12,9 @@ import { Gift, Mail, Users, Crown, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { membershipRequestGetAllPendingSS } from "@/app/common/membershipRequest/service/server/membershipRequestGetAllPendingSS";
-
-interface PriceData {
-	id: string;
-	amount: number | null;
-	currency: string;
-}
-
-interface PricesResponse {
-	monthly: PriceData | null;
-	yearly: PriceData | null;
-}
+import { formatPrice } from "@/lib/prices";
+import { usePrices } from "@/lib/usePrices";
+import { toast } from "@/lib/toast";
 
 export default function GiftPage() {
 	const t = useTranslations("gift");
@@ -33,33 +25,11 @@ export default function GiftPage() {
 	const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 	const [billingInterval, setBillingInterval] = useState<"month" | "year">("year");
 	const [isLoading, setIsLoading] = useState(false);
-	const [prices, setPrices] = useState<PricesResponse | null>(null);
-	const [pricesLoading, setPricesLoading] = useState(true);
-
-	useEffect(() => {
-		async function fetchPrices() {
-			try {
-				const response = await fetch("/api/stripe/prices");
-				const data = await response.json();
-				setPrices(data);
-			} catch (error) {
-				console.error("Error fetching prices:", error);
-			} finally {
-				setPricesLoading(false);
-			}
-		}
-		fetchPrices();
-	}, []);
+	const { prices, status: pricesStatus, retry: retryPrices } = usePrices();
+	const locale = useLocale();
 
 	const selectedPrice = billingInterval === "year" ? prices?.yearly : prices?.monthly;
-
-	const formatPrice = (price: PriceData | null | undefined) => {
-		if (!price || price.amount === null) return "";
-		return new Intl.NumberFormat(undefined, {
-			style: "currency",
-			currency: price.currency,
-		}).format(price.amount / 100);
-	};
+	const selectedPriceLabel = formatPrice(selectedPrice, locale);
 
 	const { data: pendingRequests } = useQuery({
 		queryKey: ["membershipRequests", "pending"],
@@ -83,9 +53,12 @@ export default function GiftPage() {
 			const data = await response.json();
 			if (data.url) {
 				window.location.href = data.url;
+				return;
 			}
+			throw new Error(data.error || "checkout returned no url");
 		} catch (error) {
 			console.error("Error creating gift checkout:", error);
+			toast.error(tPremium("checkoutFailed"));
 		} finally {
 			setIsLoading(false);
 		}
@@ -245,21 +218,30 @@ export default function GiftPage() {
 							</div>
 						</div>
 
-						<Button
-							onClick={handleGift}
-							disabled={
-								isLoading ||
-								pricesLoading ||
-								!selectedPrice ||
-								(giftType === "email" && !recipientEmail) ||
-								(giftType === "queue" && !selectedRequestId)
-							}
-							size="lg"
-							className="w-full"
-						>
-							{isLoading ? t("processing") : pricesLoading ? tPremium("loading") : `${t("purchaseGift")} - ${formatPrice(selectedPrice)}`}
-							<ArrowRight className="ml-2 h-4 w-4" />
-						</Button>
+						{pricesStatus === "error" ? (
+							<div className="space-y-2 text-center">
+								<p className="text-sm text-muted-foreground">{tPremium("pricesUnavailable")}</p>
+								<Button onClick={retryPrices} variant="outline" size="lg" className="w-full">
+									{tPremium("retry")}
+								</Button>
+							</div>
+						) : (
+							<Button
+								onClick={handleGift}
+								disabled={
+									isLoading ||
+									pricesStatus === "loading" ||
+									!selectedPrice ||
+									(giftType === "email" && !recipientEmail) ||
+									(giftType === "queue" && !selectedRequestId)
+								}
+								size="lg"
+								className="w-full"
+							>
+								{isLoading ? t("processing") : !selectedPriceLabel ? tPremium("loading") : `${t("purchaseGift")} - ${selectedPriceLabel}`}
+								<ArrowRight className="ml-2 h-4 w-4" />
+							</Button>
+						)}
 					</div>
 				</div>
 			</div>

@@ -6,6 +6,8 @@ import { userGetByAuthIdSS } from '../common/user/service/server/userGetByAuthId
 import { userGetByEmailSS } from '../common/user/service/server/userGetByEmailSS';
 import { userCreateSS } from '../common/user/service/server/userCreateSS';
 import { userUpdateSS } from '../common/user/service/server/userUpdateSS';
+import { usernameCheckSS } from '../common/user/service/server/usernameCheckSS';
+import { normalizeUsername } from '@/lib/username';
 import { User } from '../common/user/model/User';
 import { subscriptionGetByUserIdSS } from '../common/subscription/service/server/subscriptionGetByUserIdSS';
 import { isPremiumUser } from '@/lib/premium';
@@ -145,6 +147,25 @@ async function fetchSubscriptionStatus(
   }
 }
 
+/**
+ * user.username is NOT NULL UNIQUE, so a collision here does not degrade the
+ * handle — it aborts the insert and leaves the person with no row at all. Walk
+ * a few suffixes until one is free rather than betting on the first guess.
+ */
+async function pickAvailableUsername(base: string): Promise<string> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const candidate = attempt === 0 ? base : `${base}-${attempt + 1}`;
+    try {
+      const { available } = await usernameCheckSS(candidate);
+      if (available) return candidate;
+    } catch {
+      // Lookup failed — let the insert be the judge instead of spinning here.
+      return candidate;
+    }
+  }
+  return `${base}-${Date.now().toString(36)}`;
+}
+
 async function fetchOrCreateUser(clerkUserId: string, clerkUser: ClerkUserData): Promise<User> {
   // First, try to find user by authId
   try {
@@ -156,7 +177,11 @@ async function fetchOrCreateUser(clerkUserId: string, clerkUser: ClerkUserData):
 
   const email = clerkUser.primaryEmailAddress?.emailAddress || '';
   const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || 'User';
-  const username = clerkUser.username || email.split('@')[0] || `user_${Date.now()}`;
+  // Since sign-up collects a handle, clerkUser.username is normally set and this
+  // is a straight copy. The fallbacks only cover accounts created before that.
+  const username = await pickAvailableUsername(
+    normalizeUsername(clerkUser.username || email.split('@')[0]) || `user-${clerkUserId.slice(-8).toLowerCase()}`
+  );
 
   // Check if user exists by email (might have different authId)
   if (email) {

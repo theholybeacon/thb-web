@@ -1,0 +1,70 @@
+name: warm-quota
+
+# api.bible's daily request allowance does not roll over: whatever is unspent
+# when it resets is simply gone. This job runs an hour before that, once live
+# readers have already had the whole day's headroom, and spends the remainder
+# warming verse text — recommended bibles first, in the language order set by
+# src/lib/warmPriority.ts, because a nightly run is always cut off mid-worklist.
+#
+# The script owns both stopping conditions: the upstream 403 that means the
+# allowance is spent, and its own reset deadline, so this can never start eating
+# into tomorrow's quota.
+
+on:
+  schedule:
+    # 23:00 UTC — one hour before the quota day ends. GitHub's scheduler drifts
+    # 5-20 minutes under load; --drain's deadline is what keeps a late start from
+    # spilling past midnight, so the drift is harmless.
+    - cron: "0 23 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Print the worklist and spend nothing"
+        type: boolean
+        default: true
+
+# A run delayed into the next night queues behind rather than overlapping: two
+# concurrent drains would race on the same worklist and pay twice for chapters.
+concurrency:
+  group: warm-quota
+  cancel-in-progress: false
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    # A full drain is roughly 45-55 minutes at 250ms between requests. This is a
+    # hang guard, not a budget — the script decides when to stop.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        env:
+          # playwright is a devDependency whose postinstall pulls browser
+          # binaries this job never launches.
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: npm ci
+
+      - name: Warm bible text
+        env:
+          # The script's own dotenv call finds no .env.local here and no-ops;
+          # dotenv never overrides values already in the environment, so these win.
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BIBLE_API_KEY: ${{ secrets.BIBLE_API_KEY }}
+        run: |
+          set -o pipefail
+          npx tsx scripts/warm-bible-text.ts --drain ${{ inputs.dry_run && '--dry-run' || '' }} | tee warm.log
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '```'
+            tail -n 20 warm.log 2>/dev/null || echo "no output — the warm step failed before it ran"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

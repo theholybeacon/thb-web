@@ -15,6 +15,10 @@ export default function SSOCallbackPage() {
         await handleRedirectCallback({
           afterSignInUrl: "/home",
           afterSignUpUrl: "/home",
+          // Clerk still needs a username to finish an OAuth sign-up. Without
+          // this, clerk-js sends the user to its hosted Account Portal to pick
+          // one; this keeps that step on our own domain.
+          continueSignUpUrl: "/auth/complete-profile",
         });
       } catch (err) {
         console.error("SSO callback error:", err);

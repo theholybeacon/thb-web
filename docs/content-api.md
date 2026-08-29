@@ -17,10 +17,16 @@ here comes from the same database and the same services that render the app.
 
 | | |
 |---|---|
-| Production | `https://theholybeacon.com/api/content/v1` |
+| Production | `https://www.theholybeacon.com/api/content/v1` |
 | Local | `http://localhost:3014/api/content/v1` |
 | Auth header | `x-api-key: <secret>` |
 | Format | JSON. Every response carries `apiVersion`. |
+
+**Use the `www` host.** The apex `theholybeacon.com` answers `308` and redirects
+to `www`. A 308 is required to preserve the method and headers, but not every
+HTTP client re-sends a custom header like `x-api-key` across a redirect — and the
+failure looks like a `401` rather than a redirect problem. Point at `www`
+directly and the question never comes up.
 
 Keys live in the `CONTENT_API_KEYS` environment variable as comma-separated
 `label:secret` pairs — the same pattern as `CRON_SECRET`. Issue one key per
@@ -38,7 +44,7 @@ silently publish the whole catalogue.
 
 ```bash
 curl -H "x-api-key: $CONTENT_API_KEY" \
-  "https://theholybeacon.com/api/content/v1/verses/john-3-16?translation=bsb-en"
+  "https://www.theholybeacon.com/api/content/v1/verses/john-3-16?translation=bsb-en"
 ```
 
 ---
@@ -86,6 +92,14 @@ quota is **shared with live readers**.
 - **Do not crawl cold chapters.** To make a translation reliably available, warm
   it once: `npm run warm:bible -- --bible bsb-en`.
 
+Coverage also improves on its own: a nightly job spends whatever is left of the
+upstream daily allowance an hour before it resets, so `404 NOT_HYDRATED` clears
+over time without anyone asking. It works through the recommended translations
+first — `bsb-en`, `rvr09-sp`, `db1885-it`, `jnd-fr`, `l1912-ge`, `blt-po` — then
+`kjv-en`, `web-en`, `asv-en`. Expect the English recommendation to be complete
+well before the tail; do not read partial coverage of a later translation as a
+permanent gap.
+
 ### "Read-only" — precisely what is guaranteed
 
 No endpoint here mutates user state or product state. There is no `POST`, `PUT`,
@@ -131,7 +145,7 @@ The catalogue: everything needed to construct a valid request anywhere else,
 plus the real counts behind the product's claims.
 
 ```bash
-curl -H "x-api-key: $KEY" https://theholybeacon.com/api/content/v1/meta
+curl -H "x-api-key: $KEY" https://www.theholybeacon.com/api/content/v1/meta
 ```
 
 ```jsonc
@@ -197,7 +211,7 @@ Exact verse text, **verbatim from the database**.
 
 ```bash
 curl -H "x-api-key: $KEY" \
-  "https://theholybeacon.com/api/content/v1/verses/genesis-1-1-3?translation=bsb-en"
+  "https://www.theholybeacon.com/api/content/v1/verses/genesis-1-1-3?translation=bsb-en"
 ```
 
 ```jsonc
@@ -247,7 +261,7 @@ Browse or search the character library.
 
 ```bash
 curl -H "x-api-key: $KEY" \
-  "https://theholybeacon.com/api/content/v1/characters?q=moses"
+  "https://www.theholybeacon.com/api/content/v1/characters?q=moses"
 ```
 
 ```jsonc
@@ -312,9 +326,18 @@ returns `profile.status: "not_generated"` with a message, and no narrative
 fields. That means "not written yet", not "this person has no story" — the
 `scripture` block is still fully populated either way.
 
-`citationsValid` reports whether every generated citation survived verification
-against the character's real verse mentions. Treat `false` as a reason not to
-quote that profile's narrative.
+`citationsValid` reports whether **every** citation the model offered survived
+verification against the verses that literally name this character.
+
+In practice it is `false` on roughly 4 profiles in 10, and that is not a
+fabrication signal. References that survive are always real — the filter drops anything it
+cannot match, so nothing invented reaches the response. `false` usually means the
+model cited a verse where the person is present but not named (Exodus 20:1 for
+Moses, say), which the name-mention dataset does not record.
+
+Read it as *"some citations were dropped"*, not *"this profile is untrustworthy"*.
+A section whose ref array is empty is simply uncited — the prose still stands, but
+nothing in the response backs it.
 
 ---
 
@@ -329,7 +352,7 @@ Narration audio for a passage, with the timing data an animation needs.
 
 ```bash
 curl -H "x-api-key: $KEY" \
-  "https://theholybeacon.com/api/content/v1/narration/gen-2-5-7?translation=bsb-en&voice=sage"
+  "https://www.theholybeacon.com/api/content/v1/narration/gen-2-5-7?translation=bsb-en&voice=sage"
 ```
 
 ```jsonc
@@ -368,13 +391,14 @@ on its own zero-based timeline.
 Non-verse segments (`kind: "heading"`) appear only in whole-chapter requests.
 
 **This endpoint never generates audio.** Narration is produced by a premium,
-signed-in action against a licence-cleared translation. If it has not been
-produced, you get a `404` explaining which case you hit:
+signed-in action against a licence-cleared translation, or ahead of time by
+`npm run backfill:narration` (see **Pre-generating content** below). If it has
+not been produced, you get a `404` explaining which case you hit:
 
 | `error` | `status` | Meaning |
 |---|---|---|
 | `NOT_LICENSED` | `not_licensed` | This translation may never be narrated. Pick another; do not retry. |
-| `NOT_GENERATED` | `not_generated` | Not produced yet. Pre-generate with `scripts/backfill-bible-audio.ts`. |
+| `NOT_GENERATED` | `not_generated` | Not produced yet. Pre-generate with `npm run backfill:narration`. |
 | `NOT_GENERATED` | `not_ready:generating` | Being produced right now. Retry shortly. |
 
 ---
@@ -462,6 +486,39 @@ that Scripture is missing.
 
 ---
 
+## Pre-generating content
+
+Three things in this product are produced on demand and therefore missing until
+someone asks for them. For an automated consumer that is the difference between a
+working endpoint and a useful one, so each has a backfill command.
+
+| Missing | Command | Cost |
+|---|---|---|
+| Verse text | `npm run warm:bible -- --bible bsb-en` | Upstream api.bible requests, ~5k/day shared with live readers |
+| Character profiles | `npm run backfill:profiles -- --top 100` | One small model call per character |
+| Narration + verse timings | `npm run backfill:narration -- --chapters psa-23,jhn-3` | Text-to-speech per verse — **the expensive one** |
+
+Order matters: narration needs cached verse text, so warm before narrating.
+
+```bash
+# What would be generated, and what it would cost. Generates nothing.
+npm run backfill:profiles   -- --dry-run --top 100
+npm run backfill:narration  -- --daily-verses --dry-run
+```
+
+`backfill:narration --dry-run` prints per-chapter verse counts, character counts
+and projected audio minutes. **Always run it first** — it is the only cost gate,
+and unlike the other two this one bills per minute of audio produced.
+
+`--daily-verses` narrows to exactly the chapters the verse-of-the-day rotation
+touches, which is the highest-value set for a daily pipeline.
+
+Both backfills call the same code the app itself runs, so pre-generated content
+is indistinguishable from content a reader triggered, and is shared with readers
+rather than duplicated.
+
+---
+
 ## Rate limits and budgets
 
 | Variable | Default | Effect |
@@ -506,8 +563,9 @@ Database-backed tests skip themselves when `DATABASE_URL` is unset.
 The `product-knowledge/` folder is generated from this API. Refresh it as part of
 a release:
 
-This repository has no CI, so the refresh is a **documented manual release step**
-rather than an automated job.
+The only scheduled job in this repository warms Bible text
+(`.github/workflows/warm-quota.yml`); nothing runs tests or docs on push, so the
+refresh is a **documented manual release step** rather than an automated job.
 
 ```bash
 npm run knowledge:refresh -- --dry-run   # 1. review what would change
@@ -546,7 +604,7 @@ Everything the marketing pipeline needs to configure:
 
 | | |
 |---|---|
-| **Base URL** | `https://theholybeacon.com/api/content/v1` (`NEXT_PUBLIC_BASE_URL` + `/api/content/v1`) |
+| **Base URL** | `https://www.theholybeacon.com/api/content/v1` (`NEXT_PUBLIC_BASE_URL` + `/api/content/v1`) |
 | **Auth** | `x-api-key: <secret>` on every request |
 | **Getting a key** | Add a `label:secret` pair to `CONTENT_API_KEYS` in this app's environment. One key per consumer. |
 | **API contract** | This file. |

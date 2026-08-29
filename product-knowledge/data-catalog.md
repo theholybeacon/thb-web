@@ -14,13 +14,13 @@ Full technical contract: **`docs/content-api.md`** in the product repository.
 
 | | |
 |---|---|
-| Base URL | `https://theholybeacon.com/api/content/v1` |
+| Base URL | `https://www.theholybeacon.com/api/content/v1` |
 | Auth | `x-api-key: <secret>` on every request |
 | Format | JSON |
 
 ```bash
 curl -H "x-api-key: $CONTENT_API_KEY" \
-  "https://theholybeacon.com/api/content/v1/meta"
+  "https://www.theholybeacon.com/api/content/v1/meta"
 ```
 
 Start every session with `/meta`. It returns the whole catalogue, the real
@@ -41,7 +41,7 @@ publishing on.
 | Ready-made reading plans | 2 | `/studies` |
 | Verse of the day | 105 in rotation | `/daily-verse` |
 
-*Generated 2026-08-24 from the live product.*
+*Generated 2026-08-25 from the live product.*
 <!-- generated:end catalog -->
 
 ---
@@ -119,10 +119,20 @@ verses**.
 1. **Slugs are not names.** Moses is `moses_2108`. Always resolve through the
    search endpoint; never construct a slug.
 2. **`profile.status` may be `not_generated`.** That means the profile has not
-   been written yet, not that the person has no story. Scripture mentions are
-   present either way.
-3. **Respect `citationsValid`.** If it is `false`, a citation failed verification
-   — do not quote that profile's narrative.
+   been written yet, not that the person has no story — scripture mentions are
+   present either way. The **~107 most-mentioned characters are already written**,
+   which covers every recognisable name; the ~2,900-person tail mostly is not.
+   Filter on `status: "ready"` rather than assuming.
+3. **Understand `citationsValid` before you act on it.** It is `false` on roughly
+   4 profiles in 10, and it does **not** mean the profile contains fabrications.
+   Every reference that survives into the response has been checked against the
+   verses that literally name that person, so **the refs you receive are always
+   real**. `false` only means some citations the model offered were *dropped* —
+   usually because it cited a verse where the person is present but not named by
+   name. So: quote the narrative, cite only the refs actually present, and never
+   imply a sentence is backed by a citation that isn't in the response.
+   If a section has an empty ref array, treat that section as uncited — use it
+   for understanding, not as a sourced claim.
 4. **Credit the dataset.** Character data is CC-BY-SA 4.0 and share-alike.
    Every response carries a ready-made `attribution` string; use it.
 5. Every claim in a profile is tied to a verse. If you want to state something
@@ -215,7 +225,7 @@ which you can pass straight back to `/verses` or `/narration`.
 ## Building a link back to the product
 
 Most responses include a `readerUrl` or `verseUrl`. Prefix it with
-`https://theholybeacon.com`:
+`https://www.theholybeacon.com`:
 
 | Content | Link |
 |---|---|
@@ -237,7 +247,7 @@ a campaign.
 | `401 UNAUTHORIZED` | Missing or wrong key | Fix the key. |
 | `404 NOT_HYDRATED` | Chapter not loaded yet | Pick another passage; ask for pre-loading. |
 | `404 CHAPTER_NOT_FOUND` | Does not exist in that translation | **Settled.** Never retry. |
-| `404 NOT_GENERATED` | Audio not produced yet | Ask for pre-generation. |
+| `404 NOT_GENERATED` | Audio not produced yet | Ask for it to be pre-generated. |
 | `404 NOT_LICENSED` | Translation may never be narrated | **Settled.** Use another translation. |
 | `429 RATE_LIMITED` | Too fast | Honour `Retry-After`. |
 | `503 UPSTREAM_QUOTA_EXCEEDED` | Daily text allowance spent | **Temporary.** Back off until tomorrow. |

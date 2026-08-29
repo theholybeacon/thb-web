@@ -1,71 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Gift, Users, Sparkles, Crown, Book } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-
-interface PriceData {
-  id: string;
-  amount: number | null;
-  currency: string;
-}
-
-interface PricesResponse {
-  monthly: PriceData | null;
-  yearly: PriceData | null;
-}
-
-// Display-only fallback so the marketing card always shows a price, even if
-// Stripe is unreachable. Checkout always resolves the real price from Stripe.
-const FALLBACK_CURRENCY = "eur";
-const FALLBACK_MONTHLY_AMOUNT = 1000;
-const FALLBACK_YEARLY_AMOUNT = 10000;
-
-const FALLBACK_PRICES: PricesResponse = {
-  monthly: { id: "", amount: FALLBACK_MONTHLY_AMOUNT, currency: FALLBACK_CURRENCY },
-  yearly: { id: "", amount: FALLBACK_YEARLY_AMOUNT, currency: FALLBACK_CURRENCY },
-};
+import { formatPrice } from "@/lib/prices";
+import { usePrices } from "@/lib/usePrices";
 
 export function PricingSection() {
   const t = useTranslations("landing.pricing");
   const tPremium = useTranslations("premium");
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("year");
-  const [prices, setPrices] = useState<PricesResponse>(FALLBACK_PRICES);
+  // No hardcoded fallback: quoting a price nobody verified is worse than saying
+  // the price could not be loaded.
+  const { prices, status: pricesStatus, retry: retryPrices } = usePrices();
+  const locale = useLocale();
 
-  useEffect(() => {
-    async function fetchPrices() {
-      try {
-        const response = await fetch("/api/stripe/prices");
-        if (!response.ok) return;
-        const data: PricesResponse = await response.json();
-        setPrices({
-          monthly: data.monthly ?? FALLBACK_PRICES.monthly,
-          yearly: data.yearly ?? FALLBACK_PRICES.yearly,
-        });
-      } catch (error) {
-        console.error("Error fetching prices:", error);
-      }
-    }
-    fetchPrices();
-  }, []);
-
-  const selectedPrice = billingInterval === "year" ? prices.yearly : prices.monthly;
-
-  const formatPrice = (price: PriceData | null | undefined) => {
-    const amount = price?.amount ?? FALLBACK_MONTHLY_AMOUNT;
-    const currency = price?.currency ?? FALLBACK_CURRENCY;
-    // Round prices read better without trailing zeros, but never hide cents.
-    const fractionDigits = amount % 100 === 0 ? 0 : 2;
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-      minimumFractionDigits: fractionDigits,
-      maximumFractionDigits: fractionDigits,
-    }).format(amount / 100);
-  };
+  const selectedPrice = billingInterval === "year" ? prices?.yearly : prices?.monthly;
+  const selectedPriceLabel = formatPrice(selectedPrice, locale);
 
   const freeFeatures = [
     t("freeFeatures.explore"),
@@ -203,14 +157,23 @@ export function PricingSection() {
                 </button>
               </div>
 
-              <div className="mt-4 text-center">
-                <span className="text-4xl font-bold">
-                  {formatPrice(selectedPrice)}
-                </span>
-                <span className="text-muted-foreground">
-                  /{billingInterval === "year" ? t("premiumPlan.year") : t("premiumPlan.month")}
-                </span>
-              </div>
+              {pricesStatus === "error" ? (
+                <div className="mt-4 text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">{tPremium("pricesUnavailable")}</p>
+                  <Button onClick={retryPrices} variant="outline" size="sm">
+                    {tPremium("retry")}
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-4 text-center">
+                  <span className="text-4xl font-bold">
+                    {selectedPriceLabel ?? "..."}
+                  </span>
+                  <span className="text-muted-foreground">
+                    /{billingInterval === "year" ? t("premiumPlan.year") : t("premiumPlan.month")}
+                  </span>
+                </div>
+              )}
 
               <ul className="mt-6 space-y-3">
                 {premiumFeatures.map((feature) => (

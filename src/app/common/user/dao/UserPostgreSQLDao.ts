@@ -51,6 +51,21 @@ export class UserPostgreSQLDao {
     }
 
 
+    /**
+     * Handle lookup for the public /u/[username] route and for availability
+     * checks. Returns null rather than throwing, like getByEmail — a free
+     * username is a normal answer, not an error.
+     */
+    async getByUsername(username: string): Promise<User | null> {
+        log.trace("getByUsername");
+
+        const response = await db.query.userTable.findFirst({
+            where: eq(userTable.username, username),
+        });
+        return response || null;
+    }
+
+
     async update(u: User): Promise<void> {
         log.trace("update");
         await db.update(userTable).set({

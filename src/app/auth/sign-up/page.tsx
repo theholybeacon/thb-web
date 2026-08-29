@@ -10,19 +10,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail, Lock, Eye, EyeOff, User, KeyRound } from "lucide-react";
 import { AuthSidePanel } from "../components/AuthSidePanel";
+import { UsernameField, UsernameStatus } from "../components/UsernameField";
 import { toast } from "@/lib/toast";
 
-type SignUpStep = "form" | "verification";
+// "username" is a fallback step: the handle is collected on the form, but Clerk
+// is the authority on what is still missing, so we service a late request for it
+// in-app rather than letting clerk-js hand the user off to the Account Portal.
+type SignUpStep = "form" | "verification" | "username";
 
 export default function SignUpPage() {
   const t = useTranslations("auth.signUp");
   const tVerify = useTranslations("auth.verification");
+  const tUsername = useTranslations("auth.username");
   const tCommon = useTranslations("common");
   const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
 
   const [step, setStep] = useState<SignUpStep>("form");
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("empty");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -64,6 +71,7 @@ export default function SignUpPage() {
         password,
         firstName,
         lastName,
+        username,
       });
 
       // Send email verification code
@@ -74,13 +82,19 @@ export default function SignUpPage() {
       toast.info(tVerify("subtitle", { email }));
       setStep("verification");
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ code: string; message: string }> };
-      if (clerkError.errors?.[0]?.code === "form_identifier_exists") {
+      const clerkError = err as { errors?: Array<{ code: string; message: string; meta?: { paramName?: string } }> };
+      const first = clerkError.errors?.[0];
+      // Both the email and the handle report as form_identifier_exists — only
+      // meta.paramName says which one the user actually has to change.
+      if (first?.code === "form_identifier_exists" && first.meta?.paramName === "username") {
+        toast.error(tUsername("taken"));
+        setError(tUsername("taken"));
+      } else if (first?.code === "form_identifier_exists") {
         toast.error(t("emailInUse"));
         setError(t("emailInUse"));
       } else {
-        toast.error(clerkError.errors?.[0]?.message || tCommon("error"));
-        setError(clerkError.errors?.[0]?.message || tCommon("error"));
+        toast.error(first?.message || tCommon("error"));
+        setError(first?.message || tCommon("error"));
       }
     } finally {
       setIsLoading(false);
@@ -103,6 +117,11 @@ export default function SignUpPage() {
         await setActive({ session: result.createdSessionId });
         toast.success(t("title"));
         router.push("/home");
+      } else if (result.missingFields.includes("username")) {
+        setStep("username");
+      } else {
+        toast.error(tCommon("error"));
+        setError(tCommon("error"));
       }
     } catch (err: unknown) {
       const clerkError = err as { errors?: Array<{ code: string; message: string }> };
@@ -140,6 +159,34 @@ export default function SignUpPage() {
     }
   };
 
+  const handleUsernameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded || !signUp) return;
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const result = await signUp.update({ username });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        toast.success(t("title"));
+        router.push("/home");
+      } else {
+        toast.error(tCommon("error"));
+        setError(tCommon("error"));
+      }
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: Array<{ code: string; message: string }> };
+      const first = clerkError.errors?.[0];
+      const message = first?.code === "form_identifier_exists" ? tUsername("taken") : (first?.message || tCommon("error"));
+      toast.error(message);
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleGoogleSignUp = async () => {
     if (!isLoaded) return;
 
@@ -154,6 +201,54 @@ export default function SignUpPage() {
       toast.error(tCommon("error"));
     }
   };
+
+  // Fallback handle step: Clerk still wants a username after verification.
+  if (step === "username") {
+    return (
+      <div className="flex min-h-screen">
+        <AuthSidePanel
+          title={t("beginJourney")}
+          subtitle={t("beginJourneySubtitle")}
+        />
+
+        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 bg-background">
+          <div className="w-full max-w-md">
+            <div className="mb-8 text-center lg:text-left">
+              <h2 className="text-2xl font-bold mb-2">{tUsername("stepTitle")}</h2>
+              <p className="text-muted-foreground">{tUsername("stepSubtitle")}</p>
+            </div>
+
+            <form onSubmit={handleUsernameSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+                  {error}
+                </div>
+              )}
+
+              <UsernameField
+                value={username}
+                onChange={setUsername}
+                onStatusChange={setUsernameStatus}
+                disabled={isLoading}
+                autoFocus
+              />
+
+              <Button type="submit" className="w-full" disabled={isLoading || usernameStatus !== "available"}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {tUsername("saving")}
+                  </>
+                ) : (
+                  tUsername("continue")
+                )}
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Verification step
   if (step === "verification") {
@@ -330,6 +425,13 @@ export default function SignUpPage() {
               />
             </div>
 
+            <UsernameField
+              value={username}
+              onChange={setUsername}
+              onStatusChange={setUsernameStatus}
+              disabled={isLoading}
+            />
+
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
@@ -406,7 +508,7 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading || !isLoaded}>
+            <Button type="submit" className="w-full" disabled={isLoading || !isLoaded || usernameStatus !== "available"}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

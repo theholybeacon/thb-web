@@ -6,6 +6,9 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',
   '/auth/login(.*)',
   '/auth/sign-up(.*)',
+  // The OAuth handle step. Clerk has no session yet at this point, so leaving
+  // it protected would bounce a half-finished sign-up back to the login page.
+  '/auth/complete-profile(.*)',
   '/auth/forgot-password(.*)',
   '/sso-callback(.*)',
   '/api/webhooks(.*)',

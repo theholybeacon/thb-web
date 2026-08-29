@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import posthog from "posthog-js";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Crown, Sparkles, BookOpen, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,17 +15,9 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-
-interface PriceData {
-	id: string;
-	amount: number | null;
-	currency: string;
-}
-
-interface PricesResponse {
-	monthly: PriceData | null;
-	yearly: PriceData | null;
-}
+import { formatPrice } from "@/lib/prices";
+import { usePrices } from "@/lib/usePrices";
+import { toast } from "@/lib/toast";
 
 interface UpgradeModalProps {
 	open?: boolean;
@@ -39,25 +31,11 @@ export function UpgradeModal({ open, onOpenChange, inline = false }: UpgradeModa
 	const { isSignedIn } = useAuth();
 	const [billingInterval, setBillingInterval] = useState<"month" | "year">("year");
 	const [isLoading, setIsLoading] = useState(false);
-	const [prices, setPrices] = useState<PricesResponse | null>(null);
-	const [pricesLoading, setPricesLoading] = useState(true);
-
-	useEffect(() => {
-		async function fetchPrices() {
-			try {
-				const response = await fetch("/api/stripe/prices");
-				const data = await response.json();
-				setPrices(data);
-			} catch (error) {
-				console.error("Error fetching prices:", error);
-			} finally {
-				setPricesLoading(false);
-			}
-		}
-		fetchPrices();
-	}, []);
+	const { prices, status: pricesStatus, retry: retryPrices } = usePrices();
+	const locale = useLocale();
 
 	const selectedPrice = billingInterval === "year" ? prices?.yearly : prices?.monthly;
+	const selectedPriceLabel = formatPrice(selectedPrice, locale);
 
 	const handleUpgrade = async () => {
 		if (!selectedPrice) return;
@@ -78,20 +56,15 @@ export function UpgradeModal({ open, onOpenChange, inline = false }: UpgradeModa
 			const data = await response.json();
 			if (data.url) {
 				window.location.href = data.url;
+				return;
 			}
+			throw new Error(data.error || "checkout returned no url");
 		} catch (error) {
 			console.error("Error creating checkout session:", error);
+			toast.error(t("checkoutFailed"));
 		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const formatPrice = (price: PriceData | null | undefined) => {
-		if (!price || price.amount === null) return "";
-		return new Intl.NumberFormat(undefined, {
-			style: "currency",
-			currency: price.currency,
-		}).format(price.amount / 100);
 	};
 
 	const features = [
@@ -149,14 +122,23 @@ export function UpgradeModal({ open, onOpenChange, inline = false }: UpgradeModa
 				</button>
 			</div>
 
-			<Button
-				onClick={handleUpgrade}
-				disabled={isLoading || pricesLoading || !selectedPrice}
-				className="w-full"
-				size="lg"
-			>
-				{isLoading ? t("processing") : pricesLoading ? t("loading") : `${t("upgrade")} - ${formatPrice(selectedPrice)}`}
-			</Button>
+			{pricesStatus === "error" ? (
+				<div className="space-y-2 text-center">
+					<p className="text-sm text-muted-foreground">{t("pricesUnavailable")}</p>
+					<Button onClick={retryPrices} variant="outline" className="w-full" size="lg">
+						{t("retry")}
+					</Button>
+				</div>
+			) : (
+				<Button
+					onClick={handleUpgrade}
+					disabled={isLoading || pricesStatus === "loading" || !selectedPrice}
+					className="w-full"
+					size="lg"
+				>
+					{isLoading ? t("processing") : !selectedPriceLabel ? t("loading") : `${t("upgrade")} - ${selectedPriceLabel}`}
+				</Button>
+			)}
 
 			<div className="text-center">
 				<Button

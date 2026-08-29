@@ -77,7 +77,7 @@ async function main() {
 			`${BASE_URL}bibles/${meta[0].bible_api_id}/chapters/${t.book}.${t.chapter}` +
 			`?content-type=text&include-verse-numbers=true` +
 			`&include-notes=false&include-titles=false&include-chapter-numbers=false` +
-			`&include-verse-spans=false&use-org-id=false`;
+			`&include-verse-spans=false`;
 		const res = await fetch(url, { headers: { "api-key": API_KEY } });
 		if (!res.ok) {
 			const body = await res.text();

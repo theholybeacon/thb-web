@@ -16,12 +16,19 @@
  *   npx tsx scripts/warm-bible-text.ts --max 4000 --sleep 250
  *   npx tsx scripts/warm-bible-text.ts --bible vbl-sp-2      # one translation
  *   npx tsx scripts/warm-bible-text.ts --dry-run             # show the worklist only
+ *   npx tsx scripts/warm-bible-text.ts --drain                # spend every request left today
+ *
+ * `--drain` is what .github/workflows/warm-quota.yml runs an hour before the
+ * quota resets: no request cap, stop only when upstream refuses or the day ends.
+ * Translations are filled in WARM_PRIORITY_SLUGS order (src/lib/warmPriority.ts),
+ * because a nightly run is always cut off mid-worklist and the order is therefore
+ * what decides which translations actually get warmed.
  */
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
 import { Pool } from "pg";
-import { INDEXED_TRANSLATION_SLUGS } from "../src/lib/seo";
+import { WARM_PRIORITY_SLUGS } from "../src/lib/warmPriority";
 import { chapterContentHash } from "../src/lib/chapterHash";
 import { parseChapterText } from "../src/app/common/chapter/model/parseChapterText";
 
@@ -33,6 +40,7 @@ interface Args {
 	sleepMs: number;
 	bibles: string[];
 	dryRun: boolean;
+	drain: boolean;
 }
 
 function parseArgs(): Args {
@@ -42,13 +50,17 @@ function parseArgs(): Args {
 		return i >= 0 ? argv[i + 1] : undefined;
 	};
 	const bible = value("--bible");
+	const drain = argv.includes("--drain");
 	return {
 		// Default leaves headroom under a 5,000/day cap so live reader traffic
-		// still has quota to spend while a warm run is in progress.
-		max: Number(value("--max") ?? 4000),
+		// still has quota to spend while a warm run is in progress. --drain drops
+		// the cap: it runs when that headroom no longer buys the readers anything,
+		// and an explicit --max still wins if one is passed.
+		max: drain ? Number(value("--max") ?? Number.POSITIVE_INFINITY) : Number(value("--max") ?? 4000),
 		sleepMs: Number(value("--sleep") ?? 250),
-		bibles: bible ? [bible] : [...INDEXED_TRANSLATION_SLUGS],
+		bibles: bible ? [bible] : [...WARM_PRIORITY_SLUGS],
 		dryRun: argv.includes("--dry-run"),
+		drain,
 	};
 }
 
@@ -69,6 +81,10 @@ interface WorkItem {
  *
  * `generate_series` rather than a join on "chapter" on purpose: most missing
  * chapters have no row at all, so a chapter-driven query would not see them.
+ *
+ * Ordered by position in $1, not by slug: $1 arrives in priority order and a run
+ * that stops early must have spent its requests on the translations that matter
+ * most, not on whichever slug sorts first alphabetically.
  */
 const WORKLIST_SQL = `
 SELECT bi.slug              AS bible_slug,
@@ -85,7 +101,7 @@ SELECT bi.slug              AS bible_slug,
   CROSS JOIN LATERAL generate_series(1, coalesce(bk."numChapters", 1)) AS gs(n)
   LEFT JOIN "chapter" c ON c."bookId" = bk.id AND c."chapterNumber" = gs.n
  WHERE bi.slug = ANY($1)
- ORDER BY bi.slug, bk."bookOrder", gs.n
+ ORDER BY array_position($1::text[], bi.slug), bk."bookOrder", gs.n
 `;
 
 function needsWork(item: WorkItem): boolean {
@@ -105,6 +121,28 @@ function needsWork(item: WorkItem): boolean {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * The instant today's api.bible allowance is replaced by tomorrow's.
+ *
+ * --drain runs until upstream refuses, so without a hard stop it would sail past
+ * the reset and start eating the NEXT day's quota — leaving readers short all
+ * day. GitHub's scheduler drifts 5-20 minutes, so the stop has to be this wall
+ * clock rather than an elapsed-time budget measured from launch.
+ *
+ * UTC midnight matches the rest of our daily accounting (`utcDay()` in
+ * src/lib/contentApi/hydrationBudget.ts). api.bible does not publish its reset
+ * hour, so this is overridable instead of hardcoded: if it turns out to reset at
+ * 08:00 UTC, set WARM_QUOTA_RESET_HOUR_UTC=8 and move the workflow cron to 7.
+ */
+function nextQuotaReset(now: Date): Date {
+	const configured = Number(process.env.WARM_QUOTA_RESET_HOUR_UTC);
+	const hour = Number.isInteger(configured) && configured >= 0 && configured <= 23 ? configured : 0;
+	const reset = new Date(now);
+	reset.setUTCHours(hour, 0, 0, 0);
+	if (reset.getTime() <= now.getTime()) reset.setUTCDate(reset.getUTCDate() + 1);
+	return reset;
+}
+
 type FetchOutcome =
 	| { kind: "ok"; verses: { verseNumber: number; content: string }[]; verseCount: number | null }
 	| { kind: "quota" }
@@ -118,11 +156,15 @@ async function fetchChapter(
 	chapterNumber: number,
 ): Promise<FetchOutcome> {
 	const chapterId = `${bookApiId}.${chapterNumber === 0 ? "intro" : chapterNumber}`;
+	// No `use-org-id` here: api.bible rejects unknown query params with a flat
+	// 400 "Invalid request query input", and that parameter is only valid on
+	// /verses/{id}, not /chapters/{id}. Sending it made EVERY chapter fetch
+	// fail, which is what "No content available for this chapter" really was.
 	const url =
 		`${BASE_URL}bibles/${bibleApiId}/chapters/${chapterId}` +
 		`?content-type=text&include-verse-numbers=true` +
 		`&include-notes=false&include-titles=false&include-chapter-numbers=false` +
-		`&include-verse-spans=false&use-org-id=false`;
+		`&include-verse-spans=false`;
 
 	let res: Response;
 	try {
@@ -167,13 +209,28 @@ async function main() {
 	const { rows } = await pool.query<WorkItem>(WORKLIST_SQL, [args.bibles]);
 	const work = rows.filter(needsWork);
 
+	// Only --drain needs this: a capped run stops on its own request budget long
+	// before the reset matters.
+	const deadline = args.drain ? nextQuotaReset(new Date()) : null;
+
 	const byBible = new Map<string, number>();
 	for (const item of work) byBible.set(item.bible_slug, (byBible.get(item.bible_slug) ?? 0) + 1);
 
+	// Report in the order the run will actually work through, so the printed plan
+	// is the plan — an alphabetical readout hides which translations a truncated
+	// run will never reach.
+	const priority = new Map(args.bibles.map((slug, i) => [slug, i]));
+	const byPriority = [...byBible].sort((a, b) => (priority.get(a[0]) ?? 0) - (priority.get(b[0]) ?? 0));
+
 	console.log(`Translations: ${args.bibles.join(", ")}`);
 	console.log(`Chapters known: ${rows.length}  |  needing text: ${work.length}`);
-	for (const [slug, n] of [...byBible].sort()) console.log(`  ${slug.padEnd(12)} ${n}`);
-	console.log(`Request budget: ${args.max}  |  delay: ${args.sleepMs}ms\n`);
+	for (const [slug, n] of byPriority) console.log(`  ${slug.padEnd(12)} ${n}`);
+	console.log(
+		`Request budget: ${Number.isFinite(args.max) ? args.max : "drain (until upstream refuses)"}` +
+			`  |  delay: ${args.sleepMs}ms`,
+	);
+	if (deadline) console.log(`Stopping at:    ${deadline.toISOString()} (quota reset)`);
+	console.log();
 
 	if (args.dryRun) {
 		await pool.end();
@@ -186,8 +243,13 @@ async function main() {
 	let notFound = 0;
 	let failed = 0;
 	let stoppedOnQuota = false;
+	let stoppedOnReset = false;
 
 	for (const item of work) {
+		if (deadline && Date.now() >= deadline.getTime()) {
+			stoppedOnReset = true;
+			break;
+		}
 		if (requests >= args.max) {
 			console.log(`\nRequest budget of ${args.max} reached — stopping.`);
 			break;
@@ -265,6 +327,11 @@ async function main() {
 	if (stoppedOnQuota) {
 		console.log("STOPPED: api.bible daily limit exceeded.");
 		console.log("Re-run tomorrow — the worklist resumes where this left off.");
+	}
+	if (stoppedOnReset) {
+		// Said out loud so a truncated run is never mistaken for a finished one.
+		console.log("STOPPED: reached the quota reset — the rest is tomorrow's allowance.");
+		console.log("The worklist resumes where this left off.");
 	}
 	console.log(`Requests used:   ${requests}`);
 	console.log(`Chapters filled: ${filled}`);

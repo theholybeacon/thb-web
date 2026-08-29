@@ -24,7 +24,7 @@ live data — do not edit them by hand, and do not round them up in copy.
 | Milestone badges | **14** |
 | Verses in the daily rotation | **105** |
 
-*Generated 2026-08-24 from the live product.*
+*Generated 2026-08-25 from the live product.*
 <!-- generated:end facts -->
 
 ---
@@ -270,7 +270,7 @@ bullet.
 ## Available in English and Spanish
 
 The entire interface is available in **English and Spanish**, fully translated —
-**820 pieces of interface text in each**, with no gaps in either. Readers switch
+**831 pieces of interface text in each**, with no gaps in either. Readers switch
 language from a control in the app.
 
 Separately, the product **recommends a best translation for six reading

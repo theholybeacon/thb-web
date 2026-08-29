@@ -71,6 +71,21 @@
       "and": "y",
       "privacyPolicy": "Política de Privacidad"
     },
+    "username": {
+      "label": "Nombre de usuario",
+      "placeholder": "tu-nombre",
+      "hint": "Este sera tu enlace publico: /u/tu-nombre",
+      "checking": "Comprobando disponibilidad...",
+      "available": "Disponible",
+      "taken": "Ese nombre de usuario ya esta en uso",
+      "tooShort": "Usa al menos 4 caracteres",
+      "tooLong": "Usa como maximo 30 caracteres",
+      "invalid": "Usa solo minusculas, numeros y guiones",
+      "stepTitle": "Elige tu nombre de usuario",
+      "stepSubtitle": "Asi es como otros encontraran tu recorrido publico.",
+      "continue": "Continuar",
+      "saving": "Guardando..."
+    },
     "verification": {
       "title": "Verifica tu correo",
       "subtitle": "Enviamos un código de verificación a {email}",
@@ -513,8 +528,6 @@
     "enterImageUrl": "Ingresa la URL de la imagen:",
     "name": "Nombre",
     "namePlaceholder": "Tu nombre completo",
-    "username": "Usuario",
-    "usernamePlaceholder": "Tu nombre de usuario",
     "email": "Correo Electrónico",
     "emailHint": "El correo es administrado por tu proveedor de autenticación",
     "country": "País",
@@ -546,7 +559,10 @@
     "upgrade": "Actualizar a Premium",
     "processing": "Procesando...",
     "loading": "Cargando...",
-    "needHelp": "¿Necesitas ayuda para pagar premium?"
+    "needHelp": "¿Necesitas ayuda para pagar premium?",
+    "pricesUnavailable": "Los precios no estan disponibles en este momento.",
+    "retry": "Reintentar",
+    "checkoutFailed": "No pudimos iniciar el pago. Intentalo de nuevo."
   },
   "subscription": {
     "title": "Suscripción",

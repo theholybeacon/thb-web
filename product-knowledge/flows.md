@@ -12,7 +12,7 @@ mid-recording.
 
 ## Before you script anything
 
-**Base URLs.** Production is `https://theholybeacon.com`. Locally the app serves
+**Base URLs.** Production is `https://www.theholybeacon.com`. Locally the app serves
 on port **3014**, and a production build is much more reliable to film than a dev
 server.
 
@@ -213,10 +213,11 @@ progress.
 > `GET /api/content/v1/characters?q=moses`.
 >
 > **Not every character has a written profile.** Profiles are generated the first
-> time someone opens the page. For filming, pick a character whose profile is
-> already there, or open the page once beforehand and let it generate. Check with
+> time someone opens the page. The **~107 most-mentioned characters are already
+> written** — every recognisable name (Moses, David, Jacob, Abraham, Paul,
+> Solomon…) is safe to film. The long tail is not. Check before you shoot:
 > `GET /api/content/v1/characters/{slug}` — `profile.status: "ready"` means it is
-> there.
+> there. To add more, ask for `npm run backfill:profiles -- --top N`.
 
 ---
 
@@ -277,10 +278,16 @@ your place. This is the "Scripture in HD" demo.
 
 **Entry:** `/auth/sign-up`
 
-1. Fill the form (or continue with Google).
+1. Fill the form — including a **username**, checked for availability as it is
+   typed and normalized to the handle that will appear in `/u/<username>`.
 2. Enter the emailed verification code.
 3. Land in the app at `/home` — a welcome, the day's verse, the streak counter,
    and tiles for studies, sessions and creating a study.
+
+Continuing with Google skips steps 1-2, then stops at `/auth/complete-profile`
+to pick the same username before `/home`. Both paths stay on our own domain —
+the username is what Clerk needs to finish a sign-up, and collecting it in-app
+is what keeps the flow off Clerk's hosted Account Portal.
 
 New accounts get a free trial that **does not ask for a card**.
 

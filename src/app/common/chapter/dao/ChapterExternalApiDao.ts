@@ -86,11 +86,15 @@ export class ChapterExternalAPIDao {
 		}
 
 		const chapterId = `${bookApiId}.${chapterNumber === 0 ? "intro" : chapterNumber}`;
+		// No `use-org-id` here: api.bible rejects unknown query params with a flat
+		// 400 "Invalid request query input", and that parameter is only valid on
+		// /verses/{id}, not /chapters/{id}. Sending it made EVERY chapter fetch
+		// fail, which is what "No content available for this chapter" really was.
 		const url =
 			`${BASE_URL}bibles/${bibleApiId}/chapters/${chapterId}` +
 			`?content-type=text&include-verse-numbers=true` +
 			`&include-notes=false&include-titles=false&include-chapter-numbers=false` +
-			`&include-verse-spans=false&use-org-id=false`;
+			`&include-verse-spans=false`;
 
 		log.trace({ bibleApiId, chapterId }, "fetching chapter text");
 

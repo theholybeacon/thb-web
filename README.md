@@ -39,6 +39,31 @@ This imports ~3,000 people and ~28,000 verse mentions from the open
 [theographic-bible-metadata](https://github.com/robertrouse/theographic-bible-metadata) dataset
 (CC-BY-SA 4.0). It is idempotent, so re-running it to pick up dataset updates is safe.
 
+### Pre-generating content for the Content API
+
+Three kinds of content are produced on demand and are therefore missing until a
+reader asks for them. That is fine for the app and a problem for anything
+automated reading `/api/content/v1` (see `docs/content-api.md`), so each has a
+backfill command. Run them in this order — narration needs cached verse text.
+
+```bash
+npm run warm:bible -- --bible bsb-en            # verse text, from api.bible
+npm run backfill:profiles  -- --top 100         # character profiles
+npm run backfill:narration -- --chapters psa-23 # narration + verse timings
+```
+
+Every one supports `--dry-run`. Use it: `warm:bible` spends a daily upstream
+quota shared with live readers, and `backfill:narration` bills per minute of
+audio produced — its `--dry-run` prints the projected cost and is the only gate.
+
+`warm:bible` also runs unattended: `.github/workflows/warm-quota.yml` fires it
+with `--drain` at 23:00 UTC, an hour before api.bible's daily allowance resets
+and is lost, and spends whatever readers left behind. Translations are filled in
+`src/lib/warmPriority.ts` order — the recommended bible per language, English
+first, then the extra indexed English editions. So a manual `warm:bible` run is
+now for targeting one translation ahead of the queue, not for coverage in
+general. The job needs `DATABASE_URL` and `BIBLE_API_KEY` as repo secrets.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

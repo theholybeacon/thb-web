@@ -15,6 +15,13 @@ export async function POST(request: NextRequest) {
 		const body = await request.json();
 		const { priceId, billingInterval, isGift, giftRecipientEmail, membershipRequestId } = body;
 
+		// STRIPE_PRODUCT_ID is read with a non-null assertion in @/lib/stripe, so
+		// when it is unset it silently becomes undefined and the ownership check
+		// below rejects every price as invalid. Fail with the real reason instead.
+		if (!STRIPE_PRODUCT_ID) {
+			return NextResponse.json({ error: "not_configured" }, { status: 500 });
+		}
+
 		const stripeClient = getStripe();
 		let resolvedPriceId = priceId;
 

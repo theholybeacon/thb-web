@@ -61,7 +61,7 @@ lands on a chapter from a search or a shared link, and the product is good enoug
 that they stay.
 
 **Tertiary: the Spanish-speaking reader.** Spanish is a fully translated
-first-class interface, not a partial afterthought — 820 strings with no gaps. My
+first-class interface, not a partial afterthought — 831 strings with no gaps. My
 read is that this is a deliberate bet on an underserved market rather than a
 courtesy.
 

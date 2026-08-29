@@ -16,6 +16,8 @@
     "seed:alignment": "tsx scripts/import-alignment.ts",
     "warm:bible": "tsx scripts/warm-bible-text.ts",
     "knowledge:refresh": "tsx scripts/knowledge-refresh.ts",
+    "backfill:profiles": "tsx scripts/backfill-entity-content.ts",
+    "backfill:narration": "tsx scripts/backfill-narration.ts",
     "upload:alignment": "tsx scripts/upload-alignment-blobs.ts"
   },
   "dependencies": {

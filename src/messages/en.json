@@ -71,6 +71,21 @@
       "and": "and",
       "privacyPolicy": "Privacy Policy"
     },
+    "username": {
+      "label": "Username",
+      "placeholder": "your-name",
+      "hint": "This becomes your public link: /u/your-name",
+      "checking": "Checking availability...",
+      "available": "Available",
+      "taken": "That username is already taken",
+      "tooShort": "Use at least 4 characters",
+      "tooLong": "Use at most 30 characters",
+      "invalid": "Use lowercase letters, numbers and hyphens only",
+      "stepTitle": "Pick your username",
+      "stepSubtitle": "This is how people will find your public journey.",
+      "continue": "Continue",
+      "saving": "Saving..."
+    },
     "verification": {
       "title": "Verify your email",
       "subtitle": "We sent a verification code to {email}",
@@ -513,8 +528,6 @@
     "enterImageUrl": "Enter image URL:",
     "name": "Name",
     "namePlaceholder": "Your full name",
-    "username": "Username",
-    "usernamePlaceholder": "Your username",
     "email": "Email",
     "emailHint": "Email is managed by your authentication provider",
     "country": "Country",
@@ -546,7 +559,10 @@
     "upgrade": "Upgrade to Premium",
     "processing": "Processing...",
     "loading": "Loading...",
-    "needHelp": "Need help affording premium?"
+    "needHelp": "Need help affording premium?",
+    "pricesUnavailable": "Pricing is temporarily unavailable.",
+    "retry": "Try again",
+    "checkoutFailed": "We could not start checkout. Please try again."
   },
   "subscription": {
     "title": "Subscription",

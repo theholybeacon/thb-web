@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import posthog from "posthog-js";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/app";
 import { Crown, CreditCard, Gift, Users, Check, Heart, Clock, Hash } from "lucide-react";
@@ -16,17 +16,9 @@ import { membershipRequestGetPendingByRequesterIdSS } from "@/app/common/members
 import { membershipRequestGetQueuePositionSS } from "@/app/common/membershipRequest/service/server/membershipRequestGetQueuePositionSS";
 import { membershipRequestGetLastFulfilledSS, LastFulfilledInfo } from "@/app/common/membershipRequest/service/server/membershipRequestGetLastFulfilledSS";
 import { MembershipRequest } from "@/app/common/membershipRequest/model/MembershipRequest";
-
-interface PriceData {
-	id: string;
-	amount: number | null;
-	currency: string;
-}
-
-interface PricesResponse {
-	monthly: PriceData | null;
-	yearly: PriceData | null;
-}
+import { formatPrice } from "@/lib/prices";
+import { usePrices } from "@/lib/usePrices";
+import { toast } from "@/lib/toast";
 
 export default function SubscriptionPage() {
 	const t = useTranslations("subscription");
@@ -37,29 +29,14 @@ export default function SubscriptionPage() {
 	const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 	const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
 	const [billingInterval, setBillingInterval] = useState<"month" | "year">("year");
-	const [prices, setPrices] = useState<PricesResponse | null>(null);
-	const [pricesLoading, setPricesLoading] = useState(true);
+	const { prices, status: pricesStatus, retry: retryPrices } = usePrices();
+	const locale = useLocale();
 	const [sponsorshipInfo, setSponsorshipInfo] = useState<SponsorshipInfo | null>(null);
 	const [sponsorshipLoading, setSponsorshipLoading] = useState(true);
 	const [pendingRequest, setPendingRequest] = useState<MembershipRequest | null>(null);
 	const [queuePosition, setQueuePosition] = useState<number | null>(null);
 	const [lastFulfilled, setLastFulfilled] = useState<LastFulfilledInfo | null>(null);
 	const [queueLoading, setQueueLoading] = useState(true);
-
-	useEffect(() => {
-		async function fetchPrices() {
-			try {
-				const response = await fetch("/api/stripe/prices");
-				const data = await response.json();
-				setPrices(data);
-			} catch (error) {
-				console.error("Error fetching prices:", error);
-			} finally {
-				setPricesLoading(false);
-			}
-		}
-		fetchPrices();
-	}, []);
 
 	useEffect(() => {
 		async function fetchSponsorshipInfo() {
@@ -104,14 +81,7 @@ export default function SubscriptionPage() {
 	}, [user?.id, isPremium]);
 
 	const selectedPrice = billingInterval === "year" ? prices?.yearly : prices?.monthly;
-
-	const formatPrice = (price: PriceData | null | undefined) => {
-		if (!price || price.amount === null) return "";
-		return new Intl.NumberFormat(undefined, {
-			style: "currency",
-			currency: price.currency,
-		}).format(price.amount / 100);
-	};
+	const selectedPriceLabel = formatPrice(selectedPrice, locale);
 
 	const formatDate = (date: Date | null) => {
 		if (!date) return "";
@@ -172,9 +142,14 @@ export default function SubscriptionPage() {
 			const data = await response.json();
 			if (data.url) {
 				window.location.href = data.url;
+				return;
 			}
+			// Without this the button just stops spinning and nothing happens —
+			// which is what a misconfigured product id looks like from the outside.
+			throw new Error(data.error || "checkout returned no url");
 		} catch (error) {
 			console.error("Error creating checkout:", error);
+			toast.error(tPremium("checkoutFailed"));
 		} finally {
 			setIsLoadingCheckout(false);
 		}
@@ -491,10 +466,21 @@ export default function SubscriptionPage() {
 									</button>
 								</div>
 
-								<Button onClick={handleSubscribe} disabled={isLoadingCheckout || pricesLoading || !selectedPrice} size="lg">
-									<Crown className="mr-2 h-4 w-4" />
-									{isLoadingCheckout ? t("loading") : pricesLoading ? t("loading") : `${t("subscribe")} - ${formatPrice(selectedPrice)}`}
-								</Button>
+								{pricesStatus === "error" ? (
+									<div className="space-y-2">
+										<p className="text-sm text-muted-foreground">{tPremium("pricesUnavailable")}</p>
+										<Button onClick={retryPrices} variant="outline" size="lg">
+											{tPremium("retry")}
+										</Button>
+									</div>
+								) : (
+									<Button onClick={handleSubscribe} disabled={isLoadingCheckout || pricesStatus === "loading" || !selectedPrice} size="lg">
+										<Crown className="mr-2 h-4 w-4" />
+										{isLoadingCheckout || !selectedPriceLabel
+											? t("loading")
+											: `${t("subscribe")} - ${selectedPriceLabel}`}
+									</Button>
+								)}
 							</div>
 						</div>
 					)}
