@@ -20,15 +20,17 @@
  *
  * `--drain` is what .github/workflows/warm-quota.yml runs an hour before the
  * quota resets: no request cap, stop only when upstream refuses or the day ends.
- * Translations are filled in WARM_PRIORITY_SLUGS order (src/lib/warmPriority.ts),
- * because a nightly run is always cut off mid-worklist and the order is therefore
- * what decides which translations actually get warmed.
+ * Translations are filled in `resolveWarmOrder()` order — WARM_PRIORITY_SLUGS
+ * (src/lib/warmPriority.ts) first, then the rest of the catalogue in the
+ * languages we recommend — because a nightly run is always cut off mid-worklist
+ * and the order is therefore what decides which translations actually get warmed.
  */
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
 import { Pool } from "pg";
-import { WARM_PRIORITY_SLUGS } from "../src/lib/warmPriority";
+import { RECOMMENDED_LANG_ORDER, WARM_PRIORITY_SLUGS } from "../src/lib/warmPriority";
+import { languageNameToIso } from "../src/lib/bibleLanguage";
 import { chapterContentHash } from "../src/lib/chapterHash";
 import { parseChapterText } from "../src/app/common/chapter/model/parseChapterText";
 
@@ -38,7 +40,8 @@ const API_KEY = process.env.BIBLE_API_KEY;
 interface Args {
 	max: number;
 	sleepMs: number;
-	bibles: string[];
+	/** Set only by --bible. Otherwise the order is resolved from the catalogue. */
+	scopedTo: string | null;
 	dryRun: boolean;
 	drain: boolean;
 }
@@ -58,7 +61,7 @@ function parseArgs(): Args {
 		// and an explicit --max still wins if one is passed.
 		max: drain ? Number(value("--max") ?? Number.POSITIVE_INFINITY) : Number(value("--max") ?? 4000),
 		sleepMs: Number(value("--sleep") ?? 250),
-		bibles: bible ? [bible] : [...WARM_PRIORITY_SLUGS],
+		scopedTo: bible ?? null,
 		dryRun: argv.includes("--dry-run"),
 		drain,
 	};
@@ -104,6 +107,57 @@ SELECT bi.slug              AS bible_slug,
  ORDER BY array_position($1::text[], bi.slug), bk."bookOrder", gs.n
 `;
 
+/**
+ * The translations a run works through, in the order it works through them:
+ * the curated priority list first, then every other translation in a language
+ * we recommend.
+ *
+ * WHY THE SECOND TIER: the priority list is nine translations and is now 100%
+ * warm, so a --drain run finds an empty worklist, spends nothing, and the
+ * unspent allowance evaporates at the reset. Falling through puts it back to
+ * work — but only inside RECOMMENDED_LANG_ORDER. The catalogue's remaining ~395
+ * translations are ~220,000 chapters, months of drains and Neon egress spent on
+ * languages no reader has asked for.
+ *
+ * Resolved from the database rather than hardcoded: `bible.language` is
+ * api.bible's free-form name ("German, Standard", "Spanish; Castilian") which
+ * only `languageNameToIso` can map, and the catalogue grows without our input.
+ * WARM_PRIORITY_SLUGS stays a static list because it is also what
+ * src/lib/seo.ts indexes — this tier appends to it, it does not replace it.
+ */
+async function resolveWarmOrder(pool: Pool): Promise<string[]> {
+	// audioEnabled first within a language: an audio-licensed edition is the one
+	// we can actually build narration on, so it is worth more warm than a text
+	// we may only ever display.
+	const { rows } = await pool.query<{ slug: string; language: string }>(
+		`SELECT slug, language FROM "bible" ORDER BY "audioEnabled" DESC, slug`,
+	);
+
+	const priority = new Set(WARM_PRIORITY_SLUGS);
+	const byLang = new Map<string, string[]>();
+	for (const row of rows) {
+		if (priority.has(row.slug)) continue;
+		const iso = languageNameToIso(row.language);
+		if (!iso || !(RECOMMENDED_LANG_ORDER as readonly string[]).includes(iso)) continue;
+		byLang.set(iso, [...(byLang.get(iso) ?? []), row.slug]);
+	}
+
+	// Round-robin across languages rather than language blocks. English alone is
+	// 27 more translations; taken as a block it would own every night for weeks
+	// and leave Spanish's second edition cold — the same failure WARM_PRIORITY_SLUGS
+	// exists to prevent, one tier down.
+	const tail: string[] = [];
+	for (let i = 0; ; i++) {
+		const round = RECOMMENDED_LANG_ORDER.map((lang) => byLang.get(lang)?.[i]).filter(
+			(slug): slug is string => Boolean(slug),
+		);
+		if (round.length === 0) break;
+		tail.push(...round);
+	}
+
+	return [...WARM_PRIORITY_SLUGS, ...tail];
+}
+
 function needsWork(item: WorkItem): boolean {
 	// -1 means upstream has no such chapter. Never spend a request on it again.
 	if (item.num_verses < 0) return false;
@@ -126,8 +180,10 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  *
  * --drain runs until upstream refuses, so without a hard stop it would sail past
  * the reset and start eating the NEXT day's quota — leaving readers short all
- * day. GitHub's scheduler drifts 5-20 minutes, so the stop has to be this wall
- * clock rather than an elapsed-time budget measured from launch.
+ * day. GitHub's scheduler drift is what makes this necessary and it is far worse
+ * than advertised: observed starts over Aug 30 - Sep 7 ran 1h18m to 2h28m late,
+ * which is why the cron sits at 21:00 rather than 23:00. The stop therefore has
+ * to be this wall clock, not an elapsed-time budget measured from launch.
  *
  * UTC midnight matches the rest of our daily accounting (`utcDay()` in
  * src/lib/contentApi/hydrationBudget.ts). api.bible does not publish its reset
@@ -206,7 +262,8 @@ async function main() {
 	const args = parseArgs();
 	const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-	const { rows } = await pool.query<WorkItem>(WORKLIST_SQL, [args.bibles]);
+	const bibles = args.scopedTo ? [args.scopedTo] : await resolveWarmOrder(pool);
+	const { rows } = await pool.query<WorkItem>(WORKLIST_SQL, [bibles]);
 	const work = rows.filter(needsWork);
 
 	// Only --drain needs this: a capped run stops on its own request budget long
@@ -219,12 +276,15 @@ async function main() {
 	// Report in the order the run will actually work through, so the printed plan
 	// is the plan — an alphabetical readout hides which translations a truncated
 	// run will never reach.
-	const priority = new Map(args.bibles.map((slug, i) => [slug, i]));
+	const priority = new Map(bibles.map((slug, i) => [slug, i]));
 	const byPriority = [...byBible].sort((a, b) => (priority.get(a[0]) ?? 0) - (priority.get(b[0]) ?? 0));
 
-	console.log(`Translations: ${args.bibles.join(", ")}`);
+	console.log(`Translations: ${bibles.length} (${bibles.slice(0, 9).join(", ")}${bibles.length > 9 ? ", …" : ""})`);
 	console.log(`Chapters known: ${rows.length}  |  needing text: ${work.length}`);
-	for (const [slug, n] of byPriority) console.log(`  ${slug.padEnd(12)} ${n}`);
+	// Only the head: the fall-through tier can be 50 translations and a full
+	// readout would bury the summary this log exists to show.
+	for (const [slug, n] of byPriority.slice(0, 15)) console.log(`  ${slug.padEnd(12)} ${n}`);
+	if (byPriority.length > 15) console.log(`  … and ${byPriority.length - 15} more translations`);
 	console.log(
 		`Request budget: ${Number.isFinite(args.max) ? args.max : "drain (until upstream refuses)"}` +
 			`  |  delay: ${args.sleepMs}ms`,
@@ -239,6 +299,7 @@ async function main() {
 
 	let requests = 0;
 	let filled = 0;
+	let settled = 0;
 	let versesWritten = 0;
 	let notFound = 0;
 	let failed = 0;
@@ -307,17 +368,31 @@ async function main() {
 				values,
 			);
 
-			const numVerses = outcome.verseCount ?? outcome.verses.length;
+			// A fetch that writes no new rows has told us everything upstream will
+			// ever hand over, so `verseCount` cannot be the target: it counts verses
+			// this translation does not print — the textual-critical omissions
+			// (Matthew 17:21, Mark 9:44/46, Acts 8:37) and the WEB deuterocanon's
+			// merged verse spans. Trusting it there left 56 chapters permanently on
+			// the worklist, re-fetched by every nightly run for zero verses. Record
+			// what we actually hold instead and they settle for good.
+			const settledNow = inserted.rowCount === 0;
+			const numVerses = settledNow
+				? Math.max(item.have, outcome.verses.length)
+				: (outcome.verseCount ?? outcome.verses.length);
 			// Hash here too, so audio cache-sharing is warm before the first listener.
+			// Still gated on holding the whole chapter — which a settled one does,
+			// so these finally get a hash as well.
 			const hash = outcome.verses.length === numVerses ? chapterContentHash(outcome.verses) : null;
 			await pool.query(
 				`UPDATE "chapter" SET "numVerses" = $2, "contentHash" = coalesce($3, "contentHash"), "updatedAt" = now() WHERE id = $1`,
 				[chapterId, numVerses, hash],
 			);
 
-			filled++;
+			if (settledNow) settled++;
+			else filled++;
 			versesWritten += inserted.rowCount ?? 0;
-			if (filled % 25 === 0) console.log(`  ...${filled} chapters, ${requests} requests`);
+			const done = filled + settled;
+			if (done % 25 === 0) console.log(`  ...${done} chapters, ${requests} requests`);
 		}
 
 		await sleep(args.sleepMs);
@@ -333,12 +408,16 @@ async function main() {
 		console.log("STOPPED: reached the quota reset — the rest is tomorrow's allowance.");
 		console.log("The worklist resumes where this left off.");
 	}
-	console.log(`Requests used:   ${requests}`);
-	console.log(`Chapters filled: ${filled}`);
-	console.log(`Verses written:  ${versesWritten}`);
-	console.log(`Absent upstream: ${notFound}`);
-	console.log(`Failed:          ${failed}`);
-	console.log(`Remaining:       ${Math.max(0, work.length - filled - notFound)}`);
+	console.log(`Requests used:    ${requests}`);
+	console.log(`Chapters filled:  ${filled}`);
+	// Broken out rather than folded into "filled": a run that is all settle and no
+	// fill has spent requests and written nothing, and reading as `filled` is what
+	// hid seven such nights in a row.
+	console.log(`Chapters settled: ${settled}  (upstream had nothing new; verse count corrected)`);
+	console.log(`Verses written:   ${versesWritten}`);
+	console.log(`Absent upstream:  ${notFound}`);
+	console.log(`Failed:           ${failed}`);
+	console.log(`Remaining:        ${Math.max(0, work.length - filled - settled - notFound)}`);
 
 	await pool.end();
 }

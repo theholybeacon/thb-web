@@ -1,10 +1,12 @@
 name: warm-quota
 
 # api.bible's daily request allowance does not roll over: whatever is unspent
-# when it resets is simply gone. This job runs an hour before that, once live
-# readers have already had the whole day's headroom, and spends the remainder
-# warming verse text — recommended bibles first, in the language order set by
-# src/lib/warmPriority.ts, because a nightly run is always cut off mid-worklist.
+# when it resets is simply gone. This job runs before that, once live readers
+# have already had most of the day's headroom, and spends the remainder warming
+# verse text — recommended bibles first, in the language order set by
+# src/lib/warmPriority.ts, then the rest of the catalogue in those same
+# languages (resolveWarmOrder() in the script), because a nightly run is always
+# cut off mid-worklist.
 #
 # The script owns both stopping conditions: the upstream 403 that means the
 # allowance is spent, and its own reset deadline, so this can never start eating
@@ -12,10 +14,14 @@ name: warm-quota
 
 on:
   schedule:
-    # 23:00 UTC — one hour before the quota day ends. GitHub's scheduler drifts
-    # 5-20 minutes under load; --drain's deadline is what keeps a late start from
-    # spilling past midnight, so the drift is harmless.
-    - cron: "0 23 * * *"
+    # 21:00 UTC, three hours before the quota day ends — NOT one hour, because
+    # GitHub's scheduler drift is far larger than its docs suggest. At the old
+    # "0 23 * * *" the observed starts over Aug 30 - Sep 7 were 00:18 to 01:28
+    # UTC: every single run began AFTER the reset it was meant to run before,
+    # which also left --drain's deadline computing ~23h out and doing nothing.
+    # 21:00 absorbs that drift and puts the run back inside the day it is
+    # spending. --drain's deadline still catches anything later than that.
+    - cron: "0 21 * * *"
   workflow_dispatch:
     inputs:
       dry_run:

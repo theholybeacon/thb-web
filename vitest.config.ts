@@ -16,6 +16,7 @@ export default defineConfig({
 			"src/lib/username.test.ts",
 			"src/lib/prices.test.ts",
 			"src/lib/warmPriority.test.ts",
+			"src/app/common/chapter/model/parseChapterText.test.ts",
 		],
 		environment: "node",
 	},

@@ -37,8 +37,9 @@ export interface ParsedVerse {
 export function parseChapterText(text: string): ParsedVerse[] {
 	if (!text) return [];
 
-	// Marker positions in document order.
-	const marks: { verse: number; start: number; end: number }[] = [];
+	// Marker positions in document order. `unmarked` is set only on the synthetic
+	// verse 1 recovered below, which has no marker to separate from its content.
+	const marks: { verse: number; start: number; end: number; unmarked?: boolean }[] = [];
 	VERSE_MARKER.lastIndex = 0;
 	for (let m = VERSE_MARKER.exec(text); m; m = VERSE_MARKER.exec(text)) {
 		const verse = Number(m[1]);
@@ -62,6 +63,24 @@ export function parseChapterText(text: string): ParsedVerse[] {
 		highest = mark.verse;
 	}
 
+	// A verse 1 that opens with a USFM descriptive title loses its marker along
+	// with the title under `include-titles=false`: the prose survives but the
+	// first marker in the payload is [2]. BSB Zechariah 12 is the case that
+	// surfaced this — verse 1 was simply absent from every chapter we stored, and
+	// because the chapter could then never match upstream's verseCount it was
+	// re-fetched by every warm run forever.
+	//
+	// Only when the first marker is [2]. A wider gap gives no way to tell how many
+	// verses the leading prose covers, and guessing would mis-number the chapter.
+	if (ordered[0].verse === 2) {
+		// Blank opening lines are chapter formatting, not this verse's indentation
+		// — a marked verse 1 would not carry them either.
+		const lead = text.slice(0, ordered[0].start).replace(/^(?:[ \t]*\n)+/, "");
+		if (lead.trim().length > 0) {
+			ordered.unshift({ verse: 1, start: 0, end: ordered[0].start - lead.length, unmarked: true });
+		}
+	}
+
 	// Same verse can be marked twice when it spans a paragraph; join the pieces.
 	const byVerse = new Map<number, string[]>();
 	for (let i = 0; i < ordered.length; i++) {
@@ -83,7 +102,8 @@ export function parseChapterText(text: string): ParsedVerse[] {
 		}
 
 		// Exactly one separator space after the marker is formatting, not content.
-		const body = segment.startsWith(" ") ? segment.slice(1) : segment;
+		// The recovered verse 1 has no marker, so its first space is content.
+		const body = !mark.unmarked && segment.startsWith(" ") ? segment.slice(1) : segment;
 
 		const parts = byVerse.get(mark.verse) ?? [];
 		parts.push(indent + body);
