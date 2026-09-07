@@ -1,6 +1,6 @@
 import type { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/app/utils/logger";
-import { API_KEY_HEADER, ApiKeyIdentity, authenticate } from "./auth";
+import { API_KEY_HEADER, authenticate } from "./auth";
 import { checkRateLimit } from "./rateLimit";
 import { ReferenceParseError } from "./reference";
 import { fail } from "./respond";
@@ -44,7 +44,7 @@ export const badRequest = (code = "INVALID_REQUEST", extra: Record<string, unkno
 
 export type ContentApiHandler<P> = (
 	request: NextRequest,
-	ctx: { identity: ApiKeyIdentity; params: P },
+	ctx: { params: P },
 ) => Promise<NextResponse>;
 
 /**
@@ -58,15 +58,14 @@ async function runGuarded<P>(
 	params: P,
 	handler: ContentApiHandler<P>,
 ): Promise<NextResponse> {
-	const identity = authenticate(request);
-	if (!identity) {
-		// Deliberately says nothing about whether any keys are configured.
+	if (!authenticate(request)) {
+		// Deliberately says nothing about whether a key is configured at all.
 		return fail("UNAUTHORIZED", 401, {
 			message: `Provide a valid ${API_KEY_HEADER} header.`,
 		});
 	}
 
-	const limit = checkRateLimit(identity.label);
+	const limit = checkRateLimit();
 	if (!limit.allowed) {
 		// Retry-After as a real header, not just in the body: that is what HTTP
 		// clients and job schedulers actually back off on.
@@ -82,7 +81,7 @@ async function runGuarded<P>(
 	}
 
 	try {
-		return await handler(request, { identity, params });
+		return await handler(request, { params });
 	} catch (err) {
 		if (err instanceof ReferenceParseError) {
 			return fail(err.code, 400, { message: err.message });

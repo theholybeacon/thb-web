@@ -1,7 +1,7 @@
 import { logger } from "@/app/utils/logger";
 
 /**
- * Caps how many COLD chapters one API key may pull from api.bible per day.
+ * Caps how many COLD chapters this API may pull from api.bible per day.
  *
  * Why this exists: verse text is hydrated lazily. Reading a chapter nobody has
  * opened yet costs one upstream api.bible request, and that daily quota is
@@ -21,7 +21,7 @@ const log = logger.child({ module: "contentApi/hydrationBudget" });
 
 type Budget = { day: string; spent: number };
 
-const budgets = new Map<string, Budget>();
+let budget: Budget | null = null;
 
 function dailyLimit(): number {
 	const configured = Number(process.env.CONTENT_API_HYDRATION_BUDGET);
@@ -32,35 +32,32 @@ function utcDay(nowMs: number): string {
 	return new Date(nowMs).toISOString().slice(0, 10);
 }
 
-/** True when this key may pay for one cold-chapter fetch right now. */
-export function tryConsumeHydration(key: string, nowMs: number = Date.now()): boolean {
+/** True when the API may pay for one cold-chapter fetch right now. */
+export function tryConsumeHydration(nowMs: number = Date.now()): boolean {
 	const limit = dailyLimit();
 	if (limit === 0) return false;
 
 	const day = utcDay(nowMs);
-	const budget = budgets.get(key);
 	const current = budget && budget.day === day ? budget : { day, spent: 0 };
+	budget = current;
 
 	if (current.spent >= limit) {
-		budgets.set(key, current);
-		log.warn({ key, limit }, "content API hydration budget exhausted; serving stored text only");
+		log.warn({ limit }, "content API hydration budget exhausted; serving stored text only");
 		return false;
 	}
 
 	current.spent += 1;
-	budgets.set(key, current);
-	log.info({ key, spent: current.spent, limit }, "content API hydrated a cold chapter");
+	log.info({ spent: current.spent, limit }, "content API hydrated a cold chapter");
 	return true;
 }
 
-export function hydrationBudgetStatus(key: string, nowMs: number = Date.now()) {
+export function hydrationBudgetStatus(nowMs: number = Date.now()) {
 	const limit = dailyLimit();
-	const budget = budgets.get(key);
 	const spent = budget && budget.day === utcDay(nowMs) ? budget.spent : 0;
 	return { limit, spent, remaining: Math.max(0, limit - spent) };
 }
 
 /** Test seam. Never called at runtime. */
 export function __resetHydrationBudgets(): void {
-	budgets.clear();
+	budget = null;
 }

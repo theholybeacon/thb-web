@@ -16,7 +16,7 @@ import { notFound, withContentApiParams } from "@/lib/contentApi/withContentApi"
  */
 export const dynamic = "force-dynamic";
 
-export const GET = withContentApiParams<{ reference: string }>(async (request, { identity, params }) => {
+export const GET = withContentApiParams<{ reference: string }>(async (request, { params }) => {
 	const ref = parseReference(params.reference);
 	const bible = await resolveTranslation(request.nextUrl.searchParams.get("translation"));
 
@@ -24,7 +24,6 @@ export const GET = withContentApiParams<{ reference: string }>(async (request, {
 		bible,
 		usfm: ref.usfm,
 		chapterNumber: ref.chapter,
-		budgetKey: identity.label,
 	});
 
 	const ordered = [...chapter.verses].sort((a, b) => a.verseNumber - b.verseNumber);

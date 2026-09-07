@@ -15,7 +15,7 @@ import { ContentApiFailure, notFound } from "./withContentApi";
  * readers. So the order here is deliberate:
  *
  *   1. serve what is already stored — free, unmetered, the overwhelming case
- *   2. only if it is cold, spend one unit of this key's daily hydration budget
+ *   2. only if it is cold, spend one unit of the daily hydration budget
  *      and go through the reader's own path (chapterGetByCanonicalRefSS)
  *   3. if the budget is gone, degrade to stored-only and say so plainly
  *
@@ -43,9 +43,8 @@ export async function loadChapterForApi(params: {
 	bible: Bible;
 	usfm: string;
 	chapterNumber: number;
-	budgetKey: string;
 }): Promise<ChapterAccess> {
-	const { bible, usfm, chapterNumber, budgetKey } = params;
+	const { bible, usfm, chapterNumber } = params;
 
 	const storedBook = await bookDao.getByAbbreviationAndBibleId(bible.id, usfm);
 	if (storedBook) {
@@ -64,10 +63,10 @@ export async function loadChapterForApi(params: {
 		}
 	}
 
-	if (!tryConsumeHydration(budgetKey)) {
+	if (!tryConsumeHydration()) {
 		throw notFound("NOT_HYDRATED", {
 			message:
-				`${usfm} ${chapterNumber} is not cached for ${bible.slug}, and this key's daily ` +
+				`${usfm} ${chapterNumber} is not cached for ${bible.slug}, and the daily ` +
 				`hydration budget is spent. Pre-load the translation instead of crawling cold chapters.`,
 			hint: `npm run warm:bible -- --bible ${bible.slug}`,
 		});

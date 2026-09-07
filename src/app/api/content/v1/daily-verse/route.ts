@@ -24,7 +24,7 @@ function dayOfYear(localDate: string): number {
 	return Math.floor((d.getTime() - start) / 86_400_000);
 }
 
-export const GET = withContentApi(async (request, { identity }) => {
+export const GET = withContentApi(async (request) => {
 	const search = request.nextUrl.searchParams;
 	const requested = search.get("date")?.trim();
 
@@ -40,7 +40,6 @@ export const GET = withContentApi(async (request, { identity }) => {
 		bible,
 		usfm: pick.bookAbbreviation,
 		chapterNumber: pick.chapter,
-		budgetKey: identity.label,
 	});
 
 	const verse = chapter.verses.find((v) => v.verseNumber === pick.verse);

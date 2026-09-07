@@ -1,10 +1,13 @@
 /**
- * Per-key request throttling for the Content API.
+ * Request throttling for the Content API.
  *
  * This repo has no HTTP rate limiter to be consistent with — middleware does
  * auth only, and the single existing throttle is a 20-second per-user cooldown
  * inside contributionCreateSS. So this is deliberately the smallest thing that
  * works: an in-process token bucket, no new dependency, nothing shared.
+ *
+ * One bucket for the whole API, not one per client: there is a single key and a
+ * single consumer, so a per-caller quota would only ever have had one entry.
  *
  * HONEST LIMITATION: state lives in one server instance's memory. On serverless
  * each instance keeps its own bucket, so the effective ceiling is the configured
@@ -23,18 +26,18 @@ export type RateLimitDecision = {
 
 type Bucket = { tokens: number; lastRefillMs: number };
 
-const buckets = new Map<string, Bucket>();
+let bucket: Bucket | null = null;
 
 function limitPerMinute(): number {
 	const configured = Number(process.env.CONTENT_API_RATE_LIMIT_PER_MINUTE);
 	return Number.isFinite(configured) && configured > 0 ? configured : 60;
 }
 
-export function checkRateLimit(key: string, nowMs: number = Date.now()): RateLimitDecision {
+export function checkRateLimit(nowMs: number = Date.now()): RateLimitDecision {
 	const limit = limitPerMinute();
 	const refillPerMs = limit / 60_000;
 
-	const bucket = buckets.get(key) ?? { tokens: limit, lastRefillMs: nowMs };
+	bucket ??= { tokens: limit, lastRefillMs: nowMs };
 
 	// Continuous refill rather than fixed windows: a fixed window lets a client
 	// spend 2x the limit across a window boundary.
@@ -44,7 +47,6 @@ export function checkRateLimit(key: string, nowMs: number = Date.now()): RateLim
 
 	if (bucket.tokens < 1) {
 		const waitMs = (1 - bucket.tokens) / refillPerMs;
-		buckets.set(key, bucket);
 		return {
 			allowed: false,
 			retryAfterSeconds: Math.max(1, Math.ceil(waitMs / 1000)),
@@ -54,7 +56,6 @@ export function checkRateLimit(key: string, nowMs: number = Date.now()): RateLim
 	}
 
 	bucket.tokens -= 1;
-	buckets.set(key, bucket);
 	return {
 		allowed: true,
 		retryAfterSeconds: 0,
@@ -65,5 +66,5 @@ export function checkRateLimit(key: string, nowMs: number = Date.now()): RateLim
 
 /** Test seam. Never called at runtime. */
 export function __resetRateLimits(): void {
-	buckets.clear();
+	bucket = null;
 }

@@ -55,7 +55,7 @@ async function callVerses(reference: string, translation?: string) {
 
 describeDb("verse text is byte-identical to the database", () => {
 	beforeAll(async () => {
-		process.env.CONTENT_API_KEYS = `test:${KEY}`;
+		process.env.CONTENT_API_KEY = KEY;
 		// Stored-text-only: this test reads production and must never write.
 		process.env.CONTENT_API_HYDRATION_BUDGET = "0";
 		process.env.CONTENT_API_RATE_LIMIT_PER_MINUTE = "10000";

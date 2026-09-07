@@ -28,19 +28,17 @@ HTTP client re-sends a custom header like `x-api-key` across a redirect — and 
 failure looks like a `401` rather than a redirect problem. Point at `www`
 directly and the question never comes up.
 
-Keys live in the `CONTENT_API_KEYS` environment variable as comma-separated
-`label:secret` pairs — the same pattern as `CRON_SECRET`. Issue one key per
-consumer: rate limits and hydration budgets are metered per label, and logs name
-the label that misbehaved.
+The key lives in the `CONTENT_API_KEY` environment variable as a single bare
+secret — the same pattern as `CRON_SECRET`.
 
 ```
-CONTENT_API_KEYS="marketing:<long-random-secret>,localdev:<another>"
+CONTENT_API_KEY="<long-random-secret>"
 ```
 
-Only the **first** colon separates label from secret, so a secret may itself
-contain colons. If the variable is unset or empty, **every request is rejected**
-— failing closed is deliberate, so a missing env var in a new environment cannot
-silently publish the whole catalogue.
+The whole value is the secret; nothing is parsed out of it. If the variable is
+unset or empty, **every request is rejected** — failing closed is deliberate, so
+a missing env var in a new environment cannot silently publish the whole
+catalogue.
 
 ```bash
 curl -H "x-api-key: $CONTENT_API_KEY" \
@@ -472,7 +470,7 @@ Branch on `error`, never on `message`.
 | 404 | `TRANSLATION_NOT_FOUND` | No such translation slug or version. |
 | 404 | `CHAPTER_NOT_FOUND` | The chapter does not exist in this translation. Do not retry. |
 | 404 | `VERSE_NOT_FOUND` | Chapter exists; that verse does not. |
-| 404 | `NOT_HYDRATED` | Chapter is not cached and this key's hydration budget is spent. Warm the translation. |
+| 404 | `NOT_HYDRATED` | Chapter is not cached and the hydration budget is spent. Warm the translation. |
 | 404 | `CHARACTER_NOT_FOUND` | No such character slug. |
 | 404 | `NOT_GENERATED` / `NOT_LICENSED` | See the narration table above. |
 | 429 | `RATE_LIMITED` | Honour the `Retry-After` header. |
@@ -523,8 +521,8 @@ rather than duplicated.
 
 | Variable | Default | Effect |
 |---|---|---|
-| `CONTENT_API_RATE_LIMIT_PER_MINUTE` | 60 | Requests per minute per key → `429`. |
-| `CONTENT_API_HYDRATION_BUDGET` | 200 | Cold chapters per key per UTC day. `0` disables on-demand fetching entirely. |
+| `CONTENT_API_RATE_LIMIT_PER_MINUTE` | 60 | Requests per minute for the whole API → `429`. |
+| `CONTENT_API_HYDRATION_BUDGET` | 200 | Cold chapters per UTC day. `0` disables on-demand fetching entirely. |
 
 Both are **in-process and per-instance**: on serverless, each warm instance keeps
 its own counter, so the effective ceiling is the configured value times the
@@ -553,6 +551,16 @@ no mutating handler exists under `/api/content`. The central test asserts that
 served verse text is **byte-identical** to a direct `SELECT` — it discovers a
 cached chapter at runtime rather than hardcoding one, and pins the hydration
 budget to `0` so it can never write.
+
+Every other endpoint has behavioural cover too: `/meta`'s counts are checked
+against the endpoints they describe, character slugs are resolved through the
+index rather than constructed, `/daily-verse` is asserted to feature the same
+verse the product's own rotation picks on that date and to hand back an
+`apiReference` that `/verses` accepts, and narration timings are checked to sit
+in order inside the chapter file with a range windowing into the same MP3. Those
+fixtures — the cached chapter, the character, the narrated chapter, the dated
+verse — are all **discovered at run time**, because on-demand content differs by
+environment and a hardcoded one would quietly skip itself.
 
 Database-backed tests skip themselves when `DATABASE_URL` is unset.
 
@@ -606,7 +614,7 @@ Everything the marketing pipeline needs to configure:
 |---|---|
 | **Base URL** | `https://www.theholybeacon.com/api/content/v1` (`NEXT_PUBLIC_BASE_URL` + `/api/content/v1`) |
 | **Auth** | `x-api-key: <secret>` on every request |
-| **Getting a key** | Add a `label:secret` pair to `CONTENT_API_KEYS` in this app's environment. One key per consumer. |
+| **Getting a key** | Set `CONTENT_API_KEY` to a long random secret in this app's environment. One key, shared by every consumer. |
 | **API contract** | This file. |
 | **Product description** | `product-knowledge/` — features, user flows, data catalog, glossary, positioning. |
 | **Start here** | `GET /meta` — the catalogue, the real counts, and every accepted book key. |
