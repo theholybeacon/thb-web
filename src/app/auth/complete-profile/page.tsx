@@ -10,6 +10,7 @@ import { AuthSidePanel } from "../components/AuthSidePanel";
 import { UsernameField, UsernameStatus } from "../components/UsernameField";
 import { normalizeUsername } from "@/lib/username";
 import { toast } from "@/lib/toast";
+import { activateAndGo } from "../lib/finishAuth";
 
 /**
  * Where an OAuth sign-up lands when Clerk still needs a handle.
@@ -60,17 +61,20 @@ export default function CompleteProfilePage() {
 		try {
 			const result = await signUp.update({ username });
 			if (result.status === "complete") {
-				await setActive({ session: result.createdSessionId });
 				toast.success(tSignUp("title"));
-				router.push("/home");
+				await activateAndGo(setActive, result.createdSessionId, router);
 			} else {
-				toast.error(tCommon("error"));
-				setError(tCommon("error"));
+				// Something other than the handle is still missing — name it rather
+				// than leaving the user on a form that can't fix it.
+				const fields = [...result.missingFields, ...result.unverifiedFields].join(", ");
+				const message = fields ? tSignUp("missingFields", { fields }) : tCommon("error");
+				toast.error(message);
+				setError(message);
 			}
 		} catch (err: unknown) {
-			const clerkError = err as { errors?: Array<{ code: string; message: string }> };
+			const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
 			const first = clerkError.errors?.[0];
-			const message = first?.code === "form_identifier_exists" ? t("taken") : (first?.message || tCommon("error"));
+			const message = first?.code === "form_identifier_exists" ? t("taken") : (first?.longMessage || first?.message || tCommon("error"));
 			toast.error(message);
 			setError(message);
 		} finally {

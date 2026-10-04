@@ -36,13 +36,21 @@ const isPublicRoute = createRouteMatcher([
   '/robots.txt',
   '/sitemap.xml',
   '/sitemap/(.*)',
+  // Linked from the sign-up form, so they must be readable before an account exists.
+  '/terms',
+  '/privacy',
 ])
 
-export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect()
-  }
-})
+export default clerkMiddleware(
+  async (auth, request) => {
+    if (!isPublicRoute(request)) {
+      await auth.protect()
+    }
+  },
+  // Keep auth.protect() redirects on our own login page. The default is the
+  // hosted Account Portal, which is cross-origin and breaks client navigation.
+  { signInUrl: '/auth/login', signUpUrl: '/auth/sign-up' },
+)
 
 export const config = {
   matcher: [

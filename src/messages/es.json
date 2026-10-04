@@ -42,7 +42,10 @@
       "google": "Continuar con Google",
       "invalidCredentials": "Correo o contraseña inválidos",
       "emailNotVerified": "Por favor verifica tu correo primero",
-      "additionalVerification": "Verificación adicional requerida"
+      "additionalVerification": "Verificación adicional requerida",
+      "passwordResetRequired": "Por tu seguridad, debes restablecer esta contraseña: apareció en una filtración de datos conocida.",
+      "resetPassword": "Restablecer tu contraseña",
+      "captchaFailed": "No pudimos verificar que eres humano. Inténtalo de nuevo o desactiva los bloqueadores de anuncios para este sitio."
     },
     "signUp": {
       "title": "Crea tu cuenta",
@@ -70,7 +73,10 @@
       "agreeToTerms": "Al crear una cuenta, aceptas nuestros",
       "termsOfService": "Términos de Servicio",
       "and": "y",
-      "privacyPolicy": "Política de Privacidad"
+      "privacyPolicy": "Política de Privacidad",
+      "passwordPwned": "Esta contraseña apareció en una filtración de datos conocida. Por favor elige otra.",
+      "passwordWeak": "Esta contraseña es muy débil. Prueba una más larga o combina números y símbolos.",
+      "missingFields": "Necesitamos un poco más de información para terminar tu cuenta: {fields}"
     },
     "username": {
       "label": "Nombre de usuario",
@@ -99,7 +105,10 @@
       "resending": "Reenviando...",
       "codeSent": "¡Código de verificación enviado!",
       "invalidCode": "Código de verificación inválido",
-      "codeExpired": "El código de verificación expiró. Por favor solicita uno nuevo."
+      "codeExpired": "El código de verificación expiró. Por favor solicita uno nuevo.",
+      "resendIn": "Reenviar en {seconds}s",
+      "wrongEmail": "¿Correo equivocado?",
+      "goBack": "Volver y cambiarlo"
     },
     "forgotPassword": {
       "title": "Restablecer tu contraseña",
@@ -983,5 +992,12 @@
     "shareDisabled": "Tu camino es privado.",
     "profileSubtitle": "El camino de {name} por la Biblia",
     "profileNotPublic": "Este camino es privado."
+  },
+  "legal": {
+    "termsTitle": "Términos del servicio",
+    "privacyTitle": "Política de privacidad",
+    "comingSoon": "Estamos terminando este documento. El texto completo se publicará aquí en breve.",
+    "questions": "Mientras tanto,",
+    "backHome": "vuelve a la página de inicio."
   }
 }

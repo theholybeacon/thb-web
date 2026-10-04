@@ -42,7 +42,10 @@
       "google": "Continue with Google",
       "invalidCredentials": "Invalid email or password",
       "emailNotVerified": "Please verify your email first",
-      "additionalVerification": "Additional verification required"
+      "additionalVerification": "Additional verification required",
+      "passwordResetRequired": "For your security, this password needs to be reset — it has appeared in a known data breach.",
+      "resetPassword": "Reset your password",
+      "captchaFailed": "We couldn't verify you're human. Please try again, or disable ad blockers for this site."
     },
     "signUp": {
       "title": "Create your account",
@@ -70,7 +73,10 @@
       "agreeToTerms": "By creating an account, you agree to our",
       "termsOfService": "Terms of Service",
       "and": "and",
-      "privacyPolicy": "Privacy Policy"
+      "privacyPolicy": "Privacy Policy",
+      "passwordPwned": "This password has appeared in a known data breach. Please choose a different one.",
+      "passwordWeak": "This password is too weak. Try a longer one, or mix in numbers and symbols.",
+      "missingFields": "We need a bit more information to finish your account: {fields}"
     },
     "username": {
       "label": "Username",
@@ -99,7 +105,10 @@
       "resending": "Resending...",
       "codeSent": "Verification code sent!",
       "invalidCode": "Invalid verification code",
-      "codeExpired": "Verification code expired. Please request a new one."
+      "codeExpired": "Verification code expired. Please request a new one.",
+      "resendIn": "Resend in {seconds}s",
+      "wrongEmail": "Wrong email?",
+      "goBack": "Go back and change it"
     },
     "forgotPassword": {
       "title": "Reset your password",
@@ -983,5 +992,12 @@
     "shareDisabled": "Your journey is private.",
     "profileSubtitle": "{name}'s journey through the Bible",
     "profileNotPublic": "This journey is private."
+  },
+  "legal": {
+    "termsTitle": "Terms of Service",
+    "privacyTitle": "Privacy Policy",
+    "comingSoon": "We're finalizing this document. The full text will be published here shortly.",
+    "questions": "In the meantime,",
+    "backHome": "return to the home page."
   }
 }

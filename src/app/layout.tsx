@@ -37,7 +37,16 @@ export default async function RootLayout({
   const messages = await getMessages()
 
   return (
-    <ClerkProvider>
+    // Our auth pages are custom flows. Without these, every Clerk redirect
+    // (auth.protect(), handshake, post-auth) falls back to the hosted Account
+    // Portal on accounts.theholybeacon.com — a cross-origin hop Next's RSC
+    // fetches can't follow, so navigations silently die.
+    <ClerkProvider
+      signInUrl="/auth/login"
+      signUpUrl="/auth/sign-up"
+      signInFallbackRedirectUrl="/home"
+      signUpFallbackRedirectUrl="/home"
+    >
       <html lang={locale} suppressHydrationWarning>
         <body className={`${inter.variable} ${merriweather.variable} font-sans`}>
           <Analytics />

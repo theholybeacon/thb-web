@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSignIn } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { useAuth, useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -11,10 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { AuthSidePanel } from "../components/AuthSidePanel";
 import { toast } from "@/lib/toast";
+import { activateAndGo, safeRedirect } from "../lib/finishAuth";
 
 export default function LoginPage() {
   const t = useTranslations("auth.login");
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { isSignedIn } = useAuth();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -22,6 +24,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  // Set when the account can only continue through a password reset (breached
+  // password, or Clerk asking for a new one) — the form shows a shortcut to it.
+  const [needsReset, setNeedsReset] = useState(false);
+
+  // Already signed in: skip the form instead of failing with session_exists.
+  useEffect(() => {
+    if (isSignedIn) router.replace(safeRedirect());
+  }, [isSignedIn, router]);
+
+  const showError = (message: string) => {
+    toast.error(message);
+    setError(message);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +44,7 @@ export default function LoginPage() {
 
     setIsLoading(true);
     setError("");
+    setNeedsReset(false);
 
     try {
       const result = await signIn.create({
@@ -37,27 +53,33 @@ export default function LoginPage() {
       });
 
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
         toast.success(t("welcomeBack"));
-        router.push("/home");
-      } else if (result.status === "needs_first_factor") {
-        // Handle MFA if needed
+        await activateAndGo(setActive, result.createdSessionId, router);
+      } else if (result.status === "needs_new_password") {
+        setNeedsReset(true);
+        showError(t("passwordResetRequired"));
+      } else {
+        // needs_first_factor / needs_second_factor: MFA and passwordless
+        // factors are off for this instance, so this is only a guard.
         toast.warning(t("additionalVerification"));
         setError(t("additionalVerification"));
       }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ code: string; message: string }> };
-      if (clerkError.errors?.[0]?.code === "form_password_incorrect") {
-        toast.error(t("invalidCredentials"));
-        setError(t("invalidCredentials"));
-      } else if (clerkError.errors?.[0]?.code === "form_identifier_not_found") {
-        toast.error(t("invalidCredentials"));
-        setError(t("invalidCredentials"));
-      } else if (clerkError.errors?.[0]?.code === "session_exists") {
-        router.push("/home");
+      const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
+      const first = clerkError.errors?.[0];
+      if (first?.code === "form_password_incorrect" || first?.code === "form_identifier_not_found") {
+        showError(t("invalidCredentials"));
+      } else if (first?.code === "form_password_pwned") {
+        // Production enforces breached-password checks on sign-in too; the only
+        // way forward for this account is a reset.
+        setNeedsReset(true);
+        showError(t("passwordResetRequired"));
+      } else if (first?.code === "session_exists") {
+        router.replace(safeRedirect());
+      } else if (first?.code?.startsWith("captcha_")) {
+        showError(t("captchaFailed"));
       } else {
-        toast.error(clerkError.errors?.[0]?.message || t("invalidCredentials"));
-        setError(clerkError.errors?.[0]?.message || t("invalidCredentials"));
+        showError(first?.longMessage || first?.message || t("invalidCredentials"));
       }
     } finally {
       setIsLoading(false);
@@ -71,7 +93,7 @@ export default function LoginPage() {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/home",
+        redirectUrlComplete: safeRedirect(),
       });
     } catch (err) {
       console.error("Google sign in error:", err);
@@ -150,6 +172,14 @@ export default function LoginPage() {
             {error && (
               <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
                 {error}
+                {needsReset && (
+                  <Link
+                    href={`/auth/forgot-password?email=${encodeURIComponent(email)}`}
+                    className="mt-2 block font-medium text-primary hover:text-primary/80"
+                  >
+                    {t("resetPassword")}
+                  </Link>
+                )}
               </div>
             )}
 
@@ -204,6 +234,9 @@ export default function LoginPage() {
                 {t("forgotPassword")}
               </Link>
             </div>
+
+            {/* Mount point for Clerk's bot-protection challenge, if it ever asks on sign-in. */}
+            <div id="clerk-captcha" />
 
             <Button type="submit" className="w-full" disabled={isLoading || !isLoaded}>
               {isLoading ? (

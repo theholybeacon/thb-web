@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Mail, ArrowLeft, KeyRound, Lock, Eye, EyeOff } from "lucide-react";
 import { AuthSidePanel } from "../components/AuthSidePanel";
 import { toast } from "@/lib/toast";
+import { activateAndGo } from "../lib/finishAuth";
 
 type ForgotPasswordStep = "email" | "code" | "reset";
 
@@ -32,6 +33,13 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Prefilled when the login page sends a user here to reset a breached password.
+  // Read after mount so server and client render the same initial markup.
+  useEffect(() => {
+    const prefill = new URLSearchParams(window.location.search).get("email");
+    if (prefill) setEmail(prefill);
+  }, []);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,15 +121,19 @@ export default function ForgotPasswordPage() {
       });
 
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
         toast.success(tReset("success"));
         setSuccess(tReset("success"));
-        setTimeout(() => router.push("/home"), 2000);
+        await activateAndGo(setActive, result.createdSessionId, router, "/home");
+      } else {
+        toast.error(tCommon("error"));
+        setError(tCommon("error"));
       }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ code: string; message: string }> };
-      toast.error(clerkError.errors?.[0]?.message || tCommon("error"));
-      setError(clerkError.errors?.[0]?.message || tCommon("error"));
+      // longMessage carries Clerk's specific reason (breached / too weak password).
+      const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
+      const first = clerkError.errors?.[0];
+      toast.error(first?.longMessage || first?.message || tCommon("error"));
+      setError(first?.longMessage || first?.message || tCommon("error"));
     } finally {
       setIsLoading(false);
     }

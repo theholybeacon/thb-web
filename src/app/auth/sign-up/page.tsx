@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSignUp } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { useAuth, useSignUp } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -12,6 +12,9 @@ import { Loader2, Mail, Lock, Eye, EyeOff, User, KeyRound } from "lucide-react";
 import { AuthSidePanel } from "../components/AuthSidePanel";
 import { UsernameField, UsernameStatus } from "../components/UsernameField";
 import { toast } from "@/lib/toast";
+import { activateAndGo, safeRedirect } from "../lib/finishAuth";
+
+const RESEND_COOLDOWN_SECONDS = 30;
 
 // "username" is a fallback step: the handle is collected on the form, but Clerk
 // is the authority on what is still missing, so we service a late request for it
@@ -24,6 +27,7 @@ export default function SignUpPage() {
   const tUsername = useTranslations("auth.username");
   const tCommon = useTranslations("common");
   const { isLoaded, signUp, setActive } = useSignUp();
+  const { isSignedIn } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState<SignUpStep>("form");
@@ -37,7 +41,41 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [error, setError] = useState("");
+
+  // Already signed in (e.g. back button after finishing): nothing to do here.
+  useEffect(() => {
+    if (isSignedIn) router.replace(safeRedirect());
+  }, [isSignedIn, router]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setTimeout(() => setResendCooldown((s) => s - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const showError = (message: string) => {
+    toast.error(message);
+    setError(message);
+  };
+
+  // Clerk can still want something after the email is verified. Username has an
+  // in-app step; anything else is a dashboard/config change we can't satisfy
+  // here, so name it instead of showing a bare "something went wrong".
+  const continueSignUp = async (result: NonNullable<typeof signUp>) => {
+    if (result.status === "complete") {
+      toast.success(t("title"));
+      await activateAndGo(setActive!, result.createdSessionId, router);
+    } else if (result.missingFields.includes("username")) {
+      setError("");
+      setStep("username");
+    } else {
+      const fields = [...result.missingFields, ...result.unverifiedFields].join(", ");
+      showError(fields ? t("missingFields", { fields }) : tCommon("error"));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,24 +118,28 @@ export default function SignUpPage() {
       });
 
       toast.info(tVerify("subtitle", { email }));
+      setVerificationCode("");
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setStep("verification");
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ code: string; message: string; meta?: { paramName?: string } }> };
+      const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string; meta?: { paramName?: string } }> };
       const first = clerkError.errors?.[0];
       // Both the email and the handle report as form_identifier_exists — only
       // meta.paramName says which one the user actually has to change.
       if (first?.code === "form_identifier_exists" && first.meta?.paramName === "username") {
-        toast.error(tUsername("taken"));
-        setError(tUsername("taken"));
+        showError(tUsername("taken"));
       } else if (first?.code === "form_identifier_exists") {
-        toast.error(t("emailInUse"));
-        setError(t("emailInUse"));
+        showError(t("emailInUse"));
       } else if (first?.code?.startsWith("captcha_")) {
-        toast.error(t("captchaFailed"));
-        setError(t("captchaFailed"));
+        showError(t("captchaFailed"));
+      } else if (first?.code === "form_password_pwned") {
+        showError(t("passwordPwned"));
+      } else if (first?.code === "form_password_length_too_short") {
+        showError(t("passwordTooShort"));
+      } else if (first?.code === "form_password_not_strong_enough") {
+        showError(t("passwordWeak"));
       } else {
-        toast.error(first?.message || tCommon("error"));
-        setError(first?.message || tCommon("error"));
+        showError(first?.longMessage || first?.message || tCommon("error"));
       }
     } finally {
       setIsLoading(false);
@@ -115,28 +157,19 @@ export default function SignUpPage() {
       const result = await signUp.attemptEmailAddressVerification({
         code: verificationCode,
       });
-
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        toast.success(t("title"));
-        router.push("/home");
-      } else if (result.missingFields.includes("username")) {
-        setStep("username");
-      } else {
-        toast.error(tCommon("error"));
-        setError(tCommon("error"));
-      }
+      await continueSignUp(result);
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ code: string; message: string }> };
-      if (clerkError.errors?.[0]?.code === "form_code_incorrect") {
-        toast.error(tVerify("invalidCode"));
-        setError(tVerify("invalidCode"));
-      } else if (clerkError.errors?.[0]?.code === "verification_expired") {
-        toast.error(tVerify("codeExpired"));
-        setError(tVerify("codeExpired"));
+      const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
+      const first = clerkError.errors?.[0];
+      if (first?.code === "form_code_incorrect") {
+        showError(tVerify("invalidCode"));
+      } else if (first?.code === "verification_expired") {
+        showError(tVerify("codeExpired"));
+      } else if (first?.code === "verification_already_verified") {
+        // Double submit, or verified in another tab: just carry on from where Clerk is.
+        await continueSignUp(signUp);
       } else {
-        toast.error(clerkError.errors?.[0]?.message || tVerify("invalidCode"));
-        setError(clerkError.errors?.[0]?.message || tVerify("invalidCode"));
+        showError(first?.longMessage || first?.message || tVerify("invalidCode"));
       }
     } finally {
       setIsLoading(false);
@@ -144,9 +177,9 @@ export default function SignUpPage() {
   };
 
   const handleResendCode = async () => {
-    if (!isLoaded || !signUp) return;
+    if (!isLoaded || !signUp || resendCooldown > 0) return;
 
-    setIsLoading(true);
+    setIsResending(true);
     setError("");
 
     try {
@@ -154,12 +187,22 @@ export default function SignUpPage() {
         strategy: "email_code",
       });
       toast.success(tVerify("codeSent"));
-    } catch (err) {
-      console.error("Resend error:", err);
-      toast.error(tCommon("error"));
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: Array<{ message: string; longMessage?: string }> };
+      const first = clerkError.errors?.[0];
+      showError(first?.longMessage || first?.message || tCommon("error"));
     } finally {
-      setIsLoading(false);
+      setIsResending(false);
     }
+  };
+
+  // Typo in the email: return to the form with everything still filled in.
+  // Submitting again starts a fresh sign-up attempt with the corrected address.
+  const handleBackToForm = () => {
+    setError("");
+    setVerificationCode("");
+    setStep("form");
   };
 
   const handleUsernameSubmit = async (e: React.FormEvent) => {
@@ -171,20 +214,15 @@ export default function SignUpPage() {
 
     try {
       const result = await signUp.update({ username });
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        toast.success(t("title"));
-        router.push("/home");
+      if (result.status === "complete" || !result.missingFields.includes("username")) {
+        await continueSignUp(result);
       } else {
-        toast.error(tCommon("error"));
-        setError(tCommon("error"));
+        showError(tCommon("error"));
       }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ code: string; message: string }> };
+      const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
       const first = clerkError.errors?.[0];
-      const message = first?.code === "form_identifier_exists" ? tUsername("taken") : (first?.message || tCommon("error"));
-      toast.error(message);
-      setError(message);
+      showError(first?.code === "form_identifier_exists" ? tUsername("taken") : (first?.longMessage || first?.message || tCommon("error")));
     } finally {
       setIsLoading(false);
     }
@@ -197,7 +235,7 @@ export default function SignUpPage() {
       await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/home",
+        redirectUrlComplete: safeRedirect(),
       });
     } catch (err) {
       console.error("Google sign up error:", err);
@@ -320,16 +358,33 @@ export default function SignUpPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              {tVerify("resendCode")}{" "}
-              <button
-                type="button"
-                onClick={handleResendCode}
-                disabled={isLoading}
-                className="text-primary hover:text-primary/80 font-medium"
-              >
-                {isLoading ? tVerify("resending") : tVerify("resend")}
-              </button>
+            <div className="mt-6 space-y-2 text-center text-sm text-muted-foreground">
+              <div>
+                {tVerify("resendCode")}{" "}
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={isLoading || isResending || resendCooldown > 0}
+                  className="text-primary hover:text-primary/80 font-medium disabled:text-muted-foreground disabled:cursor-not-allowed"
+                >
+                  {isResending
+                    ? tVerify("resending")
+                    : resendCooldown > 0
+                      ? tVerify("resendIn", { seconds: resendCooldown })
+                      : tVerify("resend")}
+                </button>
+              </div>
+              <div>
+                {tVerify("wrongEmail")}{" "}
+                <button
+                  type="button"
+                  onClick={handleBackToForm}
+                  disabled={isLoading}
+                  className="text-primary hover:text-primary/80 font-medium"
+                >
+                  {tVerify("goBack")}
+                </button>
+              </div>
             </div>
           </div>
         </div>
