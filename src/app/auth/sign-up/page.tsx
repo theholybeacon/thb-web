@@ -70,7 +70,7 @@ export default function SignUpPage() {
         emailAddress: email,
         password,
         firstName,
-        lastName,
+        ...(lastName && { lastName }),
         username,
       });
 
@@ -92,6 +92,9 @@ export default function SignUpPage() {
       } else if (first?.code === "form_identifier_exists") {
         toast.error(t("emailInUse"));
         setError(t("emailInUse"));
+      } else if (first?.code?.startsWith("captcha_")) {
+        toast.error(t("captchaFailed"));
+        setError(t("captchaFailed"));
       } else {
         toast.error(first?.message || tCommon("error"));
         setError(first?.message || tCommon("error"));
@@ -507,6 +510,10 @@ export default function SignUpPage() {
                 </button>
               </div>
             </div>
+
+            {/* Mount point for Clerk's bot-protection (Turnstile) challenge — custom
+                flows must render it or production sign-ups fail with a 422. */}
+            <div id="clerk-captcha" />
 
             <Button type="submit" className="w-full" disabled={isLoading || !isLoaded || usernameStatus !== "available"}>
               {isLoading ? (

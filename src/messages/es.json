@@ -66,6 +66,7 @@
       "passwordMismatch": "Las contraseñas no coinciden",
       "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
       "emailInUse": "Este correo ya está en uso",
+      "captchaFailed": "No pudimos verificar que eres humano. Inténtalo de nuevo o desactiva los bloqueadores de anuncios para este sitio.",
       "agreeToTerms": "Al crear una cuenta, aceptas nuestros",
       "termsOfService": "Términos de Servicio",
       "and": "y",

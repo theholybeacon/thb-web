@@ -66,6 +66,7 @@
       "passwordMismatch": "Passwords do not match",
       "passwordTooShort": "Password must be at least 8 characters",
       "emailInUse": "This email is already in use",
+      "captchaFailed": "We couldn't verify you're human. Please try again, or disable ad blockers for this site.",
       "agreeToTerms": "By creating an account, you agree to our",
       "termsOfService": "Terms of Service",
       "and": "and",

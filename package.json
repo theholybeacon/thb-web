@@ -2,6 +2,9 @@
   "name": "thb-web",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "predev": "bash scripts/dev-proxy.sh",
     "dev": "next dev -p 3014",
@@ -81,7 +84,7 @@
   "devDependencies": {
     "@remotion/cli": "^4.0.489",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.17.2",
+    "@types/node": "^24",
     "@types/pg": "^8.11.10",
     "@types/react": "^19",
     "@types/react-dom": "^19",
