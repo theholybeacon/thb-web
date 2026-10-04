@@ -21,6 +21,7 @@ import { join } from "path";
 import { Pool } from "pg";
 import { normalizeStrongs } from "../src/lib/strongs";
 import { parseAlignmentVerse, type AlignmentJsonlVerse } from "../src/app/common/alignment/model/parseAlignmentJsonl";
+import { ALIGNMENT_ANCHORS } from "../src/app/common/alignment/model/alignmentAnchors";
 
 const DATA_DIR = join(process.cwd(), "scripts", "alignment", "data");
 
@@ -50,47 +51,12 @@ interface LexiconRecord {
 
 const INSERT_BATCH = 1000;
 
-/**
- * Hand-verified anchors, checked after every import.
- *
- * A source can be perfectly licensed, parse cleanly and report "100% tagged"
- * while its Strong's numbers sit on the wrong words — CrossWire's ASV attaches
- * G3004 (λέγω, "saith") to "to" and leaves "lovest thou" unwrapped. Nothing
- * mechanical caught that; only reading the output did. So every source must
- * assert a few known word→Strong's pairs, and adding a source means adding its
- * anchors here first.
- *
- * Keep these to unambiguous cases: proper nouns, and the ἀγαπάω/φιλέω contrast
- * in John 21 that the whole feature exists to surface.
- */
-const ANCHORS: Record<string, { ref: [string, number, number]; surface: string; strongs: string }[]> = {
-	bsb: [
-		{ ref: ["JHN", 21, 15], surface: "do you love", strongs: "G0025" },
-		{ ref: ["JHN", 21, 17], surface: "do you love", strongs: "G5368" },
-		{ ref: ["GEN", 1, 1], surface: "god", strongs: "H0430" },
-	],
-	frejnd: [
-		{ ref: ["JHN", 21, 15], surface: "aimes", strongs: "G0025" },
-		{ ref: ["JHN", 21, 17], surface: "aimes", strongs: "G5368" },
-		{ ref: ["GEN", 1, 1], surface: "dieu", strongs: "H0430" },
-	],
-	// Fetched live from api.bible rather than seeded from JSONL, so it is loaded
-	// a chapter at a time and only the chapters readers have opened exist. The
-	// anchors therefore stay inside John 21 — a Genesis anchor would fail merely
-	// because nobody had read Genesis yet. Verify with:
-	//   npm run seed:alignment -- --verify-only l1912
-	l1912: [
-		{ ref: ["JHN", 21, 15], surface: "lieber", strongs: "G0025" },
-		{ ref: ["JHN", 21, 15], surface: "liebhabe", strongs: "G5368" },
-		{ ref: ["JHN", 21, 17], surface: "lieb", strongs: "G5368" },
-	],
-};
 
 /** Fails loudly rather than shipping a source that answers confidently wrong. */
 async function verifySource(pool: Pool, code: string): Promise<boolean> {
-	const anchors = ANCHORS[code];
+	const anchors = ALIGNMENT_ANCHORS[code];
 	if (!anchors) {
-		console.log(`  ${code}: NO ANCHORS DEFINED — add them to ANCHORS before trusting this source.`);
+		console.log(`  ${code}: NO ANCHORS DEFINED — add them to ALIGNMENT_ANCHORS before trusting this source.`);
 		return false;
 	}
 	let ok = true;
@@ -168,7 +134,7 @@ async function importLexicon(pool: Pool): Promise<void> {
 	await pool.query(
 		`INSERT INTO alignment_book ("sourceCode","bookAbbreviation","status","wordCount","loadedAt")
 		 VALUES ('__lexicon__','__all__','ready',(SELECT count(*) FROM strongs_entry),now())
-		 ON CONFLICT ("sourceCode","bookAbbreviation") DO UPDATE SET
+		 ON CONFLICT ("sourceCode","bookAbbreviation","chapter") DO UPDATE SET
 		   "status"='ready', "wordCount"=excluded."wordCount",
 		   "loadedAt"=now(), "error"=null, "updatedAt"=now()`);
 }
@@ -230,7 +196,7 @@ async function importSource(pool: Pool, code: string): Promise<void> {
 		 SELECT "sourceCode","bookAbbreviation",'ready',count(*),now()
 		 FROM alignment_word WHERE "sourceCode" = $1
 		 GROUP BY "sourceCode","bookAbbreviation"
-		 ON CONFLICT ("sourceCode","bookAbbreviation") DO UPDATE SET
+		 ON CONFLICT ("sourceCode","bookAbbreviation","chapter") DO UPDATE SET
 		   "status"='ready', "wordCount"=excluded."wordCount",
 		   "loadedAt"=now(), "error"=null, "updatedAt"=now()`,
 		[code]);
@@ -251,7 +217,7 @@ async function main() {
 		// that have no corpus at all (api.bible-backed ones).
 		console.log("Verifying anchors:");
 		let allOk = true;
-		for (const code of codes.length > 0 ? codes : Object.keys(ANCHORS)) {
+		for (const code of codes.length > 0 ? codes : Object.keys(ALIGNMENT_ANCHORS)) {
 			allOk = (await verifySource(pool, code)) && allOk;
 		}
 		await pool.end();

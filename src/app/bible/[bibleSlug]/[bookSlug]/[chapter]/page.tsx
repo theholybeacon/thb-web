@@ -8,6 +8,7 @@ import { isPremiumUserSS } from "@/app/common/subscription/service/server/isPrem
 import { ExplorerView } from "../../../components/ExplorerView";
 import { BookRepository } from "@/app/common/book/repository/BookRepository";
 import { isIndexedTranslation } from "@/lib/seo";
+import { languageNameToIso } from "@/lib/bibleLanguage";
 
 interface PageProps {
   params: Promise<{ bibleSlug: string; bookSlug: string; chapter: string }>;
@@ -90,8 +91,9 @@ export default async function ChapterPage({ params }: PageProps) {
 
   const chapterData = await chapterGetByBookIdSS(book.id, book.name, chapterNum);
 
-  // Character mentions for this chapter (canonical book id → USFM abbreviation).
-  const mentions = await entityMentionsGetForChapterSS(book.apiId, chapterNum);
+  // Character mentions for this chapter (canonical book id → USFM abbreviation),
+  // with names localized to the translation's language for inline linking.
+  const mentions = await entityMentionsGetForChapterSS(book.apiId, chapterNum, languageNameToIso(bible.language));
 
   // Character names are visible to all but only clickable for premium users.
   const isPremium = await isPremiumUserSS();

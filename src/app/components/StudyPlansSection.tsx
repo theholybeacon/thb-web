@@ -75,7 +75,7 @@ export function StudyPlansSection() {
             <div className="relative w-full max-w-md">
               {/* Decorative elements */}
               <div className="absolute -top-8 -right-8 w-32 h-32 bg-primary/10 rounded-full blur-2xl animate-pulse-glow" />
-              <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-accent/10 rounded-full blur-2xl animate-pulse-glow animation-delay-300" />
+              <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-highlight/10 rounded-full blur-2xl animate-pulse-glow animation-delay-300" />
 
               {/* Main card */}
               <div className="relative glass rounded-2xl p-8 shadow-xl">

@@ -9,6 +9,12 @@ const log = logger.child({ module: 'chapterGetByCanonicalRefSS' });
 
 export type ChapterWithBookName = ChapterVer & {
     bookName: string;
+    /**
+     * The resolved book's USFM code ("PRO"). Study steps can carry loose
+     * abbreviations ("Pr.", "Mat"); alignment and people are keyed on USFM, so
+     * callers must use this rather than the step's own abbreviation.
+     */
+    bookApiId: string;
 };
 
 /**
@@ -53,6 +59,7 @@ export async function chapterGetByCanonicalRefSS(
         return {
             ...chapter,
             bookName: book.name,
+            bookApiId: book.apiId,
         };
     } catch (error) {
         log.error(`Error fetching chapter: ${error instanceof Error ? error.message : String(error)}`);

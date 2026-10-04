@@ -26,7 +26,7 @@ export function AuthSidePanel({ title, subtitle }: AuthSidePanelProps) {
   }, []);
 
   return (
-    <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-primary/5 via-primary/10 to-accent/10 overflow-hidden">
+    <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-primary/5 via-primary/10 to-highlight/10 overflow-hidden">
       {/* Animated background patterns */}
       <div className="absolute inset-0">
         {/* Large glowing orb */}
@@ -42,7 +42,7 @@ export function AuthSidePanel({ title, subtitle }: AuthSidePanelProps) {
         <div
           className="absolute top-1/4 right-1/4 w-[300px] h-[300px] rounded-full opacity-20"
           style={{
-            background: "radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)",
+            background: "radial-gradient(circle, hsl(var(--highlight)) 0%, transparent 70%)",
             animation: "pulse 5s ease-in-out infinite 1s",
           }}
         />

@@ -571,8 +571,7 @@ Database-backed tests skip themselves when `DATABASE_URL` is unset.
 The `product-knowledge/` folder is generated from this API. Refresh it as part of
 a release:
 
-The only scheduled job in this repository warms Bible text
-(`.github/workflows/warm-quota.yml`); nothing runs tests or docs on push, so the
+Nothing in this repository runs on a schedule or on push, so the
 refresh is a **documented manual release step** rather than an automated job.
 
 ```bash

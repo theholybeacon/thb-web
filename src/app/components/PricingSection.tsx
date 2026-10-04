@@ -40,7 +40,7 @@ export function PricingSection() {
     <section id="pricing" className="relative w-full py-16 md:py-24 lg:py-32 bg-secondary/30 overflow-hidden">
       {/* Background decorations */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-highlight/5 rounded-full blur-3xl" />
 
       <div className="container relative px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -114,7 +114,7 @@ export function PricingSection() {
               </div>
             </div>
 
-            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/10 to-accent/10" />
+            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/10 to-highlight/10" />
 
             <div className="relative p-6 pt-8">
               <div className="flex items-center justify-center mb-4">

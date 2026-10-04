@@ -14,6 +14,8 @@
     "seed:people": "tsx scripts/import-bible-people.ts",
     "seed:studies": "tsx scripts/seed-global-studies.ts",
     "seed:alignment": "tsx scripts/import-alignment.ts",
+    "seed:people-i18n": "tsx scripts/localize-bible-people.ts",
+    "audit:study-links": "tsx scripts/audit-study-links.ts",
     "warm:bible": "tsx scripts/warm-bible-text.ts",
     "knowledge:refresh": "tsx scripts/knowledge-refresh.ts",
     "backfill:profiles": "tsx scripts/backfill-entity-content.ts",

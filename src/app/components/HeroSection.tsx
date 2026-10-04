@@ -15,7 +15,7 @@ export function HeroSection() {
 
       {/* Decorative floating orbs */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse-glow" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse-glow animation-delay-500" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-highlight/10 rounded-full blur-3xl animate-pulse-glow animation-delay-500" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
 
       <div className="container relative px-4 md:px-6">
@@ -78,20 +78,20 @@ export function HeroSection() {
             {/* Main beacon/book visual */}
             <div className="relative">
               {/* Outer glow ring */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-accent/20 blur-2xl scale-150 animate-pulse-glow" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-highlight/20 blur-2xl scale-150 animate-pulse-glow" />
 
               {/* Main circle */}
-              <div className="relative w-72 h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full bg-gradient-to-br from-primary/10 to-accent/5 border border-primary/20 flex items-center justify-center">
+              <div className="relative w-72 h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full bg-gradient-to-br from-primary/10 to-highlight/5 border border-primary/20 flex items-center justify-center">
                 {/* Inner ring */}
                 <div className="absolute inset-4 rounded-full border border-primary/10 animate-[spin_30s_linear_infinite]">
                   {/* Orbiting dots */}
                   <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary/60" />
-                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-accent/60" />
+                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-highlight/60" />
                 </div>
 
                 {/* Center icon */}
                 <div className="relative z-10 flex flex-col items-center gap-4">
-                  <div className="p-6 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-xl glow animate-float">
+                  <div className="p-6 rounded-2xl bg-gradient-to-br from-primary to-highlight shadow-xl glow animate-float">
                     <BookOpen className="h-16 w-16 md:h-20 md:w-20 text-primary-foreground" />
                   </div>
                   <div className="text-center">

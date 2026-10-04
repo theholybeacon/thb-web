@@ -1,9 +1,8 @@
 /**
  * The order `scripts/warm-bible-text.ts` fills translations in.
  *
- * WHY THIS EXISTS: the nightly quota burner (.github/workflows/warm-quota.yml)
- * spends whatever is left of api.bible's daily allowance and is then cut off
- * mid-worklist, every night. Which translations got warmed is therefore decided
+ * WHY THIS EXISTS: a `--drain` run spends whatever is left of api.bible's daily
+ * allowance and is then cut off mid-worklist. Which translations got warmed is therefore decided
  * entirely by this order — an alphabetical worklist would leave the Spanish
  * recommendation cold for months while `asv-en` filled up first.
  *

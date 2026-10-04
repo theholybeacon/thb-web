@@ -63,8 +63,10 @@ interface Prefs {
 	volume: number;
 }
 
+const DEFAULT_PREFS: Prefs = { voice: DEFAULT_VOICE, playbackRate: 1, volume: 1 };
+
 function loadPrefs(): Prefs {
-	if (typeof window === "undefined") return { voice: DEFAULT_VOICE, playbackRate: 1, volume: 1 };
+	if (typeof window === "undefined") return DEFAULT_PREFS;
 	try {
 		const raw = window.localStorage.getItem(PREFS_KEY);
 		if (!raw) throw new Error("none");
@@ -75,7 +77,7 @@ function loadPrefs(): Prefs {
 			volume: typeof p.volume === "number" ? p.volume : 1,
 		};
 	} catch {
-		return { voice: DEFAULT_VOICE, playbackRate: 1, volume: 1 };
+		return DEFAULT_PREFS;
 	}
 }
 
@@ -151,8 +153,14 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 	const [positionMs, setPositionMs] = useState(0);
 	const [error, setError] = useState<string | null>(null);
 
-	const [prefs, setPrefs] = useState<Prefs>({ voice: DEFAULT_VOICE, playbackRate: 1, volume: 1 });
+	const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
 	const [prefsLoaded, setPrefsLoaded] = useState(false);
+	// The stored prefs, readable synchronously from the first client render. State
+	// can't be seeded from localStorage (hydration mismatch), and the effect below
+	// runs AFTER children's effects — so a reader that calls load() on mount would
+	// otherwise prepare its first track with the defaults.
+	const prefsRef = useRef<Prefs | null>(null);
+	if (typeof window !== "undefined" && !prefsRef.current) prefsRef.current = loadPrefs();
 
 	// Mirrors for native event handlers, which can't see fresh React state.
 	// Deliberately few — everything else is derived, so there is no isPlayingRef-style
@@ -167,12 +175,13 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 	useEffect(() => { indexRef.current = index; }, [index]);
 
 	useEffect(() => {
-		setPrefs(loadPrefs());
+		if (prefsRef.current) setPrefs(prefsRef.current);
 		setPrefsLoaded(true);
 	}, []);
 
 	useEffect(() => {
 		if (!prefsLoaded) return;
+		prefsRef.current = prefs;
 		window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
 	}, [prefs, prefsLoaded]);
 
@@ -195,15 +204,17 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 			setError(null);
 			setStatus("loading");
 
+			const { voice } = prefsRef.current ?? DEFAULT_PREFS;
+
 			try {
-				let asset = await ensureAsset(t, prefs.voice);
+				let asset = await ensureAsset(t, voice);
 
 				// Poll while the server synthesizes. Cheap: no generation is retriggered.
 				const deadline = Date.now() + POLL_TIMEOUT_MS;
 				while (asset.generationStatus === "generating" && Date.now() < deadline) {
 					setStatus("generating");
 					await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-					asset = await ensureAsset(t, prefs.voice);
+					asset = await ensureAsset(t, voice);
 				}
 
 				if (asset.generationStatus === "failed") throw new Error(asset.error ?? "GENERATION_FAILED");
@@ -229,8 +240,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 				if (src.startsWith("blob:")) objectUrlRef.current = src;
 
 				audio.src = src;
-				audio.playbackRate = prefs.playbackRate;
-				audio.volume = prefs.volume;
 				listenedMsRef.current = 0;
 
 				await new Promise<void>((resolve) => {
@@ -238,6 +247,14 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 					audio.addEventListener("loadedmetadata", onReady);
 					audio.load();
 				});
+
+				// Only now: load() resets playbackRate to defaultPlaybackRate, so a rate
+				// set before it is silently lost. Read the ref, not the closure — the
+				// user may have moved the slider while the asset was generating.
+				const current = prefsRef.current ?? DEFAULT_PREFS;
+				audio.defaultPlaybackRate = current.playbackRate;
+				audio.playbackRate = current.playbackRate;
+				audio.volume = current.volume;
 
 				applyTrackWindow(audio, resolved);
 				setPositionMs(0);
@@ -250,7 +267,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 				setStatus("error");
 			}
 		},
-		[prefs.voice, prefs.playbackRate, prefs.volume, applyTrackWindow]
+		[applyTrackWindow]
 	);
 
 	// ---- native media events ----------------------------------------------------
@@ -390,16 +407,22 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 	// Rate and volume apply to the live element — instant, position preserved.
 	// (The old speechSynthesis player had to re-speak the verse from the start.)
 	const setPlaybackRate = useCallback((rate: number) => {
-		if (audioRef.current) audioRef.current.playbackRate = rate;
+		if (audioRef.current) {
+			audioRef.current.defaultPlaybackRate = rate;
+			audioRef.current.playbackRate = rate;
+		}
+		if (prefsRef.current) prefsRef.current = { ...prefsRef.current, playbackRate: rate };
 		setPrefs((p) => ({ ...p, playbackRate: rate }));
 	}, []);
 
 	const setVolume = useCallback((v: number) => {
 		if (audioRef.current) audioRef.current.volume = v;
+		if (prefsRef.current) prefsRef.current = { ...prefsRef.current, volume: v };
 		setPrefs((p) => ({ ...p, volume: v }));
 	}, []);
 
 	const setVoice = useCallback((v: AudioVoice) => {
+		if (prefsRef.current) prefsRef.current = { ...prefsRef.current, voice: v };
 		setPrefs((p) => ({ ...p, voice: v }));
 	}, []);
 

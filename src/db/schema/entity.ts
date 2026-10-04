@@ -2,6 +2,7 @@ import { integer, jsonb, pgTable, timestamp, uuid, varchar } from "drizzle-orm/p
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { entityMentionTable } from "./entityMention";
+import { entityAliasTable } from "./entityAlias";
 
 /**
  * A biblical character (person). Translation-agnostic — the same entity is
@@ -16,6 +17,10 @@ export const entityTable = pgTable("entity", {
 	name: varchar({ length: 255 }).notNull(),
 	// Alternate names/spellings used for inline matching in verse text.
 	aliases: jsonb().$type<string[]>().notNull().default([]),
+	// Hebrew/Greek proper-noun Strong's ids (normalised, e.g. H4872) behind this
+	// person's name, derived from the BSB alignment. The bridge to the name in
+	// every other aligned translation — see scripts/localize-bible-people.ts.
+	strongs: varchar({ length: 8 }).array().notNull().default([]),
 	gender: varchar({ length: 20 }),
 	// Approximate years from the dataset (may be negative for BC). Nullable.
 	birthYear: integer(),
@@ -26,6 +31,7 @@ export const entityTable = pgTable("entity", {
 
 export const entityRelations = relations(entityTable, ({ many }) => ({
 	mentions: many(entityMentionTable),
+	localizedAliases: many(entityAliasTable),
 }));
 
 export const insertEntitySchema = createInsertSchema(entityTable);

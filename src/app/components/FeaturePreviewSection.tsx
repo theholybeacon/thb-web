@@ -250,7 +250,7 @@ export function FeaturePreviewSection() {
     <section id="features" className="relative w-full py-16 md:py-24 lg:py-32 bg-card overflow-hidden">
       {/* Background decorations */}
       <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-highlight/5 rounded-full blur-3xl" />
 
       <div className="container relative px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -276,7 +276,7 @@ export function FeaturePreviewSection() {
               style={{ animationDelay: `${300 + index * 100}ms` }}
             >
               {/* Hover glow effect */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-highlight/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
               {/* Live badge */}
               <div className="absolute top-4 right-4">

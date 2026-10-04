@@ -24,11 +24,17 @@
     --secondary-foreground: 30 10% 25%;
 
     --muted: 40 10% 95%;
-    --muted-foreground: 30 10% 45%;
+    --muted-foreground: 30 10% 38%;
 
-    /* Accent: Deeper amber for emphasis */
-    --accent: 35 70% 45%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent: subtle hover/focus surface. shadcn primitives (command, select,
+       dropdown-menu, ghost/outline buttons) paint highlighted rows with it, so
+       it must stay quiet enough for muted text on top to remain readable. */
+    --accent: 38 30% 91%;
+    --accent-foreground: 30 10% 15%;
+
+    /* Highlight: deeper amber for decorative emphasis (glows, gradients) */
+    --highlight: 35 70% 45%;
+    --highlight-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -59,11 +65,15 @@
     --secondary-foreground: 40 15% 85%;
 
     --muted: 30 12% 16%;
-    --muted-foreground: 40 10% 60%;
+    --muted-foreground: 40 10% 65%;
 
-    /* Accent */
-    --accent: 35 65% 50%;
-    --accent-foreground: 30 10% 10%;
+    /* Accent: subtle hover/focus surface (see :root) */
+    --accent: 30 12% 21%;
+    --accent-foreground: 40 15% 95%;
+
+    /* Highlight: decorative amber */
+    --highlight: 35 65% 50%;
+    --highlight-foreground: 30 10% 10%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
@@ -415,7 +425,7 @@
 
 /* Gradient text utility */
 .gradient-text {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--highlight)) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

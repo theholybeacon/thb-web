@@ -65,7 +65,10 @@ export interface AlignmentLookupInput {
 export async function alignmentLookupSS(
 	input: AlignmentLookupInput,
 ): Promise<AlignmentLookupResult> {
-	const { bibleVersion, lang, bookAbbreviation, chapter, verse, selection, occurrence, verseText } = input;
+	const { bibleVersion, lang, chapter, verse, selection, occurrence, verseText } = input;
+	// Rows and Blob paths are keyed on upper-case USFM; a stray "Mat" would
+	// otherwise mint a permanently failed alignment_book row (BLOB_NOT_FOUND).
+	const bookAbbreviation = input.bookAbbreviation?.trim().toUpperCase();
 	const surfaceNorm = normalizeSurface(selection);
 	if (!surfaceNorm || !bookAbbreviation || !chapter || !verse) return EMPTY;
 

@@ -56,13 +56,11 @@ Every one supports `--dry-run`. Use it: `warm:bible` spends a daily upstream
 quota shared with live readers, and `backfill:narration` bills per minute of
 audio produced — its `--dry-run` prints the projected cost and is the only gate.
 
-`warm:bible` also runs unattended: `.github/workflows/warm-quota.yml` fires it
-with `--drain` at 23:00 UTC, an hour before api.bible's daily allowance resets
-and is lost, and spends whatever readers left behind. Translations are filled in
-`src/lib/warmPriority.ts` order — the recommended bible per language, English
-first, then the extra indexed English editions. So a manual `warm:bible` run is
-now for targeting one translation ahead of the queue, not for coverage in
-general. The job needs `DATABASE_URL` and `BIBLE_API_KEY` as repo secrets.
+`warm:bible` fills translations in `src/lib/warmPriority.ts` order — the
+recommended bible per language, English first, then the extra indexed English
+editions — and `--drain` spends every request left in the day's allowance.
+All of those are fully warm, so it no longer runs on a schedule; run it by hand
+when a translation needs text.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

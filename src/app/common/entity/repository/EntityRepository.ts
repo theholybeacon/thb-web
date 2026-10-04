@@ -27,6 +27,10 @@ export class EntityRepository {
 		return await this.dao.getChapterMentions(bookAbbreviation, chapter);
 	}
 
+	async getLocalizedAliases(entityIds: string[], lang: string): Promise<Map<string, string[]>> {
+		return await this.dao.getLocalizedAliases(entityIds, lang);
+	}
+
 	async getAllSlugs(): Promise<string[]> {
 		return await this.dao.getAllSlugs();
 	}

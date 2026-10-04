@@ -32,6 +32,7 @@ import { toast } from "@/lib/toast";
 import { AppShell } from "@/components/app";
 import { ReaderEngine, ReaderMode } from "@/components/reader/ReaderEngine";
 import { entityMentionsGetForChapterSS } from "@/app/common/entity/service/server/entityMentionsGetForChapterSS";
+import { languageNameToIso } from "@/lib/bibleLanguage";
 import { recordActivity } from "@/lib/activityClient";
 import { recordAppRoute } from "@/lib/lastAppRoute";
 import { PremiumGate } from "@/components/premium";
@@ -178,14 +179,22 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
     enabled: Boolean(bibleId && currentStep?.bookAbbreviation && actualChapterNumber),
   });
 
+  // Study steps may carry loose abbreviations ("Pr.", "Mat"); alignment and
+  // people are keyed on the USFM code, so use the book the chapter resolved to.
+  const canonicalBookAbbreviation = chapterData?.bookApiId;
+
   // Character mentions for the current chapter (powers reader linking in Study).
   const { data: mentions } = useQuery({
-    queryKey: ["entityMentions", currentStep?.bookAbbreviation, actualChapterNumber],
+    queryKey: ["entityMentions", canonicalBookAbbreviation, actualChapterNumber, sessionBible?.language],
     queryFn: async () => {
-      if (!currentStep?.bookAbbreviation) return undefined;
-      return await entityMentionsGetForChapterSS(currentStep.bookAbbreviation, actualChapterNumber);
+      if (!canonicalBookAbbreviation) return undefined;
+      return await entityMentionsGetForChapterSS(
+        canonicalBookAbbreviation,
+        actualChapterNumber,
+        languageNameToIso(sessionBible?.language),
+      );
     },
-    enabled: Boolean(currentStep?.bookAbbreviation && actualChapterNumber),
+    enabled: Boolean(canonicalBookAbbreviation && actualChapterNumber),
   });
 
   // Mutation to update current step
@@ -547,7 +556,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                 bibleSlug={sessionBible?.slug}
                 bookSlug={bookData?.slug}
                 bibleId={sessionBible?.id}
-                bookAbbreviation={currentStep?.bookAbbreviation ?? undefined}
+                bookAbbreviation={canonicalBookAbbreviation}
                 audioEnabled={sessionBible?.audioEnabled ?? false}
                 studyStepId={currentStep?.id}
                 sessionId={initialSession.id}

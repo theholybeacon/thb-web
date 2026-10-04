@@ -26,7 +26,7 @@ export const OG_THEME = {
 	muted: "#A39C8F",
 	/** --primary 42 75% 55% — the "beacon" gold. */
 	brand: "#E2AF36",
-	/** --accent 35 65% 50% */
+	/** --highlight 35 65% 50% (dark) */
 	accent: "#D28D2D",
 	/** --primary-foreground 30 10% 10% */
 	onBrand: "#1C1A17",

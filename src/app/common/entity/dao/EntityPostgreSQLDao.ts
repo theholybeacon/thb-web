@@ -1,8 +1,9 @@
 import { logger } from "@/app/utils/logger";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { entityTable } from "@/db/schema/entity";
 import { entityMentionTable } from "@/db/schema/entityMention";
+import { entityAliasTable } from "@/db/schema/entityAlias";
 import { Entity, EntityIndexRow, EntityInsert, EntityMention, EntityMentionInsert } from "../model/Entity";
 
 const log = logger.child({ module: "EntityPostgreSQLDao" });
@@ -47,6 +48,19 @@ export class EntityPostgreSQLDao {
 			),
 			with: { entity: true },
 		});
+	}
+
+	/** Localized names (entity_alias) for these entities in one language, keyed by entityId. */
+	async getLocalizedAliases(entityIds: string[], lang: string): Promise<Map<string, string[]>> {
+		log.trace("getLocalizedAliases");
+		const byEntity = new Map<string, string[]>();
+		if (entityIds.length === 0) return byEntity;
+		const rows = await db
+			.select({ entityId: entityAliasTable.entityId, term: entityAliasTable.term })
+			.from(entityAliasTable)
+			.where(and(inArray(entityAliasTable.entityId, entityIds), eq(entityAliasTable.lang, lang)));
+		for (const r of rows) (byEntity.get(r.entityId) ?? byEntity.set(r.entityId, []).get(r.entityId)!).push(r.term);
+		return byEntity;
 	}
 
 	async getAllSlugs(): Promise<string[]> {

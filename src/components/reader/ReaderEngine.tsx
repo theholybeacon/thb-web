@@ -119,6 +119,9 @@ export function ReaderEngine({
 	const panel = useReaderPanel();
 	const fontScale = useReaderFontScale();
 	const scrollerRef = useRef<HTMLDivElement>(null);
+	// Pinned below the scroller; Listen mode portals its transport here. A callback
+	// ref (state) so ListenMode re-renders once the node exists.
+	const [footerSlot, setFooterSlot] = useState<HTMLDivElement | null>(null);
 
 	// Type mode renders its own select-none tree, so it yields no selection and
 	// needs no exclusion here.
@@ -482,6 +485,7 @@ export function ReaderEngine({
 										<ListenMode
 											verses={verses}
 											scrollerRef={scrollerRef}
+											footerSlot={footerSlot}
 											startVerse={startVerse}
 											endVerse={endVerse}
 											bookName={bookName}
@@ -515,6 +519,9 @@ export function ReaderEngine({
 							)}
 						</div>
 					</div>
+
+					{/* Mode footer — stays at the bottom of the reader while the text scrolls. */}
+					<div ref={setFooterSlot} className="shrink-0 empty:hidden" />
 				</div>
 
 				{/* Desktop: in-flow panel, collapsing to an icon rail. */}

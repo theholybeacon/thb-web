@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Verse } from "@/app/common/verse/model/Verse";
 import { EntityLite } from "@/app/common/entity/model/Entity";
@@ -20,6 +21,7 @@ import {
 } from "@/app/common/audio/model/AudioAsset";
 import { cacheAudio, isAudioCached } from "@/lib/audioCache";
 import { toast } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 
 interface ListenModeProps {
 	verses: Verse[];
@@ -45,6 +47,8 @@ interface ListenModeProps {
 	onUpgradeClick?: () => void;
 	/** The reader's scroll container, owned by ReaderEngine. */
 	scrollerRef?: React.RefObject<HTMLDivElement | null>;
+	/** ReaderEngine's footer below the scroller; the transport is portalled there. */
+	footerSlot?: HTMLElement | null;
 }
 
 function formatTime(ms: number): string {
@@ -81,6 +85,7 @@ export function ListenMode({
 	isLastChapterInStep,
 	onUpgradeClick,
 	scrollerRef,
+	footerSlot,
 }: ListenModeProps) {
 	const t = useTranslations();
 	const player = useAudioPlayer();
@@ -244,158 +249,170 @@ export function ListenMode({
 		);
 	}
 
+	const content = (
+		<div className="flex-1 max-w-4xl mx-auto w-full space-y-6">
+			{bookName && chapterNumber && (
+				<div className="text-center pb-4 border-b">
+					<h2 className="text-2xl font-serif font-semibold">
+						{bookName} {chapterNumber}
+						{startVerse && `:${startVerse}${endVerse && endVerse !== startVerse ? `-${endVerse}` : ""}`}
+					</h2>
+				</div>
+			)}
+
+			{/* Copyrighted translation: we may narrate our own words, not the text. */}
+			{!audioEnabled && (
+				<div className="flex gap-3 rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
+					<Info className="h-4 w-4 shrink-0 mt-0.5" />
+					<p>{t("audio.notLicensed")}</p>
+				</div>
+			)}
+
+			{player.status === "error" && (
+				<div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+					{t("audio.playbackError")}
+				</div>
+			)}
+
+			<div className={footerSlot ? "pb-8" : "pb-32"}>
+				<ChapterText
+					blocks={blocks}
+					mentionsByVerse={mentionsByVerse}
+					verseClassName={verseClassName}
+					onVerseClick={canNarrateScripture ? player.seekToVerse : undefined}
+					registerVerseAnchor={(verseNumber, el) => {
+						verseAnchors.current[verseNumber] = el;
+					}}
+				/>
+			</div>
+		</div>
+	);
+
+	const transport = (
+		<div
+			className={cn(
+				"bg-card border-t p-4",
+				// Fallback when rendered without a footer slot: stick to the scroller's bottom.
+				!footerSlot && "sticky bottom-0 -mx-4 md:-mx-6 -mb-4 md:-mb-6 shadow-lg",
+			)}
+		>
+			<div className="max-w-4xl mx-auto space-y-3">
+				{/* A real, seekable, time-based timeline — the old one was a display-only
+				    div that could only step verse-by-verse. */}
+				<div className="space-y-1">
+					<Slider
+						value={[player.positionMs]}
+						onValueChange={([v]) => player.seekMs(v)}
+						min={0}
+						max={Math.max(player.durationMs, 1)}
+						step={100}
+						disabled={busy || player.durationMs === 0}
+					/>
+					<div className="flex justify-between text-xs text-muted-foreground">
+						<span>{formatTime(player.positionMs)}</span>
+						<span>
+							{busy
+								? t("audio.preparing")
+								: `${formatTime(player.durationMs)}`}
+						</span>
+					</div>
+				</div>
+
+				<div className="flex items-center justify-center gap-4">
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => void player.prevTrack()}
+						disabled={player.index === 0 || busy}
+					>
+						<SkipBack className="h-5 w-5" />
+					</Button>
+
+					<Button
+						size="lg"
+						className="h-14 w-14 rounded-full"
+						onClick={() => void player.toggle()}
+						disabled={busy || player.queue.length === 0}
+					>
+						{busy ? (
+							<Loader2 className="h-6 w-6 animate-spin" />
+						) : isPlaying ? (
+							<Pause className="h-6 w-6" />
+						) : (
+							<Play className="h-6 w-6 ml-1" />
+						)}
+					</Button>
+
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => void player.nextTrack()}
+						disabled={player.index >= player.queue.length - 1 || busy}
+					>
+						<SkipForward className="h-5 w-5" />
+					</Button>
+				</div>
+
+				{/* Speed: audio.playbackRate — applies instantly, position preserved.
+				    The old player had to re-speak the verse from the beginning. */}
+				<div className="flex items-center gap-4 px-4">
+					<Gauge className="h-4 w-4 text-muted-foreground" />
+					<span className="text-sm text-muted-foreground min-w-[60px]">{t("session.speed")}</span>
+					<Slider
+						value={[player.playbackRate]}
+						onValueChange={([v]) => player.setPlaybackRate(v)}
+						min={0.5}
+						max={2}
+						step={0.05}
+						className="flex-1"
+					/>
+					<span className="text-sm font-mono min-w-[40px]">{player.playbackRate.toFixed(1)}x</span>
+				</div>
+
+				<div className="flex items-center gap-4 px-4">
+					<Volume2 className="h-4 w-4 text-muted-foreground" />
+					<span className="text-sm text-muted-foreground min-w-[60px]">{t("session.volume")}</span>
+					<Slider
+						value={[player.volume]}
+						onValueChange={([v]) => player.setVolume(v)}
+						min={0}
+						max={1}
+						step={0.05}
+						className="flex-1"
+					/>
+					<span className="text-sm font-mono min-w-[40px]">{Math.round(player.volume * 100)}%</span>
+				</div>
+
+				<div className="flex items-center justify-between gap-2 px-4">
+					<div className="flex items-center gap-1">
+						{AUDIO_VOICES.map((v: AudioVoice) => (
+							<Button
+								key={v}
+								size="sm"
+								variant={player.voice === v ? "secondary" : "ghost"}
+								className="h-7 px-2 text-xs"
+								onClick={() => player.setVoice(v)}
+							>
+								{t(`audio.${VOICE_LABEL_KEY[v]}`)}
+							</Button>
+						))}
+					</div>
+
+					{player.track?.downloadable && player.track.url && (
+						<Button size="sm" variant="ghost" className="h-7 gap-1.5 text-xs" onClick={handleDownload} disabled={downloaded}>
+							{downloaded ? <Check className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+							{downloaded ? t("audio.downloaded") : t("audio.download")}
+						</Button>
+					)}
+				</div>
+			</div>
+		</div>
+	);
+
 	return (
 		<div className="flex flex-col min-h-full">
-			<div className="flex-1 max-w-4xl mx-auto w-full space-y-6">
-				{bookName && chapterNumber && (
-					<div className="text-center pb-4 border-b">
-						<h2 className="text-2xl font-serif font-semibold">
-							{bookName} {chapterNumber}
-							{startVerse && `:${startVerse}${endVerse && endVerse !== startVerse ? `-${endVerse}` : ""}`}
-						</h2>
-					</div>
-				)}
-
-				{/* Copyrighted translation: we may narrate our own words, not the text. */}
-				{!audioEnabled && (
-					<div className="flex gap-3 rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
-						<Info className="h-4 w-4 shrink-0 mt-0.5" />
-						<p>{t("audio.notLicensed")}</p>
-					</div>
-				)}
-
-				{player.status === "error" && (
-					<div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-						{t("audio.playbackError")}
-					</div>
-				)}
-
-				<div className="pb-32">
-					<ChapterText
-						blocks={blocks}
-						mentionsByVerse={mentionsByVerse}
-						verseClassName={verseClassName}
-						onVerseClick={canNarrateScripture ? player.seekToVerse : undefined}
-						registerVerseAnchor={(verseNumber, el) => {
-							verseAnchors.current[verseNumber] = el;
-						}}
-					/>
-				</div>
-			</div>
-
-			{/* Transport */}
-			<div className="sticky bottom-0 -mx-3 md:-mx-6 -mb-3 md:-mb-6 bg-card border-t shadow-lg p-4">
-				<div className="max-w-4xl mx-auto space-y-3">
-					{/* A real, seekable, time-based timeline — the old one was a display-only
-					    div that could only step verse-by-verse. */}
-					<div className="space-y-1">
-						<Slider
-							value={[player.positionMs]}
-							onValueChange={([v]) => player.seekMs(v)}
-							min={0}
-							max={Math.max(player.durationMs, 1)}
-							step={100}
-							disabled={busy || player.durationMs === 0}
-						/>
-						<div className="flex justify-between text-xs text-muted-foreground">
-							<span>{formatTime(player.positionMs)}</span>
-							<span>
-								{busy
-									? t("audio.preparing")
-									: `${formatTime(player.durationMs)}`}
-							</span>
-						</div>
-					</div>
-
-					<div className="flex items-center justify-center gap-4">
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={() => void player.prevTrack()}
-							disabled={player.index === 0 || busy}
-						>
-							<SkipBack className="h-5 w-5" />
-						</Button>
-
-						<Button
-							size="lg"
-							className="h-14 w-14 rounded-full"
-							onClick={() => void player.toggle()}
-							disabled={busy || player.queue.length === 0}
-						>
-							{busy ? (
-								<Loader2 className="h-6 w-6 animate-spin" />
-							) : isPlaying ? (
-								<Pause className="h-6 w-6" />
-							) : (
-								<Play className="h-6 w-6 ml-1" />
-							)}
-						</Button>
-
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={() => void player.nextTrack()}
-							disabled={player.index >= player.queue.length - 1 || busy}
-						>
-							<SkipForward className="h-5 w-5" />
-						</Button>
-					</div>
-
-					{/* Speed: audio.playbackRate — applies instantly, position preserved.
-					    The old player had to re-speak the verse from the beginning. */}
-					<div className="flex items-center gap-4 px-4">
-						<Gauge className="h-4 w-4 text-muted-foreground" />
-						<span className="text-sm text-muted-foreground min-w-[60px]">{t("session.speed")}</span>
-						<Slider
-							value={[player.playbackRate]}
-							onValueChange={([v]) => player.setPlaybackRate(v)}
-							min={0.5}
-							max={2}
-							step={0.05}
-							className="flex-1"
-						/>
-						<span className="text-sm font-mono min-w-[40px]">{player.playbackRate.toFixed(1)}x</span>
-					</div>
-
-					<div className="flex items-center gap-4 px-4">
-						<Volume2 className="h-4 w-4 text-muted-foreground" />
-						<span className="text-sm text-muted-foreground min-w-[60px]">{t("session.volume")}</span>
-						<Slider
-							value={[player.volume]}
-							onValueChange={([v]) => player.setVolume(v)}
-							min={0}
-							max={1}
-							step={0.05}
-							className="flex-1"
-						/>
-						<span className="text-sm font-mono min-w-[40px]">{Math.round(player.volume * 100)}%</span>
-					</div>
-
-					<div className="flex items-center justify-between gap-2 px-4">
-						<div className="flex items-center gap-1">
-							{AUDIO_VOICES.map((v: AudioVoice) => (
-								<Button
-									key={v}
-									size="sm"
-									variant={player.voice === v ? "secondary" : "ghost"}
-									className="h-7 px-2 text-xs"
-									onClick={() => player.setVoice(v)}
-								>
-									{t(`audio.${VOICE_LABEL_KEY[v]}`)}
-								</Button>
-							))}
-						</div>
-
-						{player.track?.downloadable && player.track.url && (
-							<Button size="sm" variant="ghost" className="h-7 gap-1.5 text-xs" onClick={handleDownload} disabled={downloaded}>
-								{downloaded ? <Check className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
-								{downloaded ? t("audio.downloaded") : t("audio.download")}
-							</Button>
-						)}
-					</div>
-				</div>
-			</div>
+			{content}
+			{footerSlot ? createPortal(transport, footerSlot) : transport}
 		</div>
 	);
 }

@@ -14,6 +14,7 @@ import * as giftSubscriptionSchema from "@/db/schema/giftSubscription";
 import * as membershipRequestSchema from "@/db/schema/membershipRequest";
 import * as entitySchema from "@/db/schema/entity";
 import * as entityMentionSchema from "@/db/schema/entityMention";
+import * as entityAliasSchema from "@/db/schema/entityAlias";
 import * as entityContentSchema from "@/db/schema/entityContent";
 import * as entityContentFlagSchema from "@/db/schema/entityContentFlag";
 import * as contributionSchema from "@/db/schema/contribution";
@@ -48,6 +49,7 @@ export const db = drizzle(sql, {
 		...membershipRequestSchema,
 		...entitySchema,
 		...entityMentionSchema,
+		...entityAliasSchema,
 		...entityContentSchema,
 		...entityContentFlagSchema,
 		...contributionSchema,

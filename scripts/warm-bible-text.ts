@@ -18,11 +18,10 @@
  *   npx tsx scripts/warm-bible-text.ts --dry-run             # show the worklist only
  *   npx tsx scripts/warm-bible-text.ts --drain                # spend every request left today
  *
- * `--drain` is what .github/workflows/warm-quota.yml runs an hour before the
- * quota resets: no request cap, stop only when upstream refuses or the day ends.
+ * `--drain` has no request cap: it stops only when upstream refuses or the day ends.
  * Translations are filled in `resolveWarmOrder()` order — WARM_PRIORITY_SLUGS
  * (src/lib/warmPriority.ts) first, then the rest of the catalogue in the
- * languages we recommend — because a nightly run is always cut off mid-worklist
+ * languages we recommend — because a drain is always cut off mid-worklist
  * and the order is therefore what decides which translations actually get warmed.
  */
 import { config } from "dotenv";
@@ -180,15 +179,13 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  *
  * --drain runs until upstream refuses, so without a hard stop it would sail past
  * the reset and start eating the NEXT day's quota — leaving readers short all
- * day. GitHub's scheduler drift is what makes this necessary and it is far worse
- * than advertised: observed starts over Aug 30 - Sep 7 ran 1h18m to 2h28m late,
- * which is why the cron sits at 21:00 rather than 23:00. The stop therefore has
- * to be this wall clock, not an elapsed-time budget measured from launch.
+ * day. The stop therefore has to be this wall clock, not an elapsed-time budget
+ * measured from launch.
  *
  * UTC midnight matches the rest of our daily accounting (`utcDay()` in
  * src/lib/contentApi/hydrationBudget.ts). api.bible does not publish its reset
  * hour, so this is overridable instead of hardcoded: if it turns out to reset at
- * 08:00 UTC, set WARM_QUOTA_RESET_HOUR_UTC=8 and move the workflow cron to 7.
+ * 08:00 UTC, set WARM_QUOTA_RESET_HOUR_UTC=8.
  */
 function nextQuotaReset(now: Date): Date {
 	const configured = Number(process.env.WARM_QUOTA_RESET_HOUR_UTC);
