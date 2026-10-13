@@ -48,3 +48,5 @@ design.pen
 # Studio (local video pipeline) artifacts
 studio/.runs/
 studio/.auth/
+/test-results/
+/playwright-report/
