@@ -131,6 +131,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      # The Vercel project's install command is `bun install --force`.
+      - uses: oven-sh/setup-bun@v2
       - uses: dopplerhq/cli-action@v4
       - name: Pick Vercel target
         run: |
