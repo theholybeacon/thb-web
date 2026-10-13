@@ -68,20 +68,26 @@ describeDb("verse text is byte-identical to the database", () => {
 
 		// Find a chapter that is cached AND complete (verse rows match the count
 		// upstream reported), so a truncated chapter can't produce a false pass.
+		// Counted per chapter row, as the route reads it: grouping by abbreviation
+		// would add two half-cached copies of a chapter up to one "complete" one.
+		// Only books the route can find by their USFM code qualify: some
+		// translations store a display abbreviation ("Mark") instead.
 		const candidates = (await query`
 			SELECT bi.slug AS bible_slug,
-			       upper(b.abbreviation) AS usfm,
+			       upper(b."apiId") AS usfm,
 			       c."chapterNumber" AS chapter,
+			       c.id AS chapter_id,
 			       count(v.id)::int AS stored
 			FROM verse v
 			JOIN chapter c ON c.id = v."chapterId"
 			JOIN book b   ON b.id = c."bookId"
 			JOIN bible bi ON bi.id = b."bibleId"
-			GROUP BY bi.slug, b.abbreviation, c."chapterNumber", c."numVerses"
+			WHERE upper(b.abbreviation) = upper(b."apiId")
+			GROUP BY bi.slug, b.id, b."apiId", c.id, c."chapterNumber", c."numVerses"
 			HAVING count(v.id) >= c."numVerses" AND count(v.id) > 3
 			ORDER BY (bi.slug = 'bsb-en') DESC, count(v.id) DESC
 			LIMIT 1
-		`) as unknown as { bible_slug: string; usfm: string; chapter: number }[];
+		`) as unknown as { bible_slug: string; usfm: string; chapter: number; chapter_id: string }[];
 
 		if (candidates.length === 0) return;
 
@@ -89,12 +95,7 @@ describeDb("verse text is byte-identical to the database", () => {
 		const verses = (await query`
 			SELECT v."verseNumber" AS verse, v.content AS content
 			FROM verse v
-			JOIN chapter c ON c.id = v."chapterId"
-			JOIN book b   ON b.id = c."bookId"
-			JOIN bible bi ON bi.id = b."bibleId"
-			WHERE bi.slug = ${pick.bible_slug}
-			  AND upper(b.abbreviation) = ${pick.usfm}
-			  AND c."chapterNumber" = ${pick.chapter}
+			WHERE v."chapterId" = ${pick.chapter_id}
 			ORDER BY v."verseNumber"
 		`) as unknown as StoredVerse[];
 

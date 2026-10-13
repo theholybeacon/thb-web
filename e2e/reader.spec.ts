@@ -60,9 +60,16 @@ test(
 
 		await step(
 			"Type the chapter",
-			`Type all ${text.length} characters, line breaks as spaces, with no mistakes.`,
+			`Type all ${text.length} characters, line breaks as spaces, with no mistakes. Each key waits for the progress counter to move on, so the typing keeps pace with the app the way a person's does.`,
 			async () => {
-				for (const ch of text) await page.keyboard.press(ch === " " ? "Space" : ch);
+				// The key handler is re-attached after every render, so pace the keys
+				// by the counter rather than firing them back to back faster than any
+				// person types.
+				const progress = page.getByText(new RegExp(`^\\d+/${text.length}$`));
+				for (const [i, ch] of [...text].entries()) {
+					await page.keyboard.press(ch === " " ? "Space" : ch);
+					await expect(progress).toHaveText(`${i + 1}/${text.length}`);
+				}
 			},
 		);
 

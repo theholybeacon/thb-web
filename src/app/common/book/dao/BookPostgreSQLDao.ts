@@ -60,8 +60,22 @@ export class BookPostgreSQLDao {
 
 	async create(book: BookInsert): Promise<Book> {
 		log.trace("create");
-		const returned = await db.insert(bookTable).values(book).returning();
-		return returned[0];
+		const returned = await db.insert(bookTable).values(book)
+			.onConflictDoNothing({ target: [bookTable.bibleId, bookTable.abbreviation] })
+			.returning();
+		return returned[0] ?? (await this.getByAbbreviationAndBibleId(book.bibleId, book.abbreviation))!;
+	}
+
+	/**
+	 * Seeds a translation's book list. Books another request already stored are
+	 * left as they are, so concurrent first reads of a translation can't create
+	 * a second copy of any book.
+	 */
+	async createMany(books: BookInsert[]): Promise<void> {
+		log.trace("createMany");
+		if (books.length === 0) return;
+		await db.insert(bookTable).values(books)
+			.onConflictDoNothing({ target: [bookTable.bibleId, bookTable.abbreviation] });
 	}
 
 	async getNextByOrder(bibleId: string, currentBookOrder: number): Promise<Book | null> {

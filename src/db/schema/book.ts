@@ -1,4 +1,4 @@
-import { integer, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { integer, pgTable, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/relations";
 import { bibleTable } from "./bible";
 import { chapterTable } from "./chapter";
@@ -15,7 +15,11 @@ export const bookTable = pgTable("book", {
 	numChapters: integer().default(0),
 	createdAt: timestamp().defaultNow(),
 	updatedAt: timestamp().defaultNow(),
-});
+}, (t) => ({
+	// Concurrent first reads of a translation used to seed its book list twice,
+	// splitting the chapters' cached text across two copies of each book.
+	uniqueAbbreviation: unique("book_bible_abbreviation_unique").on(t.bibleId, t.abbreviation),
+}));
 
 
 export const bookRelations = relations(bookTable, ({ one, many }) => ({

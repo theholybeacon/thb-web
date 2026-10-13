@@ -77,30 +77,26 @@ function buildTypeDocument(blocks: ChapterBlock[]): { blocks: TypeBlock[]; expec
 		return { index: expected.length - 1, display, expected: folded };
 	};
 
-	const typeBlocks: TypeBlock[] = blocks.map((block) => ({
+	const typeBlocks: TypeBlock[] = blocks.map((block, blockIndex) => ({
 		kind: block.kind,
-		lines: block.lines.map((line) => ({
-			level: line.level,
-			segments: line.parts.map((part, partIndex) => ({
+		lines: block.lines.map((line, lineIndex) => {
+			const segments = line.parts.map((part, partIndex) => ({
 				verseNumber: part.verseNumber,
 				isVerseStart: part.isVerseStart,
 				chars: [
 					...(partIndex > 0 ? [take(" ")] : []),
 					...Array.from(typingDisplay(part.text), take),
 				],
-			})),
-		})),
+			}));
+			// A line break is worth one keystroke, accepted from Space or Enter, so a
+			// typist who instinctively hits either at the end of a line is not
+			// punished. The last line of the chapter gets none — there is nothing to
+			// carry into. Taken right after the line's text, so its slot sits where
+			// it is drawn: at the end of the line, not the end of the chapter.
+			const isLast = blockIndex === blocks.length - 1 && lineIndex === block.lines.length - 1;
+			return { level: line.level, segments, breakChar: isLast ? undefined : take(" ") };
+		}),
 	}));
-
-	// A line break is worth one keystroke, accepted from Space or Enter, so a
-	// typist who instinctively hits either at the end of a line is not punished.
-	// The last line of the chapter gets none — there is nothing to carry into.
-	typeBlocks.forEach((block, blockIndex) => {
-		block.lines.forEach((line, lineIndex) => {
-			const isLast = blockIndex === typeBlocks.length - 1 && lineIndex === block.lines.length - 1;
-			if (!isLast) line.breakChar = take(" ");
-		});
-	});
 
 	return { blocks: typeBlocks, expected };
 }
