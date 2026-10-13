@@ -1,4 +1,4 @@
-// e2e-steps v2
+// e2e-steps v3
 //
 // Explained, steppable end-to-end tests on top of Playwright Test.
 //
@@ -20,13 +20,14 @@
 // - walk (E2E_WALK=1, run headed): before each step a panel in the browser
 //   explains what comes next and waits. F8 runs it (a flow as a whole), F7
 //   steps into a flow, F5 runs to the end. The last `show` waits so the result
-//   stays on screen.
+//   stays on screen. Pages fill the browser window (no fixed viewport); the
+//   panel moves by its title bar, resizes from its corner and folds away.
 //
 // Projects with their own `test` combine both: `mergeTests(appTest, stepsTest)`.
 //
 // This file is maintained upstream: change it there, not here.
 
-import { test as base, type Browser, type BrowserContext, type Locator, type Page, type TestInfo } from '@playwright/test';
+import { test as base, type Browser, type BrowserContext, type BrowserContextOptions, type Locator, type Page, type TestInfo } from '@playwright/test';
 
 const WALK = /^(1|true|yes)$/i.test(process.env.E2E_WALK ?? '');
 
@@ -52,7 +53,11 @@ type Entry = {
   ms?: number;
 };
 
+/** Where the reviewer put the panel; kept for the whole walk, across pages. */
+type PanelLayout = { x: number; y: number; w: number; h: number; folded: boolean };
+
 type PanelState = {
+  layout?: PanelLayout;
   status: 'paused' | 'running' | 'failed' | 'done';
   kind: Kind;
   n: number;
@@ -87,7 +92,7 @@ async function attach(context: BrowserContext) {
   context.on('page', track);
   context.pages().forEach(track);
   if (WALK) {
-    await context.exposeBinding('__e2eWalk', (_source, action: string) => walker.handle(action));
+    await context.exposeBinding('__e2eWalk', (_source, action: string, data?: unknown) => walker.handle(action, data));
     await context.addInitScript(OVERLAY);
     await Promise.all(context.pages().map((p) => p.evaluate(OVERLAY).catch(() => {})));
   }
@@ -98,6 +103,7 @@ async function attach(context: BrowserContext) {
 class Walker {
   state: PanelState = { status: 'running', kind: 'step', n: 0, title: '', explain: '', crumbs: [] };
   private resolve?: (a: Action) => void;
+  private layout?: PanelLayout;
   private continueAll = false;
   private skipBelow: number | null = null;
 
@@ -136,14 +142,18 @@ class Walker {
     void this.broadcast();
   }
 
-  handle(action: string) {
-    if (action === 'state') return this.state;
+  handle(action: string, data?: unknown) {
+    if (action === 'state') return { ...this.state, layout: this.layout };
+    if (action === 'layout') {
+      this.layout = data as PanelLayout;
+      return null;
+    }
     if (action === 'over' || action === 'into' || action === 'continue') this.resolve?.(action);
     return null;
   }
 
   private async broadcast() {
-    const state = this.state;
+    const state = { ...this.state, layout: this.layout };
     await Promise.all(
       pages.filter((p) => !p.isClosed()).map((p) => p.evaluate((s) => (window as unknown as { __e2eRender?: (s: PanelState) => void }).__e2eRender?.(s), state).catch(() => {})),
     );
@@ -295,7 +305,21 @@ function definedIn(): string[] {
   return file.startsWith(cwd) ? [file.slice(cwd.length)] : [];
 }
 
-const EXTRA_ARGS = (process.env.E2E_BROWSER_ARGS ?? '').split(' ').filter(Boolean);
+const EXTRA_ARGS = [...(process.env.E2E_BROWSER_ARGS ?? '').split(' ').filter(Boolean), ...(WALK ? ['--start-maximized'] : [])];
+
+/**
+ * Walking, pages fill the window: no fixed viewport (nor what needs one, like
+ * a device scale factor or mobile emulation), whatever the project or a
+ * fixture asked for.
+ */
+function windowSized(options: BrowserContextOptions = {}): BrowserContextOptions {
+  if (!WALK) return options;
+  const sized: BrowserContextOptions = { ...options, viewport: null };
+  delete sized.deviceScaleFactor;
+  delete sized.isMobile;
+  delete sized.screen;
+  return sized;
+}
 
 // Fixture callbacks are named `provide`: lint rules for React hooks read `use(...)` as one.
 export const test = base.extend<{ _e2eSteps: void; context: BrowserContext }, { _e2eBrowser: void }>({
@@ -310,7 +334,7 @@ export const test = base.extend<{ _e2eSteps: void; context: BrowserContext }, { 
     async ({ browser }: { browser: Browser }, provide) => {
       const original = browser.newContext.bind(browser);
       browser.newContext = async (options) => {
-        const context = await original(options);
+        const context = await original(windowSized(options));
         await attach(context);
         return context;
       };
@@ -345,28 +369,42 @@ export { expect } from '@playwright/test';
 const OVERLAY = `(() => {
   if (window.__e2eRender) return;
   let state = null;
+  let layout = null;
   let host = null;
+  const MIN_W = 260, MIN_H = 90, GAP = 16;
   const css = \`
     :host { all: initial; }
-    .panel { position: fixed; right: 16px; bottom: 16px; z-index: 2147483647; width: min(440px, calc(100vw - 32px));
+    .panel { position: fixed; z-index: 2147483647; box-sizing: border-box; display: flex; flex-direction: column;
+      width: 440px; max-width: calc(100vw - 32px); right: 16px; bottom: 16px;
       font: 14px/1.45 system-ui, sans-serif; color: #e8e8ea; background: rgba(24, 24, 28, .96);
-      border: 1px solid #3a3a44; border-left: 4px solid #6aa0ff; border-radius: 8px; padding: 12px 14px;
-      box-shadow: 0 8px 28px rgba(0,0,0,.35); }
-    .panel.running { opacity: .7; border-left-color: #888; }
+      border: 1px solid #3a3a44; border-left: 4px solid #6aa0ff; border-radius: 8px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.35); overflow: hidden; }
+    .panel.running { opacity: .75; border-left-color: #888; }
     .panel.failed { border-left-color: #ff6a6a; }
     .panel.done { border-left-color: #5ad08a; }
-    .crumbs { font-size: 12px; color: #9a9aa6; margin-bottom: 2px; }
+    .bar { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 14px; cursor: move; user-select: none;
+      background: rgba(255,255,255,.04); border-bottom: 1px solid #2e2e36; touch-action: none; }
+    .crumbs { flex: 1; min-width: 0; font-size: 12px; color: #9a9aa6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fold { all: unset; cursor: pointer; color: #9a9aa6; font-size: 14px; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+    .fold:hover { background: #3a3a46; color: #e8e8ea; }
+    .body { flex: 1; min-height: 0; overflow: auto; padding: 10px 14px 12px; }
+    .folded .body, .folded .grip { display: none; }
+    .folded .bar { border-bottom: none; }
     .title { font-weight: 600; font-size: 15px; }
     .explain { margin-top: 4px; white-space: pre-wrap; }
     .error { margin-top: 6px; color: #ffb0b0; font-family: ui-monospace, monospace; font-size: 12px; white-space: pre-wrap; }
     .keys { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
-    button { font: inherit; font-size: 12px; color: #e8e8ea; background: #2c2c34; border: 1px solid #4a4a56;
+    button.k { font: inherit; font-size: 12px; color: #e8e8ea; background: #2c2c34; border: 1px solid #4a4a56;
       border-radius: 5px; padding: 3px 8px; cursor: pointer; }
-    button:hover { background: #3a3a46; }
+    button.k:hover { background: #3a3a46; }
     kbd { font-family: ui-monospace, monospace; color: #9fc0ff; margin-right: 4px; }
+    .grip { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; touch-action: none;
+      background: linear-gradient(135deg, transparent 50%, #5a5a66 50%, #5a5a66 60%, transparent 60%, transparent 70%, #5a5a66 70%, #5a5a66 80%, transparent 80%); }
   \`;
-  const act = (a) => window.__e2eWalk && window.__e2eWalk(a);
+  const act = (a, data) => window.__e2eWalk && window.__e2eWalk(a, data);
   const label = (s) => ({ step: 'Next step', flow: 'Next: a flow', show: 'Result' })[s.kind] || 'Step';
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  function esc(t) { return String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]); }
   function mount() {
     if (host && host.isConnected) return host.shadowRoot;
     host = document.createElement('e2e-walk');
@@ -374,9 +412,59 @@ const OVERLAY = `(() => {
     (document.body || document.documentElement).appendChild(host);
     return root;
   }
-  function esc(t) { return String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]); }
+  // The panel's place: where the reviewer left it (kept by the test process,
+  // so it survives navigations and new pages), always inside the window.
+  function place(panel) {
+    if (!layout) return;
+    const w = clamp(layout.w, MIN_W, Math.max(MIN_W, innerWidth - 2 * GAP));
+    const h = layout.folded ? null : clamp(layout.h, MIN_H, Math.max(MIN_H, innerHeight - 2 * GAP));
+    Object.assign(panel.style, {
+      right: 'auto', bottom: 'auto', maxWidth: 'none',
+      width: w + 'px', height: h === null ? 'auto' : h + 'px',
+      left: clamp(layout.x, 0, Math.max(0, innerWidth - w)) + 'px',
+      top: clamp(layout.y, 0, Math.max(0, innerHeight - 40)) + 'px',
+    });
+  }
+  function current(panel) {
+    const r = panel.getBoundingClientRect();
+    return { x: r.left, y: r.top, w: r.width, h: layout && layout.folded ? layout.h : r.height, folded: !!(layout && layout.folded) };
+  }
+  // The test process keeps it (it outlives the page); the next render here
+  // must not bring back the old one.
+  function save(next) {
+    layout = next;
+    if (state) state = { ...state, layout: next };
+    act('layout', next);
+  }
+  // Pointer drags: on the bar it moves the panel, on the grip it resizes it.
+  function drag(panel, ev, resize) {
+    if (ev.button !== 0 || (ev.target.closest && ev.target.closest('.fold'))) return;
+    ev.preventDefault();
+    const start = current(panel);
+    const sx = ev.clientX, sy = ev.clientY;
+    const target = ev.currentTarget;
+    target.setPointerCapture(ev.pointerId);
+    const move = (e) => {
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      layout = resize
+        ? { ...start, w: start.w + dx, h: start.h + dy, folded: false }
+        : { ...start, x: start.x + dx, y: start.y + dy };
+      panel.classList.toggle('folded', !!layout.folded);
+      place(panel);
+    };
+    const up = () => {
+      target.removeEventListener('pointermove', move);
+      target.removeEventListener('pointerup', up);
+      target.removeEventListener('pointercancel', up);
+      if (layout) save(current(panel));
+    };
+    target.addEventListener('pointermove', move);
+    target.addEventListener('pointerup', up);
+    target.addEventListener('pointercancel', up);
+  }
   window.__e2eRender = (s) => {
     state = s;
+    if (s && s.layout) layout = s.layout;
     if (!document.documentElement) return;
     const root = mount();
     if (!s || !s.title) { root.innerHTML = ''; return; }
@@ -384,20 +472,35 @@ const OVERLAY = `(() => {
     const crumbs = [head + ' ' + s.n, ...s.crumbs].join(' › ');
     let keys = '';
     if (s.status === 'paused') {
-      keys = (s.kind === 'flow' ? '<button data-a="into"><kbd>F7</kbd>step into</button>' : '')
-        + '<button data-a="over"><kbd>F8</kbd>' + (s.kind === 'flow' ? 'run it' : 'next') + '</button>'
-        + '<button data-a="continue"><kbd>F5</kbd>run to the end</button>';
+      keys = (s.kind === 'flow' ? '<button class="k" data-a="into"><kbd>F7</kbd>step into</button>' : '')
+        + '<button class="k" data-a="over"><kbd>F8</kbd>' + (s.kind === 'flow' ? 'run it' : 'next') + '</button>'
+        + '<button class="k" data-a="continue"><kbd>F5</kbd>run to the end</button>';
     } else if (s.status === 'done' || s.status === 'failed') {
-      keys = '<button data-a="over"><kbd>F8</kbd>finish</button>';
+      keys = '<button class="k" data-a="over"><kbd>F8</kbd>finish</button>';
     }
-    root.innerHTML = '<style>' + css + '</style><div class="panel ' + s.status + '">'
-      + '<div class="crumbs">' + esc(crumbs) + '</div>'
-      + '<div class="title">' + esc(s.title) + '</div>'
+    const folded = !!(layout && layout.folded);
+    root.innerHTML = '<style>' + css + '</style><div class="panel ' + s.status + (folded ? ' folded' : '') + '">'
+      + '<div class="bar" title="Drag to move · double-click to put it back"><div class="crumbs">' + esc(crumbs + (folded ? ' — ' + s.title : '')) + '</div>'
+      + '<button class="fold" title="' + (folded ? 'Unfold' : 'Fold') + '">' + (folded ? '▢' : '–') + '</button></div>'
+      + '<div class="body"><div class="title">' + esc(s.title) + '</div>'
       + (s.explain ? '<div class="explain">' + esc(s.explain) + '</div>' : '')
       + (s.error ? '<div class="error">' + esc(s.error) + '</div>' : '')
-      + (keys ? '<div class="keys">' + keys + '</div>' : '') + '</div>';
-    root.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => act(b.dataset.a)));
+      + (keys ? '<div class="keys">' + keys + '</div>' : '') + '</div>'
+      + '<div class="grip" title="Drag to resize"></div></div>';
+    const panel = root.querySelector('.panel');
+    place(panel);
+    root.querySelectorAll('button.k').forEach((b) => b.addEventListener('click', () => act(b.dataset.a)));
+    const bar = root.querySelector('.bar');
+    bar.addEventListener('pointerdown', (e) => drag(panel, e, false));
+    bar.addEventListener('dblclick', () => { save(null); window.__e2eRender(state); });
+    root.querySelector('.grip').addEventListener('pointerdown', (e) => drag(panel, e, true));
+    root.querySelector('.fold').addEventListener('click', () => {
+      save({ ...current(panel), folded: !folded });
+      window.__e2eRender(state);
+    });
   };
+  // Keep it inside the window when the window shrinks.
+  window.addEventListener('resize', () => { const p = host && host.shadowRoot && host.shadowRoot.querySelector('.panel'); if (p) place(p); });
   window.addEventListener('keydown', (e) => {
     const a = { F8: 'over', F7: 'into', F5: 'continue' }[e.key];
     if (!a || !state || state.status === 'running') return;
