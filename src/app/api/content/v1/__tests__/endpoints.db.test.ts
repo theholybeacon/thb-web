@@ -113,8 +113,11 @@ type NarrationFixture = {
 
 let DAILY_VERSES: DailyVerseRef[] = [];
 let anyCharacter: CharacterRow | null = null;
-/** A date whose curated verse is cached, so the endpoint can actually serve it. */
-let daily: { date: string; pick: DailyVerseRef } | null = null;
+/**
+ * A date whose curated verse is cached, so the endpoint can actually serve it,
+ * and the translation holding it (bsb-en, the default, when it is cached).
+ */
+let daily: { date: string; pick: DailyVerseRef; translation: string } | null = null;
 let narration: NarrationFixture | null = null;
 /** A translation that may never be narrated, for the NOT_LICENSED path. */
 let unlicensedSlug: string | null = null;
@@ -166,28 +169,36 @@ describeDb("the content endpoints", () => {
 		`) as unknown as { slug: string }[];
 		unlicensedSlug = unlicensed[0]?.slug ?? null;
 
-		// Walk the rotation for the first entry whose chapter is cached, then
-		// work backwards to a date that selects it. Coverage is uneven, so
-		// hardcoding a date would leave these tests asserting a 404.
+		// Find the rotation entries whose chapter is cached, then work backwards
+		// from the first one to a date that selects it. Coverage is uneven, so
+		// hardcoding a date (or the default translation) would leave these tests
+		// asserting a 404. bsb-en is preferred when it holds one.
+		//
+		// "Cached" means what the route needs: one chapter row, on the book row
+		// it finds by USFM code, holding the verse and every verse upstream
+		// reported. Counting verses per chapter row (not per abbreviation) keeps
+		// two half-cached copies from passing for one complete chapter. One
+		// query, not one per entry: the rotation outlasts the hook timeout.
 		({ DAILY_VERSES } = await import("@/lib/dailyVerses"));
-		for (const [index, pick] of DAILY_VERSES.entries()) {
-			const rows = (await query`
-				SELECT 1 AS hit
-				FROM verse v
-				JOIN chapter c ON c.id = v."chapterId"
-				JOIN book b   ON b.id = c."bookId"
-				JOIN bible bi ON bi.id = b."bibleId"
-				WHERE bi.slug = 'bsb-en'
-				  AND upper(b.abbreviation) = ${pick.bookAbbreviation}
-				  AND c."chapterNumber" = ${pick.chapter}
-				  AND v."verseNumber" = ${pick.verse}
-				LIMIT 1
-			`) as unknown as { hit: number }[];
-			if (rows.length === 0) continue;
+		const cached = (await query`
+			SELECT bi.slug AS translation, p.idx::int - 1 AS index
+			FROM unnest(
+				${DAILY_VERSES.map((d) => d.bookAbbreviation)}::text[],
+				${DAILY_VERSES.map((d) => d.chapter)}::int[],
+				${DAILY_VERSES.map((d) => d.verse)}::int[]
+			) WITH ORDINALITY AS p(usfm, chapter, verse, idx)
+			JOIN book b    ON upper(b.abbreviation) = p.usfm
+			JOIN bible bi  ON bi.id = b."bibleId"
+			JOIN chapter c ON c."bookId" = b.id AND c."chapterNumber" = p.chapter
+			WHERE EXISTS (SELECT 1 FROM verse v WHERE v."chapterId" = c.id AND v."verseNumber" = p.verse)
+			  AND (SELECT count(*) FROM verse v WHERE v."chapterId" = c.id) >= greatest(c."numVerses", 1)
+			ORDER BY (bi.slug = 'bsb-en') DESC, bi.slug, p.idx
+		`) as unknown as { translation: string; index: number }[];
 
+		for (const { translation, index } of cached) {
 			const date = dateSelecting(index, 2026);
 			if (date) {
-				daily = { date, pick };
+				daily = { date, pick: DAILY_VERSES[index], translation };
 				break;
 			}
 		}
@@ -559,8 +570,8 @@ describeDb("the content endpoints", () => {
 		});
 
 		it("features exactly the verse the product features that day", async () => {
-			const { date, pick } = daily!;
-			const { status, body } = await call(routes.dailyVerse, `/daily-verse?date=${date}`);
+			const { date, pick, translation } = daily!;
+			const { status, body } = await call(routes.dailyVerse, `/daily-verse?date=${date}&translation=${translation}`);
 
 			expect(status, JSON.stringify(body)).toBe(200);
 			expect(body.date).toBe(date);
@@ -579,9 +590,9 @@ describeDb("the content endpoints", () => {
 		});
 
 		it("is deterministic for a given date", async () => {
-			const { date } = daily!;
-			const a = await call(routes.dailyVerse, `/daily-verse?date=${date}`);
-			const b = await call(routes.dailyVerse, `/daily-verse?date=${date}`);
+			const { date, translation } = daily!;
+			const a = await call(routes.dailyVerse, `/daily-verse?date=${date}&translation=${translation}`);
+			const b = await call(routes.dailyVerse, `/daily-verse?date=${date}&translation=${translation}`);
 
 			// A scheduled daily job must be re-runnable without producing a
 			// different verse the second time.
@@ -591,11 +602,11 @@ describeDb("the content endpoints", () => {
 		});
 
 		it("steps to the next curated verse the next day", async () => {
-			const { date } = daily!;
+			const { date, translation } = daily!;
 			const next = nextDay(date);
 			const expected = DAILY_VERSES[dayOfYear(next) % DAILY_VERSES.length];
 
-			const { status, body } = await call(routes.dailyVerse, `/daily-verse?date=${next}`);
+			const { status, body } = await call(routes.dailyVerse, `/daily-verse?date=${next}&translation=${translation}`);
 
 			// The rotation must advance, and advance to the list's next entry — a
 			// stuck selection would feed a pipeline the same verse forever.
@@ -609,13 +620,15 @@ describeDb("the content endpoints", () => {
 		});
 
 		it("hands back a reference that /verses accepts", async () => {
-			const { date } = daily!;
-			const { body } = await call(routes.dailyVerse, `/daily-verse?date=${date}`);
+			const { date, translation } = daily!;
+			const { body } = await call(routes.dailyVerse, `/daily-verse?date=${date}&translation=${translation}`);
 
 			// apiReference is documented as feed-straight-back. Prove it parses, and
 			// prove both endpoints report the same bytes for the same verse.
 			const ref = body.reference.apiReference;
-			const verses = await callWith(routes.verses, `/verses/${ref}`, { reference: ref });
+			const verses = await callWith(routes.verses, `/verses/${ref}?translation=${translation}`, {
+				reference: ref,
+			});
 
 			expect(verses.status, JSON.stringify(verses.body)).toBe(200);
 			expect(verses.body.verses).toHaveLength(1);
@@ -623,8 +636,8 @@ describeDb("the content endpoints", () => {
 		});
 
 		it("serves text byte-identical to the database", async () => {
-			const { date } = daily!;
-			const { body } = await call(routes.dailyVerse, `/daily-verse?date=${date}`);
+			const { date, translation } = daily!;
+			const { body } = await call(routes.dailyVerse, `/daily-verse?date=${date}&translation=${translation}`);
 
 			const rows = (await query`
 				SELECT v.content AS content

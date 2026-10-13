@@ -19,6 +19,7 @@ export default defineConfig({
 			"src/lib/recommendedBible.test.ts",
 			"src/lib/nameMatch.test.ts",
 			"src/app/common/chapter/model/parseChapterText.test.ts",
+			"src/app/common/book/repository/BookRepository.db.test.ts",
 		],
 		environment: "node",
 	},

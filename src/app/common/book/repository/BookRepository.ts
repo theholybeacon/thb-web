@@ -19,11 +19,11 @@ export class BookRepository {
 
 		if (output.length === 0) {
 			const bibleToFetch = await this._bibleRepository.getById(bibleId);
-			output = await this.externalDao.getAllByBibleId(bibleToFetch!.apiId);
-			await Promise.all(output.map(async (actual) => {
-				actual.bibleId = bibleId;
-				await this.internalDao.create(actual);
-			}));
+			const fetched = await this.externalDao.getAllByBibleId(bibleToFetch!.apiId);
+			await this.internalDao.createMany(fetched.map((book) => ({ ...book, bibleId })));
+			// Re-read rather than returning `fetched`: a concurrent request may have
+			// seeded the list first, and its rows (and ids) are the ones stored.
+			output = await this.internalDao.getAllByBibleId(bibleId);
 			await this._bibleRepository.updateBookNumber(output.length, bibleId);
 		}
 		return output;
