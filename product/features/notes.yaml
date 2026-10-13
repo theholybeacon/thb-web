@@ -1,0 +1,14 @@
+id: notes
+name: { en: Notes, es: Notas }
+status: live
+access: premium
+pitch:
+  en: Notes that stay attached to the verse.
+  es: Notas que se quedan unidas al versículo.
+problem: Notes in a separate app lose their anchor.
+proof:
+  - Write on a verse, a chapter, a book or a whole translation.
+  - All notes searchable in one place, each linking back to its passage.
+routes: [/notes]
+flows: []
+facts: []

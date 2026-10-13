@@ -16,13 +16,36 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Secrets
+
+Secrets live in Doppler, project `the-holy-beacon`, configs `dev`, `stg` and `prd`.
+Run anything that needs them through `doppler run`, e.g. `doppler run -- npm run dev`.
+`docs/env.example` lists every key.
+
 ## Database
 
-Migrations in `./migrations` are hand-written and idempotent. Apply one with:
+Migrations in `./migrations` are hand-written; from 0012 on they are idempotent.
+`npm run db:migrate` applies every pending file in order and records it in the
+`schema_migration` table (see `scripts/migrate.ts`). `drizzle-kit migrate` does
+not work here: its journal stops at 0008.
 
 ```bash
-npm run migrate 0018_add_note.sql
+npm run db:migrate -- --status   # what's applied / pending
+npm run db:migrate -- --yes      # apply pending (outside CI it asks for --yes)
+npm run migrate 0018_add_note.sql  # re-run one file by hand, untracked
 ```
+
+## CI/CD
+
+- `.github/workflows/ci.yml`: typecheck and tests on every PR and working branch.
+- `.github/workflows/deploy.yml`: on push to `dev`, `staging` or `main` it checks,
+  migrates that environment's database, then deploys to Vercel (preview for
+  `dev`/`staging`, production for `main`). Vercel's own git deploys are off for
+  those branches (`vercel.json`), so code never ships before its migration.
+  It can also be run by hand for `migrate`, `status`, `baseline` or `pull-schema`.
+
+Each GitHub environment (`dev`, `staging`, `production`) holds a `DOPPLER_TOKEN`
+for its Doppler config, and the repository holds `VERCEL_TOKEN`.
 
 ### Seeding biblical people
 

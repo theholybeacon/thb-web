@@ -1,0 +1,17 @@
+id: study-plans
+name: { en: AI study plans, es: Planes de estudio con IA }
+status: live
+access: premium
+pitch:
+  en: Describe what you want to learn and get a structured plan, passage by passage, session by session.
+  es: Describe lo que quieres aprender y recibe un plan estructurado, pasaje por pasaje.
+problem: People want to study a topic properly and have no idea which passages to read, or in what order.
+proof:
+  - Two dials, length (5 minutes to a full year) and depth (introduction to deep dive).
+  - Built around your question, not picked off a shelf; regenerate if it misses.
+  - Progress tracked step by step.
+routes: [/study/create, /study, "/study/{id}"]
+flows: []                  # premium + writes data; film with a dev DB session
+facts: [plan-length-min, ready-plans]
+angles:
+  - '"What does the Bible say about forgiveness?" → a plan in seconds.'

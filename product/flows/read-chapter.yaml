@@ -1,0 +1,30 @@
+id: read-chapter
+title: Read a chapter
+feature: read-mode
+description: >
+  The reader opens a chapter in Read mode, a clean paragraph layout with
+  character names lit up in the text, then scrolls gently through it. The
+  params choose the chapter and the Bible.
+access: public
+viewports: [mobile, desktop]
+locales: [en, es]
+params:
+  chapter:
+    kind: chapter
+    default: GEN 1
+    about: The chapter being read. Pick one that serves the video (its opening lines are what shows first).
+  translation:
+    kind: translation
+    default: bsb-en
+    about: The Bible being read (bsb-en, kjv-en, rvr09-sp…).
+steps:
+  - goto: /bible/{{translation}}/{{chapter.path}}
+  - wait: 700
+  - mark: start
+  - wait: 900
+  - scroll: { px: 900, ms: 2600 }
+  - wait: 500
+  - mark: mid
+  - scroll: { px: 900, ms: 2600 }
+  - wait: 600
+  - mark: end

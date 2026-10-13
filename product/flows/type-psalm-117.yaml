@@ -1,0 +1,37 @@
+id: type-psalm-117
+title: Type a chapter
+feature: type-mode
+description: >
+  The reader opens a short chapter, switches to Type, and the whole chapter is
+  typed character by character with live grading. Accuracy, WPM and progress
+  update live, and it ends on the accuracy · WPM · time result tiles. The
+  params choose the chapter and the Bible (default Psalm 117, KJV).
+access: public
+viewports: [mobile, desktop]
+locales: [en, es]
+params:
+  chapter:
+    kind: chapter
+    default: PSA 117
+    about: >
+      The chapter typed. The WHOLE chapter is typed, so keep it very short
+      (Psalm 117, Psalm 134, Psalm 131, Psalm 133); longer ones make a long,
+      slow demo.
+  translation:
+    kind: translation
+    default: kjv-en
+    about: The Bible typed (kjv-en, bsb-en, rvr09-sp…).
+steps:
+  - goto: /bible/{{translation}}/{{chapter.path}}
+  - wait: 600
+  - mark: start
+  - tap: { target: mode.type, label: { en: Type, es: Escribir } }
+  - waitFor: type.text
+  - mark: { name: typeMode, focus: type.area }
+  - tap: type.area
+  - mark: typing
+  - type: { target: type.area, text: dom, wpm: 165, typos: 0.02, stopWhen: type.complete, finishKey: " " }
+  - waitFor: type.complete
+  - mark: { name: result, focus: type.complete }
+  - wait: 1600
+  - mark: end

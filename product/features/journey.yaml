@@ -1,0 +1,16 @@
+id: journey
+name: { en: Your Journey, es: Tu Camino }
+status: live
+access: signedIn
+pitch:
+  en: Every chapter you've read, heard, or typed, wherever you started.
+  es: Cada capítulo que has leído, escuchado o escrito, donde sea que empezaste.
+problem: Progress becomes a vague feeling instead of something you can see.
+proof:
+  - A grid of all 1,189 chapters; darker means you've been back.
+  - 14 milestone badges.
+  - Counts across translations and across read/listen/type.
+  - Share as a public page or a vertical image (off by default).
+routes: [/journey]
+flows: []
+facts: [chapters, badges]

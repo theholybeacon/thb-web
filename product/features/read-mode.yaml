@@ -1,0 +1,18 @@
+id: read-mode
+name: { en: Read, es: Leer }
+status: live
+access: public
+signature: true
+pitch:
+  en: A clean, distraction-free page. Poetry reads as poetry, paragraphs as paragraphs.
+  es: Una página limpia, sin distracciones. La poesía se lee como poesía.
+problem: Most readers are cluttered and break the text into a list of verses.
+proof:
+  - Adjustable text size, light or dark.
+  - Paragraph and poetry layout intact.
+  - Names in the verse text light up and link to who they were.
+routes: ["/bible/{bible}/{book}/{chapter}"]
+flows: [read-chapter]
+facts: []
+angles:
+  - Genesis 1, the way it was meant to be read.

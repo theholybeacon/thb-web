@@ -1,0 +1,133 @@
+# The Holy Beacon: brand brain.
+# The content studio reads this on every script. Edit freely; it's YAML.
+# Fields marked `draft: true` are inferred from the product's own copy and
+# need Andrés's own words. Rewrite them and set `draft: false`.
+
+name: The Holy Beacon          # always all three words; never "THB" on screen, never translated
+domain: theholybeacon.com
+tagline:
+  en: Study the Bible, deeply
+  es: Estudia la Biblia, a fondo
+signature:                     # the three ways through a chapter, always in this order
+  en: Read · Listen · Type
+  es: Lee · Escucha · Escribe
+
+mission:
+  draft: true
+  text: >
+    Help people actually work through Scripture, not just glance at a verse,
+    by giving them a plan to follow, three ways into every chapter, the people
+    behind the text, and a place to keep what they find.
+
+vision:
+  draft: true
+  text: >
+    Anyone, in any language, able to study the Bible deeply. Free to start, and
+    nobody turned away for not being able to pay.
+
+intention:                     # why we make content at all
+  draft: true
+  text: >
+    Every video shows the real product doing something real: a chapter typed,
+    a name traced to every verse it appears in, a plan built around a question.
+    Content earns attention by being useful and true, never by guilt or hype.
+
+positioning:
+  against: Verse-a-day / devotional apps that "hand you a verse and move on".
+  oneLiner:
+    en: Most Bible apps hand you a verse and move on.
+    es: La mayoría de las apps bíblicas te dan un versículo y siguen de largo.
+  notThis: Not a verse-a-day app. Not a devotional app. Not a theological authority.
+
+audience:
+  draft: true
+  primary:
+    name: The frustrated returner
+    who: Has a real faith commitment, has started reading the Bible several times and stalled. Doesn't need motivating, needs structure.
+    stalls:
+      - { stall: "I don't know what to read next", answer: study-plans }
+      - { stall: "I read it and retain nothing", answer: type-mode }
+      - { stall: "I don't have time to sit and read", answer: listen-mode }
+      - { stall: "I don't know who these people are", answer: bible-characters }
+      - { stall: "I lose everything I figure out", answer: notes }
+      - { stall: "I can't tell if I'm getting anywhere", answer: journey }
+  secondary:
+    name: The curious reader with no account
+    who: Lands on a chapter from search or a shared link; the free explorer is good enough that they stay.
+  tertiary:
+    name: The Spanish-speaking reader
+    who: Spanish is a fully translated first-class interface.
+
+voice:
+  summary: Calm, plain, confident. Short sentences. Reverent about Scripture, unsentimental about itself. Honest about limits.
+  do:
+    - Lead with what the reader gets.
+    - Use real numbers, from facts.yaml only.
+    - Name the translation when quoting Scripture ("John 3:16 · BSB").
+    - Let tension do the work ("Slower than reading, and that is exactly the point.").
+    - Show, don't describe. If the app can do it on screen, film it.
+  dont:
+    - Guilt anyone about not reading their Bible.
+    - Hype words (revolutionary, game-changing, unlock the secrets).
+    - Imply theological authority. The product presents and cites; it doesn't interpret.
+    - Promise audio for a specific chapter without checking it exists.
+    - Claim roadmap features as shipped.
+
+# Words the studio's QA blocks or flags on screen.
+avoid:
+  - { say: "Entity", instead: "Bible character, person" }
+  - { say: "Mode", instead: "way through a chapter" }
+  - { say: "AI-generated content", instead: "study plans, character profiles" }
+  - { say: "Verse-a-day", instead: "(we position against this)" }
+  - { say: "Devotional app", instead: "Bible study app" }
+  - { say: "Unlimited translations", instead: "404 translations / hundreds of translations" }
+  - { say: "revolutionary", instead: "(say what it does)" }
+  - { say: "game-changing", instead: "(say what it does)" }
+  - { say: "unlock the secrets", instead: "(say what it does)" }
+
+# Lines from the product itself: safe to quote on screen.
+lines:
+  - id: verse-and-move-on
+    en: Most Bible apps hand you a verse and move on.
+  - id: not-verse-a-day
+    en: Not a verse-a-day app.
+  - id: type-slower
+    en: Slower than reading, and that is exactly the point.
+  - id: type-pitch
+    en: Type Scripture out word by word with live speed and accuracy.
+  - id: hd-who
+    en: Know who you are reading about, not just what happened.
+  - id: hd-cited
+    en: Every claim is cited to a real verse mention. Nothing invented.
+  - id: plans-pitch
+    en: Describe what you want to learn and get a structured plan, passage by passage.
+  - id: listen-pitch
+    en: Hear every passage read aloud. Screen off, on your commute, through your car.
+  - id: journey-pitch
+    en: Every chapter you've read, heard, or typed, wherever you started.
+    es: Cada capítulo que has leído, escuchado o escrito, donde sea que empezaste.
+  - id: journey-squares
+    en: Each square is a chapter. Darker means you've been back.
+  - id: free-no-account
+    en: Free · No account needed
+    es: Gratis · Sin cuenta
+
+cta:
+  primary:   { en: Start Your Journey, es: Comienza Tu Viaje }
+  secondary: { en: Explore the Bible free, es: Explora la Biblia gratis }
+
+visual:
+  bg: "#0a0908"
+  surface: "#141210"
+  accent: "#e0b43a"            # warm gold, the only accent
+  ink: "#f4eee1"
+  serif: EB Garamond           # Scripture
+  sans: Inter                  # interface
+
+# Content pillars: what the studio rotates through. Weights are a hint, not a quota.
+pillars:
+  - { id: show-the-feature, weight: 0.4, about: "One feature, shown live, doing the thing." }
+  - { id: scripture-moment, weight: 0.25, about: "A passage, verbatim, presented beautifully, with the app as the place it lives." }
+  - { id: people-of-the-bible, weight: 0.15, about: "A name in a chapter → who they were, cited." }
+  - { id: honest-limits, weight: 0.1, about: "What we refuse to fake (word-level sync, invented claims, copyrighted narration)." }
+  - { id: sponsorship-story, weight: 0.1, about: "Nobody turned away for not being able to pay." }

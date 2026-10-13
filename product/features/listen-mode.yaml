@@ -1,0 +1,19 @@
+id: listen-mode
+name: { en: Listen, es: Escuchar }
+status: live
+access: premium
+signature: true
+pitch:
+  en: Hear every passage read aloud in a natural voice, with verse-by-verse highlighting.
+  es: Escucha cada pasaje leído en voz natural, con resaltado versículo por versículo.
+problem: No time to sit and read.
+proof:
+  - Verse-by-verse highlighting follows the audio.
+  - Two voices, one female and one male; speed and volume adjustable.
+  - Keeps playing with the screen off; downloadable for offline.
+routes: ["/bible/{bible}/{book}/{chapter}"]
+flows: []                  # premium + narration must exist; film with a dev DB session
+facts: [voices, translations-open]
+dontClaim:
+  - Audio for every chapter of every translation (only cleared translations, produced on demand).
+  - Word-by-word sync (verse-level only).

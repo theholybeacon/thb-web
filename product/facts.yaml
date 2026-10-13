@@ -1,0 +1,20 @@
+# Numbers that may appear on screen. The studio only shows numbers from here.
+# Source: the live product (/api/content/v1/meta and the DB), as of `asOf`.
+# Don't round up. The landing page rounds 404 → "400+" and 3,067 → "3,000+";
+# use `display` for that phrasing.
+asOf: 2026-08-25
+facts:
+  - { id: translations, value: 404, display: "400+", label: { en: Bible translations, es: traducciones de la Biblia } }
+  - { id: translations-open, value: 46, label: { en: translations cleared for narration, es: traducciones habilitadas para narración } }
+  - { id: translations-instant, value: 9, label: { en: translations pre-loaded and instant, es: traducciones precargadas } }
+  - { id: characters, value: 3067, display: "3,000+", label: { en: Bible characters with their own page, es: personajes bíblicos con su propia página } }
+  - { id: ways, value: 3, label: { en: ways through every chapter, es: formas de recorrer cada capítulo } }
+  - { id: ready-plans, value: 2, label: { en: ready-made reading plans, es: planes de lectura listos } }
+  - { id: voices, value: 2, label: { en: narration voices, es: voces de narración } }
+  - { id: ui-languages, value: 2, label: { en: interface languages, es: idiomas de la interfaz } }
+  - { id: books, value: 66, label: { en: books, es: libros } }
+  - { id: chapters, value: 1189, display: "1,189", label: { en: chapters, es: capítulos } }
+  - { id: badges, value: 14, label: { en: milestone badges, es: insignias } }
+  - { id: daily-verses, value: 105, label: { en: verses in the daily rotation, es: versículos en la rotación diaria } }
+  - { id: plan-length-min, value: 5, display: "5 min", label: { en: shortest study plan, es: plan de estudio más corto } }
+  - { id: psalm-117-chars, value: 172, label: { en: characters in Psalm 117 (KJV), es: caracteres en el Salmo 117 (KJV) } }

@@ -1,0 +1,41 @@
+id: name-in-verse
+title: From a name in the text to who they were
+feature: bible-characters
+description: >
+  Reading a chapter, a person's name inside the verse text (it's lit up as a
+  link) is tapped and opens their page, with every verse that mentions them.
+  The params choose the person and the chapter.
+access: public
+viewports: [mobile, desktop]
+locales: [en, es]
+params:
+  character:
+    kind: character
+    about: >
+      The person whose name gets tapped. The hook is "who is this?", so pick
+      someone readers would NOT know, whose story fits the video.
+    default: huldah_1567
+    maxMentions: 60
+    exclude: [god_1324]
+  chapter:
+    kind: chapter
+    mentions: character
+    about: The chapter being read. It must name the character (default is the first chapter that does).
+  translation:
+    kind: translation
+    default: bsb-en
+    about: The Bible being read. People are linked in bsb-en.
+steps:
+  - goto: /bible/{{translation}}/{{chapter.path}}
+  - wait: 800
+  - mark: start
+  - scrollTo: reader.personLink
+  - wait: 500
+  - mark: { name: name, focus: reader.personLink }
+  - tap: { target: reader.personLink, label: { en: Who is this?, es: ¿Quién es? } }
+  - waitFor: { target: h1, timeoutMs: 20000 }
+  - wait: 900
+  - mark: { name: profile, focus: h1 }
+  - scroll: { px: 900, ms: 2200 }
+  - wait: 600
+  - mark: end

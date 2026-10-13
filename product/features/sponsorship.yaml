@@ -1,0 +1,17 @@
+id: sponsorship
+name: { en: Sponsorship Program, es: Programa de Patrocinio }
+status: live
+access: signedIn
+pitch:
+  en: Nobody is turned away for not being able to pay. Members can sponsor a stranger from the queue.
+  es: Nadie se queda fuera por no poder pagar. Los miembros pueden patrocinar a alguien de la fila.
+problem: Premium costs money some readers don't have.
+proof:
+  - Readers join a queue and see their position and estimated wait.
+  - Paying members sponsor someone from the queue.
+  - Premium can also be gifted by email.
+routes: [/sponsorship, /gift]
+flows: []
+facts: []
+angles:
+  - A story, not a feature bullet.

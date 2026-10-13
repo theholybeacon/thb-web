@@ -1,0 +1,22 @@
+id: bible-characters
+name: { en: Bible Characters, es: Personajes bíblicos }
+status: live
+access: public
+alias: Scripture in HD
+pitch:
+  en: Know who you are reading about, not just what happened. Every claim cited to a real verse.
+  es: Conoce a quién estás leyendo, no solo qué pasó. Cada dato citado a un versículo real.
+problem: You read a name in a chapter and have no idea who it is or where else they appear.
+proof:
+  - An A–Z directory of every person named in Scripture.
+  - Each page lists every verse that mentions them, grouped by book.
+  - Profiles (overview, timeline, relationships) cite every statement to a verse.
+  - Names light up inside the verse text while you read.
+routes: [/bible/people, "/bible/people/{slug}"]
+flows: [character-lookup, name-in-verse]
+facts: [characters]
+angles:
+  - Open on a name buried in a genealogy → who they were, cited.
+  - '"Nothing invented": the trust angle.'
+dontClaim:
+  - That profiles exist for every character (about 107 are pre-generated; others generate on demand for signed-in users).

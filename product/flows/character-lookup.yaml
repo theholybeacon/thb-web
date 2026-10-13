@@ -1,0 +1,35 @@
+id: character-lookup
+title: Look up a person
+feature: bible-characters
+description: >
+  Bible Characters: the A–Z directory, a search for a person, then their
+  profile with aliases, dates and verse mentions by book, scrolled. The params
+  choose who is searched for.
+access: public
+viewports: [mobile, desktop]
+locales: [en, es]
+params:
+  character:
+    kind: character
+    about: The person searched for and opened. Pick one who serves the video's point.
+    default: moses_2108
+  query:
+    kind: text
+    default: "{{character.name}}"
+    about: What gets typed in the search box (default is the person's name).
+steps:
+  - goto: /bible/people
+  - wait: 900
+  - mark: start
+  - tap: { target: people.search, label: { en: Search, es: Buscar } }
+  - type: { target: people.search, text: "{{query}}", wpm: 90, typos: 0 }
+  - press: Enter
+  - wait: 1400
+  - mark: { name: results, focus: people.result }
+  - tap: { target: people.result, label: "{{character.name}}" }
+  - waitFor: { target: h1, timeoutMs: 20000 }
+  - wait: 900
+  - mark: { name: profile, focus: h1 }
+  - scroll: { px: 1100, ms: 2600 }
+  - wait: 700
+  - mark: end

@@ -1,0 +1,29 @@
+# Checks every pull request and every push to a working branch.
+# dev, staging and main run the same checks inside deploy.yml before deploying.
+#
+# Lint is not run yet: `next lint` has pre-existing errors (next.config.ts also
+# skips it during builds). Add `npm run lint` here once it is clean.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [dev, staging, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      # No DATABASE_URL here, so the *.db.test.ts suites skip themselves.
+      - run: npm run test

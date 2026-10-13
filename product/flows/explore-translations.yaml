@@ -1,0 +1,34 @@
+id: explore-translations
+title: Search hundreds of translations
+feature: bible-explorer
+description: >
+  Explore the Bible: the translation catalogue with recommended picks, then a
+  search narrows hundreds of Bibles to one, which is opened. The params choose
+  the search and the Bible opened (default "Reina" → the Reina-Valera).
+access: public
+viewports: [mobile, desktop]
+locales: [en, es]
+params:
+  query:
+    kind: text
+    default: Reina
+    about: What gets typed in the search box. It must find the translation below.
+  translation:
+    kind: translation
+    default: rvr09-sp
+    about: The Bible opened from the results (it must match the search).
+steps:
+  - goto: /bible
+  - wait: 900
+  - mark: start
+  - scroll: { px: 500, ms: 1400 }
+  - wait: 400
+  - scroll: { px: -500, ms: 900 }
+  - tap: { target: explore.search, label: { en: Search, es: Buscar } }
+  - mark: { name: search, focus: explore.search }
+  - type: { target: explore.search, text: "{{query}}", wpm: 80, typos: 0 }
+  - wait: 1200
+  - mark: { name: found, focus: explore.result }
+  - tap: explore.result
+  - wait: 1800
+  - mark: end

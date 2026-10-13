@@ -1,0 +1,23 @@
+id: bible-explorer
+name: { en: Bible Explorer, es: Explorar la Biblia }
+status: live
+access: public
+pitch:
+  en: Read the Bible free in hundreds of translations. No account needed.
+  es: Lee la Biblia gratis en cientos de traducciones. Sin cuenta.
+problem: Free Bible readers give you one or two translations buried in clutter.
+proof:
+  - The whole catalogue is free and needs no account. It's the front door, not a trial.
+  - A recommended translation per language, with one line on why.
+  - '"Listenable only" filter for translations that have narration.'
+  - Chapter navigation crosses book boundaries (Malachi → Matthew).
+  - Every chapter has its own permanent link.
+routes: [/bible, "/bible/{bible}", "/bible/{bible}/{book}/{chapter}"]
+flows: [explore-translations, read-chapter]
+facts: [translations, translations-instant]
+angles:
+  - Search "Reina" and hundreds of Bibles narrow to one.
+  - The same passage, a different language, one tap away.
+dontClaim:
+  - Side-by-side translation comparison (roadmap).
+  - Full-text search across the Bible (roadmap).

@@ -1,0 +1,25 @@
+id: type-mode
+name: { en: Type, es: Escribir }
+status: live
+access: public
+signature: true            # part of Read · Listen · Type
+pitch:
+  en: Type Scripture out word by word with live speed and accuracy. Slower than reading, and that is exactly the point.
+  es: Escribe las Escrituras palabra por palabra con velocidad y precisión en vivo. Más lento que leer, y justamente ese es el punto.
+problem: People read a chapter and retain nothing. You can't skim a chapter you're typing.
+proof:
+  - Every character is graded live (correct vs. mistake painted differently).
+  - Live accuracy, words per minute and progress while you type.
+  - Ends on result tiles, accuracy · WPM · time.
+  - Accepts a plain apostrophe where the translation has a curly one.
+  - Works with no account.
+distinctive: Essentially no equivalent elsewhere. Strange enough to stop a scroll; demos in 20 seconds.
+routes: [/bible/kjv-en/psa/117, "/bible/{bible}/{book}/{chapter}"]
+flows: [type-psalm-117]
+facts: [psalm-117-chars]
+angles:
+  - "You don't read Scripture. You type it."
+  - Psalm 117, the shortest chapter, typed live, ending on the tiles.
+  - "How fast can you type Psalm 117? (challenge format)"
+dontClaim:
+  - Word-level audio sync (doesn't exist).

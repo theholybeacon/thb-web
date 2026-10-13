@@ -1,0 +1,148 @@
+# Check → migrate → deploy, per environment:
+#
+#   push to dev      → GitHub env `dev`        → Doppler config dev → Vercel preview (dev branch)
+#   push to staging  → GitHub env `staging`    → Doppler config stg → Vercel preview (staging branch)
+#   push to main     → GitHub env `production` → Doppler config prd → Vercel production
+#
+# The deploy only happens once the migrations have landed, so new code never
+# runs against an old schema. Vercel's own git deploys for these three branches
+# are switched off in vercel.json; every other branch still gets Vercel previews.
+#
+# Secrets:
+# - Each GitHub environment holds DOPPLER_TOKEN: a read-only Doppler service
+#   token for that environment's config. DATABASE_URL and the app's keys are
+#   read from Doppler at run time and never stored in GitHub.
+# - VERCEL_TOKEN is a repository secret.
+#
+# Manual runs (Actions → deploy → Run workflow):
+#   deploy       check, migrate, deploy (same as a push)
+#   migrate      apply pending migrations only
+#   status       list applied / pending migrations, change nothing
+#   baseline     mark migrations up to `upto` as applied without running them.
+#                Needed once per database that was migrated by hand before
+#                scripts/migrate.ts existed (see that file).
+#   pull-schema  introspect the database read-only and upload the result
+name: deploy
+
+on:
+  push:
+    branches: [dev, staging, main]
+  workflow_dispatch:
+    inputs:
+      env:
+        description: Environment
+        required: true
+        type: choice
+        options: [dev, staging, production]
+      task:
+        description: Task
+        required: true
+        default: deploy
+        type: choice
+        options: [deploy, migrate, status, baseline, pull-schema]
+      upto:
+        description: "baseline only: last migration file the database already has (empty = all)"
+        required: false
+        type: string
+
+env:
+  ENVIRONMENT: ${{ inputs.env || (github.ref_name == 'main' && 'production') || github.ref_name }}
+  TASK: ${{ inputs.task || 'deploy' }}
+  VERCEL_ORG_ID: team_m1XDEl2RN3FFKWbad80h32Pp
+  VERCEL_PROJECT_ID: prj_kWZmO8bFCWuqsVuyUWukaYxrjJif
+
+concurrency:
+  group: deploy-${{ inputs.env || (github.ref_name == 'main' && 'production') || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: ${{ (inputs.task || 'deploy') == 'deploy' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test
+
+  db:
+    needs: check
+    # Runs after a passing check, or on its own for the manual db tasks.
+    if: ${{ !cancelled() && (needs.check.result == 'success' || needs.check.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env || (github.ref_name == 'main' && 'production') || github.ref_name }}
+    env:
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+    steps:
+      - name: Check Doppler token
+        run: |
+          if [ -z "$DOPPLER_TOKEN" ]; then
+            echo "::error::No DOPPLER_TOKEN secret in the '$ENVIRONMENT' GitHub environment"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: dopplerhq/cli-action@v4
+      - name: Apply migrations
+        if: ${{ env.TASK == 'deploy' || env.TASK == 'migrate' }}
+        run: doppler run -- npm run db:migrate
+      - name: Migration status
+        if: ${{ env.TASK == 'status' }}
+        run: doppler run -- npm run db:migrate -- --status
+      - name: Baseline
+        if: ${{ env.TASK == 'baseline' }}
+        run: doppler run -- npm run db:migrate -- --baseline ${{ inputs.upto }}
+      - name: Pull schema (read-only)
+        if: ${{ env.TASK == 'pull-schema' }}
+        run: |
+          mkdir -p pulled-schema
+          doppler run -- sh -c 'npx drizzle-kit pull --dialect=postgresql --url="$DATABASE_URL" --out=pulled-schema'
+      - uses: actions/upload-artifact@v4
+        if: ${{ env.TASK == 'pull-schema' }}
+        with:
+          name: pulled-schema-${{ env.ENVIRONMENT }}
+          path: pulled-schema
+
+  deploy:
+    needs: db
+    if: ${{ !cancelled() && needs.db.result == 'success' && (inputs.task || 'deploy') == 'deploy' }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env || (github.ref_name == 'main' && 'production') || github.ref_name }}
+    env:
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Check Vercel token
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::No VERCEL_TOKEN secret (repository or '$ENVIRONMENT' environment)"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dopplerhq/cli-action@v4
+      - name: Pick Vercel target
+        run: |
+          if [ "$ENVIRONMENT" = production ]; then
+            echo "VERCEL_ENV=production" >> "$GITHUB_ENV"
+            echo "PROD_FLAG=--prod" >> "$GITHUB_ENV"
+          else
+            echo "VERCEL_ENV=preview" >> "$GITHUB_ENV"
+            echo "PROD_FLAG=" >> "$GITHUB_ENV"
+          fi
+      - run: npx vercel@latest pull --yes --environment=$VERCEL_ENV --git-branch=${{ github.ref_name }} --token=$VERCEL_TOKEN
+      # Built here with Doppler's values so NEXT_PUBLIC_* match the environment.
+      # Runtime variables come from Vercel's own env (synced from Doppler).
+      - run: doppler run -- npx vercel@latest build $PROD_FLAG --token=$VERCEL_TOKEN
+      - run: npx vercel@latest deploy --prebuilt $PROD_FLAG --token=$VERCEL_TOKEN

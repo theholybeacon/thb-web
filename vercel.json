@@ -5,5 +5,12 @@
 			"path": "/api/cron/daily-emails",
 			"schedule": "0 12 * * *"
 		}
-	]
+	],
+	"git": {
+		"deploymentEnabled": {
+			"main": false,
+			"dev": false,
+			"staging": false
+		}
+	}
 }
