@@ -1,4 +1,4 @@
-// e2e-steps v1
+// e2e-steps v2
 //
 // Explained, steppable end-to-end tests on top of Playwright Test.
 //
@@ -145,7 +145,7 @@ class Walker {
   private async broadcast() {
     const state = this.state;
     await Promise.all(
-      pages.filter((p) => !p.isClosed()).map((p) => p.evaluate((s) => (window as any).__e2eRender?.(s), state).catch(() => {})),
+      pages.filter((p) => !p.isClosed()).map((p) => p.evaluate((s) => (window as unknown as { __e2eRender?: (s: PanelState) => void }).__e2eRender?.(s), state).catch(() => {})),
     );
   }
 }
@@ -297,39 +297,40 @@ function definedIn(): string[] {
 
 const EXTRA_ARGS = (process.env.E2E_BROWSER_ARGS ?? '').split(' ').filter(Boolean);
 
+// Fixture callbacks are named `provide`: lint rules for React hooks read `use(...)` as one.
 export const test = base.extend<{ _e2eSteps: void; context: BrowserContext }, { _e2eBrowser: void }>({
   // Extra browser flags for walks (a window class the desktop places).
   launchOptions: [
-    async ({ launchOptions }, use) => {
-      await use(EXTRA_ARGS.length ? { ...launchOptions, args: [...(launchOptions.args ?? []), ...EXTRA_ARGS] } : launchOptions);
+    async ({ launchOptions }, provide) => {
+      await provide(EXTRA_ARGS.length ? { ...launchOptions, args: [...(launchOptions.args ?? []), ...EXTRA_ARGS] } : launchOptions);
     },
     { scope: 'worker' },
   ],
   _e2eBrowser: [
-    async ({ browser }: { browser: Browser }, use) => {
+    async ({ browser }: { browser: Browser }, provide) => {
       const original = browser.newContext.bind(browser);
       browser.newContext = async (options) => {
         const context = await original(options);
         await attach(context);
         return context;
       };
-      await use();
+      await provide();
       browser.newContext = original;
     },
     { scope: 'worker', auto: true },
   ],
-  context: async ({ context }, use) => {
+  context: async ({ context }, provide) => {
     await attach(context);
-    await use(context);
+    await provide(context);
   },
   _e2eSteps: [
-    async ({}, use, info) => {
+    async ({}, provide, info) => {
       const r = new Recorder(info);
       active = r;
       pages = pages.filter((p) => !p.isClosed());
       walker.reset();
       if (WALK) info.setTimeout(0);
-      await use();
+      await provide();
       active = undefined;
       await info.attach('e2e-steps', { body: JSON.stringify(r.report()), contentType: 'application/json' });
     },
