@@ -1,0 +1,65 @@
+# Database changes per environment.
+#
+# - A push to dev or staging applies pending migrations there; a push to
+#   main migrates production. Re-runs and pull-schema go through
+#   Actions → db → Run workflow.
+# - `pull-schema` introspects an environment read-only and uploads the result.
+#
+# Each GitHub environment (dev, staging, production) holds its own DOPPLER_TOKEN: a
+# read-only Doppler service token for that environment's config (dev, stg, prd).
+# DATABASE_URL is fetched from Doppler at run time and never stored in GitHub.
+name: db
+
+on:
+  push:
+    branches: [dev, staging, main]
+  workflow_dispatch:
+    inputs:
+      env:
+        description: Environment
+        required: true
+        type: choice
+        options: [dev, staging, production]
+      task:
+        description: "migrate | pull-schema"
+        required: true
+        default: migrate
+        type: string
+
+concurrency:
+  group: db-${{ inputs.env || (github.ref_name == 'main' && 'production') || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  db:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env || (github.ref_name == 'main' && 'production') || github.ref_name }}
+    env:
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+    steps:
+      - name: Check Doppler token
+        run: |
+          if [ -z "$DOPPLER_TOKEN" ]; then
+            echo "::error::No DOPPLER_TOKEN secret in the '${{ inputs.env || (github.ref_name == 'main' && 'production') || github.ref_name }}' GitHub environment"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: dopplerhq/cli-action@v4
+      - name: Apply migrations
+        if: ${{ (inputs.task || 'migrate') == 'migrate' }}
+        run: doppler run -- sh -c 'npm run db:migrate'
+      - name: Pull schema (read-only)
+        if: ${{ inputs.task == 'pull-schema' }}
+        run: |
+          mkdir -p pulled-schema
+          doppler run -- sh -c 'npx drizzle-kit pull --dialect=postgresql --url="$DATABASE_URL" --out=pulled-schema'
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.task == 'pull-schema' }}
+        with:
+          name: pulled-schema-${{ inputs.env }}
+          path: pulled-schema
