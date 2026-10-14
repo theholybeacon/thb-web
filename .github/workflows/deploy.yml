@@ -139,11 +139,14 @@ jobs:
           if [ "$ENVIRONMENT" = production ]; then
             echo "VERCEL_ENV=production" >> "$GITHUB_ENV"
             echo "PROD_FLAG=--prod" >> "$GITHUB_ENV"
+            echo "BRANCH_FLAG=" >> "$GITHUB_ENV"
           else
             echo "VERCEL_ENV=preview" >> "$GITHUB_ENV"
             echo "PROD_FLAG=" >> "$GITHUB_ENV"
+            # Branch overrides only exist for preview; Vercel rejects --git-branch with production.
+            echo "BRANCH_FLAG=--git-branch=${{ github.ref_name }}" >> "$GITHUB_ENV"
           fi
-      - run: npx vercel@latest pull --yes --environment=$VERCEL_ENV --git-branch=${{ github.ref_name }} --token=$VERCEL_TOKEN
+      - run: npx vercel@latest pull --yes --environment=$VERCEL_ENV $BRANCH_FLAG --token=$VERCEL_TOKEN
       # Built here with Doppler's values so NEXT_PUBLIC_* match the environment.
       # Runtime variables come from Vercel's own env (synced from Doppler).
       - run: doppler run -- npx vercel@latest build $PROD_FLAG --token=$VERCEL_TOKEN
