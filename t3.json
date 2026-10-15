@@ -29,8 +29,13 @@
       "icon": "debug"
     },
     {
-      "name": "Drop stale worktree databases",
-      "command": "npx cockpit env gc",
+      "name": "Merge & clean up",
+      "command": "npx cockpit finish",
+      "icon": "build"
+    },
+    {
+      "name": "Clean up finished worktrees",
+      "command": "npx cockpit cleanup",
       "icon": "configure"
     }
   ]

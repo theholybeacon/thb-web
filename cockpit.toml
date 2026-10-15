@@ -24,6 +24,10 @@ vars = { NEXT_PUBLIC_APP_URL = "http://localhost:$PORT" }
 copy = []
 # Run in each new worktree before its environment.
 setup = []
+# The branch worktrees merge into (`cockpit finish`, the "Merge & clean up" action).
+base = "dev"
+# A new worktree first cleans up finished ones: merged, nothing uncommitted (`cockpit cleanup`).
+cleanup = true
 
 [e2e]
 # Explained Playwright tests (@andresrub10/cockpit/e2e).
