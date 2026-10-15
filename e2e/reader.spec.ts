@@ -1,4 +1,4 @@
-import { test, expect, step, show, covers } from "./support/steps";
+import { test, expect, step, show, covers } from "@andresrub10/cockpit/e2e";
 import { openChapter, switchMode } from "./flows/reader";
 
 test("Reader opens a chapter", { annotation: covers("src/app/(app)/session/?id?/components/modes/ReadMode.tsx") }, async ({ page }) => {

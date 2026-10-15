@@ -1,0 +1,26 @@
+# How cockpit gives each worktree its own environment, and where the e2e tests are.
+# Docs: https://github.com/andresrub10/cockpit
+
+[env]
+# Where dev secrets come from: doppler | infisical | 1password (leave out for none).
+secrets = "doppler"
+# Each worktree gets its own copy of the dev database: neon | postgres | script.
+database = "neon"
+# The database copied (default: the first of dev, develop, development, staging).
+# parent = "dev"
+# Variables pointing at the worktree database, each with its role ("" for the default).
+urls = { DATABASE_URL = "" }
+file = ".env.local"
+# Applies pending migrations to the worktree database (`cockpit env migrate`).
+migrate = "npm run db:migrate -- --yes"
+
+[worktree]
+# Untracked files copied from the main checkout into each new worktree.
+copy = []
+# Run in each new worktree before its environment.
+setup = []
+
+[e2e]
+# Explained Playwright tests (@andresrub10/cockpit/e2e).
+dir = "e2e"
+command = "npx playwright test"

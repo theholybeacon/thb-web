@@ -1,0 +1,37 @@
+{
+  "$schema": "https://t3.codes/schema/t3.json",
+  "scripts": [
+    {
+      "name": "Worktree environment",
+      "command": "npm ci && npx cockpit env up",
+      "icon": "configure",
+      "runOnWorktreeCreate": true,
+      "async": false
+    },
+    {
+      "name": "Dev server",
+      "command": "npx cockpit env run -- npx next dev",
+      "icon": "play"
+    },
+    {
+      "name": "E2E tests",
+      "command": "npx cockpit e2e test",
+      "icon": "test"
+    },
+    {
+      "name": "Walkthrough",
+      "command": "npx cockpit e2e report",
+      "icon": "play"
+    },
+    {
+      "name": "Walk a test",
+      "command": "npx cockpit e2e walk",
+      "icon": "debug"
+    },
+    {
+      "name": "Drop stale worktree databases",
+      "command": "npx cockpit env gc",
+      "icon": "configure"
+    }
+  ]
+}

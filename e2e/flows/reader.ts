@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, flow, step } from "../support/steps";
+import { expect, flow, step } from "@andresrub10/cockpit/e2e";
 
 /**
  * Opens a chapter in the reader, e.g. openChapter(page, "bsb-en", "gen", 1).

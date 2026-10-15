@@ -1,4 +1,4 @@
-import { test, expect, step, show, covers } from "./support/steps";
+import { test, expect, step, show, covers } from "@andresrub10/cockpit/e2e";
 
 test(
 	"Search translations and open one",
