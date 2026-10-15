@@ -84,6 +84,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@andresrub10/cockpit": "github:andresrub10/cockpit",
     "@playwright/test": "^1.61.1",
     "@remotion/cli": "^4.0.489",
     "@tailwindcss/postcss": "^4",
