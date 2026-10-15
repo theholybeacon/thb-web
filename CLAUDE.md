@@ -1,9 +1,9 @@
 <!-- cockpit -->
 ## Cockpit
 
-This repo uses [cockpit](https://github.com/andresrub10/cockpit) (`cockpit.toml`):
+This repo uses [cockpit](https://github.com/andresrub10/cockpit) (`cockpit.toml`). Follow the `cockpit-work-issue` skill for any feature or fix.
 
-- Each worktree has its own environment (`npx cockpit env up`): its own copy of the dev database and `.env.local`. Never point a worktree at a shared database; `npx cockpit env migrate` migrates the worktree's.
-- E2e tests in `e2e/` are explained, step by step (`@andresrub10/cockpit/e2e`): `npx cockpit e2e test` runs them and writes the walkthrough; `npx cockpit e2e report` serves it.
-- The cockpit skills (Claude Code plugin `cockpit`) cover working an issue, writing e2e tests and planning.
+- **Each worktree has its own environment** (`npx cockpit env up`, run when T3 Code creates it): its own copy of the dev database and `.env.local`, with its own `PORT`. Never point a worktree at a shared database or at another checkout's server (like `localhost:3000`); `npx cockpit env migrate` migrates the worktree's database.
+- **E2e tests** in `e2e/` are explained step by step (`@andresrub10/cockpit/e2e`). Run them with `npx cockpit e2e test [files]`, never `playwright test` directly: it tests this worktree's app (starting it when needed) and writes the walkthrough.
+- **Every change a user can see ends on its walkthrough**: run the e2e test that shows it, start `npx cockpit e2e report` in the background and open its URL in the T3 Code preview at `#<test id>`. That is how the change gets reviewed (skill `cockpit-e2e` for writing the test).
 <!-- /cockpit -->
