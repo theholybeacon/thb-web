@@ -28,6 +28,8 @@ setup = []
 base = "dev"
 # A new worktree first cleans up finished ones: merged, nothing uncommitted (`cockpit cleanup`).
 cleanup = true
+# Worktree branch names: cleanup also deletes them when merged and left without a worktree.
+branches = ["andresrub10/*", "t3code/*"]
 
 [e2e]
 # Explained Playwright tests (@andresrub10/cockpit/e2e).
