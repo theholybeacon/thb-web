@@ -45,7 +45,12 @@
       "additionalVerification": "Additional verification required",
       "passwordResetRequired": "For your security, this password needs to be reset — it has appeared in a known data breach.",
       "resetPassword": "Reset your password",
-      "captchaFailed": "We couldn't verify you're human. Please try again, or disable ad blockers for this site."
+      "captchaFailed": "We couldn't verify you're human. Please try again, or disable ad blockers for this site.",
+      "networkError": "We couldn't reach the sign-in service. Check your connection and try again.",
+      "somethingWentWrong": "Something went wrong signing you in. Please try again.",
+      "googleFailed": "Google sign-in didn't finish. Please try again.",
+      "clerkUnavailable": "Sign-in isn't loading right now. Check your connection, or turn off ad blockers for this site, then reload.",
+      "reload": "Reload the page"
     },
     "signUp": {
       "title": "Create your account",
@@ -999,5 +1004,12 @@
     "comingSoon": "We're finalizing this document. The full text will be published here shortly.",
     "questions": "In the meantime,",
     "backHome": "return to the home page."
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "body": "We've been notified and will look into it. Try again, or head back home.",
+    "retry": "Try again",
+    "home": "Go home",
+    "reference": "Error reference"
   }
 }

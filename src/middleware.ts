@@ -39,6 +39,8 @@ const isPublicRoute = createRouteMatcher([
   // Linked from the sign-up form, so they must be readable before an account exists.
   '/terms',
   '/privacy',
+  // Dev-only test pages (src/app/dev), opened signed out by the e2e tests.
+  ...(process.env.NODE_ENV === 'production' ? [] : ['/dev/(.*)']),
 ])
 
 export default clerkMiddleware(
