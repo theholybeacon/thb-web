@@ -1,12 +1,8 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { bibleGetByVersionSS } from "@/app/common/bible/service/server/bibleGetByVersionSS";
-import { bookGetByAbbreviationAndBibleIdSS } from "@/app/common/book/service/server/bookGetByAbbreviationAndBibleIdSS";
-import { chapterGetByBookIdSS } from "@/app/common/chapter/service/chapterGetByBookIdSS";
-import { entityMentionsGetForChapterSS } from "@/app/common/entity/service/server/entityMentionsGetForChapterSS";
+import { getBibleBySlug, getBookBySlug, getChapter, getChapterMentions, getNextBook } from "@/app/bible/publicData";
 import { isPremiumUserSS } from "@/app/common/subscription/service/server/isPremiumUserSS";
 import { ExplorerView } from "../../../components/ExplorerView";
-import { BookRepository } from "@/app/common/book/repository/BookRepository";
 import { isIndexedTranslation } from "@/lib/seo";
 import { languageNameToIso } from "@/lib/bibleLanguage";
 
@@ -18,17 +14,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { bibleSlug, bookSlug, chapter } = await params;
   const chapterNum = parseInt(chapter, 10);
 
-  const bible = await bibleGetByVersionSS(bibleSlug);
+  const bible = await getBibleBySlug(bibleSlug);
   if (!bible) {
     return { title: "Not Found | The Holy Beacon" };
   }
 
-  const book = await bookGetByAbbreviationAndBibleIdSS(bible.id, bookSlug);
+  const book = await getBookBySlug(bible.id, bookSlug);
   if (!book) {
     return { title: "Not Found | The Holy Beacon" };
   }
 
-  const chapterData = await chapterGetByBookIdSS(book.id, book.name, chapterNum);
+  const chapterData = await getChapter(book.id, book.name, chapterNum);
 
   // Get first verse for description
   const firstVerseText = chapterData?.verses?.[0]?.content?.slice(0, 150) || "";
@@ -75,12 +71,12 @@ export default async function ChapterPage({ params }: PageProps) {
     notFound();
   }
 
-  const bible = await bibleGetByVersionSS(bibleSlug);
+  const bible = await getBibleBySlug(bibleSlug);
   if (!bible) {
     notFound();
   }
 
-  const book = await bookGetByAbbreviationAndBibleIdSS(bible.id, bookSlug);
+  const book = await getBookBySlug(bible.id, bookSlug);
   if (!book) {
     notFound();
   }
@@ -89,11 +85,11 @@ export default async function ChapterPage({ params }: PageProps) {
     notFound();
   }
 
-  const chapterData = await chapterGetByBookIdSS(book.id, book.name, chapterNum);
+  const chapterData = await getChapter(book.id, book.name, chapterNum);
 
   // Character mentions for this chapter (canonical book id → USFM abbreviation),
   // with names localized to the translation's language for inline linking.
-  const mentions = await entityMentionsGetForChapterSS(book.apiId, chapterNum, languageNameToIso(bible.language));
+  const mentions = await getChapterMentions(book.apiId, chapterNum, languageNameToIso(bible.language));
 
   // Character names are visible to all but only clickable for premium users.
   const isPremium = await isPremiumUserSS();
@@ -104,8 +100,7 @@ export default async function ChapterPage({ params }: PageProps) {
   // If on last chapter, fetch next book info
   let nextBook: { name: string; slug: string } | null = null;
   if (!hasNextChapter) {
-    const bookRepo = new BookRepository();
-    const nextBookData = await bookRepo.getNextByOrder(bible.id, book.bookOrder);
+    const nextBookData = await getNextBook(bible.id, book.bookOrder);
     if (nextBookData) {
       nextBook = { name: nextBookData.name, slug: nextBookData.slug };
     }

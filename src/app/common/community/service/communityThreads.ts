@@ -1,7 +1,15 @@
 import { auth } from "@clerk/nextjs/server";
 import { userGetByAuthIdSS } from "../../user/service/server/userGetByAuthIdSS";
 import { CommunityRepository } from "../repository/CommunityRepository";
-import { Author, CommentNode, Contribution, PostMeta } from "../model/Community";
+import {
+	Author,
+	CommentNode,
+	CommunityData,
+	Contribution,
+	ContributionSection,
+	CONTRIBUTION_SECTIONS,
+	PostMeta,
+} from "../model/Community";
 
 /**
  * Shared by the entity and scripture community loaders. Not a `"use server"`
@@ -133,4 +141,30 @@ export async function hydrateContributions<T extends Contribution & { author: Au
 		});
 	}
 	return full;
+}
+
+/**
+ * An entity's published contributions grouped by AI section, each with its
+ * comment tree, as `userId` sees them (their own votes marked; null for an
+ * anonymous visitor). Takes the caller rather than resolving it, so the
+ * anonymous view can be cached — see `getAnonymousCommunity`.
+ */
+export async function communityDataFor(entityId: string, userId: string | null): Promise<CommunityData> {
+	const repo = new CommunityRepository();
+	const contributions = await repo.listContributions(entityId);
+	const full = await hydrateContributions(repo, contributions, userId);
+
+	const data = CONTRIBUTION_SECTIONS.reduce((acc, s) => {
+		acc[s] = [];
+		return acc;
+	}, {} as CommunityData);
+
+	for (const contrib of full) {
+		// `section` is nullable now that scripture threads share this table, but a
+		// contribution reached through an entityId always has one.
+		if (!contrib.section) continue;
+		data[contrib.section as ContributionSection].push(contrib);
+	}
+
+	return data;
 }

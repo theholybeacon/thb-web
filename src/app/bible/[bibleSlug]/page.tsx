@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { bibleGetByVersionSS } from "@/app/common/bible/service/server/bibleGetByVersionSS";
+import { getBibleBySlug } from "@/app/bible/publicData";
 import { BookOpen } from "lucide-react";
 import { ListenableIndicator } from "@/components/audio/ListenableIndicator";
 
@@ -10,7 +10,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { bibleSlug } = await params;
-  const bible = await bibleGetByVersionSS(bibleSlug);
+  const bible = await getBibleBySlug(bibleSlug);
 
   if (!bible) {
     return {
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BibleHomePage({ params }: PageProps) {
   const { bibleSlug } = await params;
-  const bible = await bibleGetByVersionSS(bibleSlug);
+  const bible = await getBibleBySlug(bibleSlug);
 
   if (!bible) {
     notFound();

@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import { bibleGetByVersionSS } from "@/app/common/bible/service/server/bibleGetByVersionSS";
-import { bookGetAllByBibleIdSS } from "@/app/common/book/service/server/bookGetAllByBibleIdSS";
+import { getBibleBySlug, getBooks } from "@/app/bible/publicData";
 import { ExplorerSidebar } from "../components/ExplorerSidebar";
 
 interface LayoutProps {
@@ -10,13 +9,13 @@ interface LayoutProps {
 
 export default async function BibleReaderLayout({ children, params }: LayoutProps) {
   const { bibleSlug } = await params;
-  const bible = await bibleGetByVersionSS(bibleSlug);
+  const bible = await getBibleBySlug(bibleSlug);
 
   if (!bible) {
     notFound();
   }
 
-  const books = await bookGetAllByBibleIdSS(bible.id);
+  const books = await getBooks(bible.id);
 
   return (
     // Height comes from whichever chrome wrapped us (public header vs app

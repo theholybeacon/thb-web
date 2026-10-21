@@ -1,7 +1,5 @@
 import { MetadataRoute } from "next";
-import { bibleGetAllSS } from "@/app/common/bible/service/bibleGetAllSS";
-import { bookGetAllByBibleIdSS } from "@/app/common/book/service/server/bookGetAllByBibleIdSS";
-import { EntityRepository } from "@/app/common/entity/repository/EntityRepository";
+import { getBibles, getBooks, getIndexedEntitySlugs } from "@/app/bible/publicData";
 import { CHARACTER_INDEX_MIN_MENTIONS, isIndexedTranslation } from "@/lib/seo";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://theholybeacon.com";
@@ -10,7 +8,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://theholybeacon.com"
 // near-duplicate chapter URLs into a few thousand and keeps the domain clear of
 // Google's scaled-content-abuse policy.
 async function indexedBibles() {
-  return (await bibleGetAllSS()).filter((b) => isIndexedTranslation(b.slug));
+  return (await getBibles()).filter((b) => isIndexedTranslation(b.slug));
 }
 
 export async function generateSitemaps() {
@@ -42,7 +40,7 @@ export default async function sitemap({ id: rawId }: { id: number }): Promise<Me
 
   // Character pages sitemap (last id) — only entities above the mention threshold
   if (id === bibles.length + 1) {
-    const slugs = await new EntityRepository().getSlugsWithMinMentions(
+    const slugs = await getIndexedEntitySlugs(
       CHARACTER_INDEX_MIN_MENTIONS,
     );
     return slugs.map((slug) => ({
@@ -67,7 +65,7 @@ export default async function sitemap({ id: rawId }: { id: number }): Promise<Me
     priority: 0.8,
   });
 
-  const books = await bookGetAllByBibleIdSS(bible.id);
+  const books = await getBooks(bible.id);
   for (const book of books) {
     urls.push({
       url: `${BASE_URL}/bible/${bibleSlug}/${book.slug}`,

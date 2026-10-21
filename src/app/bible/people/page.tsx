@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Users, Search } from "lucide-react";
-import { entityListForIndexSS } from "@/app/common/entity/service/server/entityListForIndexSS";
+import { getEntityIndex } from "@/app/bible/publicData";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CHARACTER_INDEX_MIN_MENTIONS } from "@/lib/seo";
@@ -38,7 +38,7 @@ export default async function PeopleIndexPage({ searchParams }: PageProps) {
 	const { letter, q, page: pageParam } = await searchParams;
 	const page = Number.parseInt(pageParam ?? "1", 10) || 1;
 
-	const { rows, total, letters, pageSize } = await entityListForIndexSS({ letter, query: q, page });
+	const { rows, total, letters, pageSize } = await getEntityIndex({ letter, query: q, page });
 
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 	const from = total === 0 ? 0 : (page - 1) * pageSize + 1;

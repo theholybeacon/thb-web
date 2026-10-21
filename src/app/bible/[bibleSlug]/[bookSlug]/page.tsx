@@ -1,8 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { bibleGetByVersionSS } from "@/app/common/bible/service/server/bibleGetByVersionSS";
-import { bookGetByAbbreviationAndBibleIdSS } from "@/app/common/book/service/server/bookGetByAbbreviationAndBibleIdSS";
+import { getBibleBySlug, getBookBySlug } from "@/app/bible/publicData";
 import { BookOpen } from "lucide-react";
 
 interface PageProps {
@@ -11,13 +10,13 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { bibleSlug, bookSlug } = await params;
-  const bible = await bibleGetByVersionSS(bibleSlug);
+  const bible = await getBibleBySlug(bibleSlug);
 
   if (!bible) {
     return { title: "Not Found | The Holy Beacon" };
   }
 
-  const book = await bookGetByAbbreviationAndBibleIdSS(bible.id, bookSlug);
+  const book = await getBookBySlug(bible.id, bookSlug);
 
   if (!book) {
     return { title: "Book Not Found | The Holy Beacon" };
@@ -36,13 +35,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BookChaptersPage({ params }: PageProps) {
   const { bibleSlug, bookSlug } = await params;
-  const bible = await bibleGetByVersionSS(bibleSlug);
+  const bible = await getBibleBySlug(bibleSlug);
 
   if (!bible) {
     notFound();
   }
 
-  const book = await bookGetByAbbreviationAndBibleIdSS(bible.id, bookSlug);
+  const book = await getBookBySlug(bible.id, bookSlug);
 
   if (!book) {
     notFound();

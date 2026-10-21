@@ -2,16 +2,20 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { User, BookOpen } from "lucide-react";
-import { entityGetBySlugSS } from "@/app/common/entity/service/server/entityGetBySlugSS";
-import { entityGetReferencesSS } from "@/app/common/entity/service/server/entityGetReferencesSS";
-import { entityContentGetSS } from "@/app/common/entity/service/server/entityContentGetSS";
+import { auth } from "@clerk/nextjs/server";
+import {
+	getAnonymousCommunity,
+	getEntityBySlug,
+	getEntityContent,
+	getEntityMentionCount,
+	getEntityReferences,
+} from "@/app/bible/publicData";
 import { communityListSS } from "@/app/common/community/service/server/communityListSS";
 import { isPremiumUserSS } from "@/app/common/subscription/service/server/isPremiumUserSS";
 import { EntityContentSections } from "@/components/entity/EntityContentSections";
 import { EntityContentLoader } from "@/components/entity/EntityContentLoader";
 import { SectionCommunity } from "@/components/community/SectionCommunity";
 import type { RefLinkMap } from "@/components/entity/CitationLinks";
-import { EntityRepository } from "@/app/common/entity/repository/EntityRepository";
 import { CHARACTER_INDEX_MIN_MENTIONS } from "@/lib/seo";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -23,7 +27,7 @@ function yearLabel(y: number | null): string | null {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
 	const { slug } = await params;
-	const entity = await entityGetBySlugSS(slug);
+	const entity = await getEntityBySlug(slug);
 	if (!entity) return { title: "Character Not Found | The Holy Beacon" };
 
 	const aliases = (entity.aliases as string[] | null) ?? [];
@@ -33,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 		`, and more — on The Holy Beacon.`;
 
 	// Thin (low-mention) character pages stay readable but noindex — see src/lib/seo.ts.
-	const mentionCount = await new EntityRepository().countMentions(entity.id);
+	const mentionCount = await getEntityMentionCount(entity.id);
 	const indexable = mentionCount >= CHARACTER_INDEX_MIN_MENTIONS;
 
 	return {
@@ -48,12 +52,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CharacterPage({ params }: PageProps) {
 	const { slug } = await params;
-	const entity = await entityGetBySlugSS(slug);
+	const entity = await getEntityBySlug(slug);
 	if (!entity) notFound();
 
-	const references = await entityGetReferencesSS(entity.id);
-	const content = await entityContentGetSS(entity.id);
-	const community = await communityListSS(entity.id);
+	const references = await getEntityReferences(entity.id);
+	const content = await getEntityContent(entity.id);
+	const { userId } = await auth();
+	const community = userId ? await communityListSS(entity.id) : await getAnonymousCommunity(entity.id);
 	const isPremium = await isPremiumUserSS();
 	const aliases = (entity.aliases as string[] | null) ?? [];
 	const birth = yearLabel(entity.birthYear);

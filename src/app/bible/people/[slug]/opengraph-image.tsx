@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
-import { entityGetBySlugSS } from "@/app/common/entity/service/server/entityGetBySlugSS";
-import { EntityRepository } from "@/app/common/entity/repository/EntityRepository";
+import { getEntityBySlug, getEntityMentionCount } from "@/app/bible/publicData";
 import { ogFonts, ogText } from "@/lib/og/fonts";
 import { OG_THEME, brandAlpha } from "@/lib/og/theme";
 import { ogLogo } from "@/lib/og/logo";
@@ -18,7 +17,7 @@ function yearLabel(y: number | null): string | null {
 
 export default async function OgImage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const entity = await entityGetBySlugSS(slug);
+  const entity = await getEntityBySlug(slug);
 
   const name = ogText(entity?.name ?? "The Holy Beacon");
   const aliases = ((entity?.aliases as string[] | null) ?? [])
@@ -30,7 +29,7 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
   const dates = birth || death ? `${birth ?? "?"} – ${death ?? "?"}` : "";
 
   const mentionCount = entity
-    ? (await new EntityRepository().getMentionsByEntityId(entity.id)).length
+    ? await getEntityMentionCount(entity.id)
     : 0;
 
   const [fonts, logo] = await Promise.all([ogFonts(), ogLogo()]);

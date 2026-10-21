@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { bibleGetAllSS } from "@/app/common/bible/service/bibleGetAllSS";
+import { getBibles } from "@/app/bible/publicData";
 import { BibleSelector } from "./components/BibleSelector";
 import { BookOpen } from "lucide-react";
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BibleExplorerPage() {
-  const bibles = await bibleGetAllSS();
+  const bibles = await getBibles();
   const t = await getTranslations("bible");
 
   return (
