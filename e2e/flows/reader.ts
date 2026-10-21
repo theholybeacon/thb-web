@@ -36,9 +36,16 @@ export const switchMode = flow(
 	"Uses the Read / Type / Listen buttons at the top of the reader.",
 	async (page: Page, mode: "Read" | "Type" | "Listen") => {
 		const button = page.getByRole("button", { name: mode, exact: true });
-		await step(`Press "${mode}"`, `The "${mode}" button in the reader's toolbar switches the chapter to ${mode} mode.`, () => button.click(), {
-			target: button,
-		});
+		await step(
+			`Press "${mode}"`,
+			`The "${mode}" button in the reader's toolbar switches the chapter to ${mode} mode. A cached chapter can be on screen before the page has finished starting up, so press until the button shows as on, the way a reader taps again when nothing happened.`,
+			() =>
+				expect(async () => {
+					await button.click();
+					await expect(button).toHaveAttribute("aria-pressed", "true", { timeout: 1000 });
+				}).toPass(),
+			{ target: button },
+		);
 	},
 	{ covers: ["src/components/reader/ReaderEngine.tsx"] },
 );

@@ -415,6 +415,7 @@ export function ReaderEngine({
 									variant={mode === m.id ? "secondary" : "ghost"}
 									size="sm"
 									className={cn("h-8 px-3", mode === m.id && "bg-background shadow-sm")}
+									aria-pressed={mode === m.id}
 									onClick={() => onModeChange(m.id)}
 								>
 									<m.icon className="h-4 w-4 mr-1.5" />
