@@ -12,7 +12,7 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { AuthSidePanel } from "../components/AuthSidePanel";
 import { toast } from "@/lib/toast";
 import { activateAndGo, safeRedirect } from "../lib/finishAuth";
-import { clerkErrorOf, trackLoginAttempt, trackLoginFailure, trackLoginSuccess } from "../lib/loginTelemetry";
+import { clerkErrorOf, markGoogleLoginPending, trackLoginAttempt, trackLoginFailure, trackLoginSuccess } from "../lib/loginTelemetry";
 
 // How long Clerk gets to load before the page says sign-in is unavailable.
 const CLERK_LOAD_TIMEOUT_MS = 10_000;
@@ -142,6 +142,7 @@ export default function LoginPage() {
     if (!isLoaded) return;
 
     trackLoginAttempt("google");
+    markGoogleLoginPending();
     try {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",

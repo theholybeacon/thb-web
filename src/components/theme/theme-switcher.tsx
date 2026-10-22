@@ -4,9 +4,15 @@ import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { track } from "@/lib/analytics"
 
 export function ThemeSwitcher() {
-  const { setTheme, theme } = useTheme()
+  const { setTheme: applyTheme, theme } = useTheme()
+
+  const setTheme = (next: string) => {
+    applyTheme(next)
+    track("theme_changed", { theme: next })
+  }
 
   return (
     <DropdownMenu>

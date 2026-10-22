@@ -11,6 +11,7 @@ import { UsernameField, UsernameStatus } from "../components/UsernameField";
 import { normalizeUsername } from "@/lib/username";
 import { toast } from "@/lib/toast";
 import { activateAndGo } from "../lib/finishAuth";
+import { track } from "@/lib/analytics";
 
 /**
  * Where an OAuth sign-up lands when Clerk still needs a handle.
@@ -61,6 +62,7 @@ export default function CompleteProfilePage() {
 		try {
 			const result = await signUp.update({ username });
 			if (result.status === "complete") {
+				track("username_chosen", { source: "complete_profile" });
 				toast.success(tSignUp("title"));
 				await activateAndGo(setActive, result.createdSessionId, router);
 			} else {
@@ -74,6 +76,7 @@ export default function CompleteProfilePage() {
 		} catch (err: unknown) {
 			const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
 			const first = clerkError.errors?.[0];
+			track("signup_failed", { method: "google", stage: "username", reason: first?.code ?? "network_error" });
 			const message = first?.code === "form_identifier_exists" ? t("taken") : (first?.longMessage || first?.message || tCommon("error"));
 			toast.error(message);
 			setError(message);

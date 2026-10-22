@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,14 +13,17 @@ import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
 import { setLocale } from "@/app/actions/locale";
 import { type Locale } from "@/i18n/request";
+import { track } from "@/lib/analytics";
 
 export function LanguageSwitcher() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const currentLocale = useLocale();
 
   const handleLocaleChange = (locale: Locale) => {
     startTransition(async () => {
       await setLocale(locale);
+      track("language_changed", { locale, from: currentLocale });
       router.refresh();
     });
   };

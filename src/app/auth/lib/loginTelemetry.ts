@@ -57,3 +57,30 @@ export function trackLoginFailure({
     reportClientError(error ?? new Error(`Login failed: ${reason}`), { area: "login", method, stage, reason });
   }
 }
+
+/**
+ * Google sign-in leaves the app and comes back through /sso-callback, which
+ * Clerk navigates away from as soon as it's done. So the success is counted
+ * where the person lands: the login page marks the round trip here, and
+ * LoggedUserContext reports login_succeeded once the signed-in user resolves.
+ */
+const GOOGLE_REDIRECT_KEY = "thb:google-login-pending";
+
+export function markGoogleLoginPending(): void {
+  try {
+    sessionStorage.setItem(GOOGLE_REDIRECT_KEY, "1");
+  } catch {
+    // Storage blocked (private mode): the success just goes uncounted.
+  }
+}
+
+/** True once after a Google round trip started by markGoogleLoginPending. */
+export function consumeGoogleLoginPending(): boolean {
+  try {
+    const pending = sessionStorage.getItem(GOOGLE_REDIRECT_KEY) === "1";
+    sessionStorage.removeItem(GOOGLE_REDIRECT_KEY);
+    return pending;
+  } catch {
+    return false;
+  }
+}
