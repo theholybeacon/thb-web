@@ -591,6 +591,8 @@
       "tierVerse": "Esta traducción no tiene alineación palabra por palabra, así que estas son las palabras en el idioma original del versículo {verse}.",
       "showAll": "Ver las {count} palabras",
       "creditDictionary": "Definiciones de Wiktionary vía FreeDictionaryAPI.com (CC BY-SA 4.0).",
+      "creditDictionaryEs": "Definiciones del Wiktionary en español (CC BY-SA 4.0).",
+      "definitionLanguage": "Definiciones en",
       "creditWiktionaryLink": "Ver entrada",
       "creditLexicon": "Léxico: Strong's vía openscriptures (CC BY-SA).",
       "title": "Diccionario",

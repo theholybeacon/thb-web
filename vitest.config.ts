@@ -18,6 +18,8 @@ export default defineConfig({
 			"src/lib/warmPriority.test.ts",
 			"src/lib/recommendedBible.test.ts",
 			"src/lib/nameMatch.test.ts",
+			"src/lib/dictionaryLanguage.test.ts",
+			"src/app/common/dictionary/dao/parseEsWiktionary.test.ts",
 			"src/app/common/chapter/model/parseChapterText.test.ts",
 			"src/app/common/book/repository/BookRepository.db.test.ts",
 			"src/app/common/studyBuilder/**/*.test.ts",

@@ -591,6 +591,8 @@
       "tierVerse": "This translation has no word-level alignment, so these are the original-language words of verse {verse}.",
       "showAll": "Show all {count} words",
       "creditDictionary": "Definitions from Wiktionary via FreeDictionaryAPI.com (CC BY-SA 4.0).",
+      "creditDictionaryEs": "Definitions from the Spanish Wiktionary (CC BY-SA 4.0).",
+      "definitionLanguage": "Definitions in",
       "creditWiktionaryLink": "View entry",
       "creditLexicon": "Lexicon: Strong's via openscriptures (CC BY-SA).",
       "title": "Dictionary",

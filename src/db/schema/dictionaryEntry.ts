@@ -51,8 +51,10 @@ export type DictionaryPayload = {
 export const dictionaryEntryTable = pgTable("dictionary_entry", {
 	id: uuid().defaultRandom().primaryKey(),
 
-	/** ISO 639-1 code, resolved from the free-form `bible.language` name. */
+	/** Language of the word: ISO 639-1, resolved from the free-form `bible.language` name. */
 	lang: varchar({ length: 8 }).notNull(),
+	/** Language the definition is written in (see src/lib/dictionaryLanguage.ts). */
+	definitionLang: varchar({ length: 8 }).notNull().default("en"),
 	/** Lowercased, whitespace-collapsed lookup key. */
 	word: varchar({ length: 128 }).notNull(),
 
@@ -65,7 +67,7 @@ export const dictionaryEntryTable = pgTable("dictionary_entry", {
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow(),
 }, (table) => ({
-	langWordUnique: unique("dictionary_entry_lang_word_unique").on(table.lang, table.word),
+	langDefinitionLangWordUnique: unique("dictionary_entry_lang_deflang_word_unique").on(table.lang, table.definitionLang, table.word),
 	staleIdx: index("dictionary_entry_status_updated_idx").on(table.status, table.updatedAt),
 }));
 

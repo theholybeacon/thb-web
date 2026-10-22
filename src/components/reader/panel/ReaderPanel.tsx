@@ -12,6 +12,7 @@ import { NotesSection, type NoteComposeRequest, type NotesPanelContext } from "@
 import type { ReaderSelection } from "@/components/reader/selection/useTextSelection";
 import { CommunitySection, type CommunityPanelContext } from "./sections/CommunitySection";
 import { ReaderPanelSection } from "./ReaderPanelSection";
+import type { DefinitionLanguage } from "@/lib/dictionaryLanguage";
 import { DictionarySection } from "./sections/DictionarySection";
 import { PeopleSection } from "./sections/PeopleSection";
 import { ShareSection, type SharePanelContext } from "./sections/ShareSection";
@@ -26,6 +27,8 @@ export interface ReaderPanelProps {
 	/** Current text selection, and what the dictionary needs to resolve it. */
 	selection: ReaderSelection | null;
 	dictionaryLang: string | null;
+	definitionLang: DefinitionLanguage;
+	onDefinitionLangChange: (lang: DefinitionLanguage) => void;
 	bibleVersion?: string | null;
 	bookAbbreviation?: string;
 	/** Text of the verse the selection is in, for inferred alignment. */
@@ -69,6 +72,8 @@ export function ReaderPanel({
 	mentions,
 	selection,
 	dictionaryLang,
+	definitionLang,
+	onDefinitionLangChange,
 	bibleVersion,
 	bookAbbreviation,
 	selectedVerseText,
@@ -128,6 +133,8 @@ export function ReaderPanel({
 					<DictionarySection
 						selection={selection}
 						lang={dictionaryLang}
+						definitionLang={definitionLang}
+						onDefinitionLangChange={onDefinitionLangChange}
 						bibleVersion={bibleVersion}
 						bookAbbreviation={bookAbbreviation}
 						chapterNumber={chapterNumber}
