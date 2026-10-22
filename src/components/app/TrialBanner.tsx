@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
+import { track } from "@/lib/analytics";
 
 /**
  * Shown to users on a card-less free trial, nudging them to add a payment
@@ -22,6 +23,7 @@ export function TrialBanner() {
       const response = await fetch("/api/stripe/portal", { method: "POST" });
       const data = await response.json();
       if (data.url) {
+        track("billing_portal_opened", { source: "trial_banner" });
         window.location.href = data.url;
       }
     } catch (error) {

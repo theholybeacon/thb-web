@@ -20,6 +20,7 @@ export default defineConfig({
 			"src/lib/nameMatch.test.ts",
 			"src/lib/server-errors.test.ts",
 			"src/app/auth/lib/loginTelemetry.test.ts",
+			"src/lib/analytics.test.ts",
 			"src/app/common/chapter/model/parseChapterText.test.ts",
 			"src/app/common/book/repository/BookRepository.db.test.ts",
 		],

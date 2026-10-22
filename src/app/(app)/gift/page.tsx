@@ -15,6 +15,7 @@ import { membershipRequestGetAllPendingSS } from "@/app/common/membershipRequest
 import { formatPrice } from "@/lib/prices";
 import { usePrices } from "@/lib/usePrices";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 
 export default function GiftPage() {
 	const t = useTranslations("gift");
@@ -52,6 +53,7 @@ export default function GiftPage() {
 			});
 			const data = await response.json();
 			if (data.url) {
+				track("gift_checkout_started", { source: "gift_page", billingInterval, recipient: giftType });
 				window.location.href = data.url;
 				return;
 			}
