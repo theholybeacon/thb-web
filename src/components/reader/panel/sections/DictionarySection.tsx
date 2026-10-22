@@ -8,6 +8,7 @@ import { alignmentLookupSS } from "@/app/common/alignment/service/server/alignme
 import type { DictionaryLookupResult } from "@/app/common/dictionary/model/Dictionary";
 import type { AlignmentLookupResult, AlignedOriginal } from "@/app/common/alignment/model/Alignment";
 import type { ReaderSelection } from "@/components/reader/selection/useTextSelection";
+import { track } from "@/lib/analytics";
 
 export interface DictionarySectionProps {
 	selection: ReaderSelection | null;
@@ -94,6 +95,12 @@ export function DictionarySection({
 			setDictionary(dict);
 			setAlignment(align);
 			setLoading(false);
+			track("word_looked_up", {
+				lang: lang ?? undefined,
+				bibleVersion: bibleVersion ?? undefined,
+				foundInDictionary: Boolean(dict),
+				alignmentTier: align?.tier ?? null,
+			});
 
 			/*
 			 * `loading` means this book is being fetched from Blob right now — the

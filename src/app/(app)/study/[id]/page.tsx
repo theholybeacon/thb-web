@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import posthog from "posthog-js";
+import { track } from "@/lib/analytics";
 import { useTranslations } from "next-intl";
 import { studyGetByIdSS } from "@/app/common/study/service/server/studyGetByIdSS";
 import { studyUpdateSS } from "@/app/common/study/service/server/studyUpdateSS";
@@ -127,6 +127,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
       });
     },
     onSuccess: () => {
+      track("study_edited", { studyId: id });
       queryClient.invalidateQueries({ queryKey: ["study", id] });
       queryClient.invalidateQueries({ queryKey: ["studies"] });
       setIsEditing(false);
@@ -143,6 +144,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
       await studyDeleteSS(id);
     },
     onSuccess: () => {
+      track("study_deleted", { studyId: id, source: "study_detail" });
       queryClient.invalidateQueries({ queryKey: ["studies"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       toast.success(t("deleteStudy"));
@@ -172,6 +174,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
       return await studyRegenerateSaveSS(id, steps);
     },
     onSuccess: (newStudy) => {
+      track("study_regenerated", { studyId: id, stepCount: newStudy?.steps?.length });
       // Update the cache with the new study data immediately
       queryClient.setQueryData(["study", id], newStudy);
       queryClient.invalidateQueries({ queryKey: ["studies"] });
@@ -195,7 +198,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
       return await sessionCreateSS(sessionInsert);
     },
     onSuccess: (session) => {
-      posthog.capture("session_started", { studyId: study?.id, sessionId: session.id });
+      track("session_started", { studyId: study?.id, sessionId: session.id, source: "study_detail" });
       toast.success(t("startSession"));
       router.push(`/session/${session.id}`);
     },

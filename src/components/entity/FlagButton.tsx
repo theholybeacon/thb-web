@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Flag } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import { entityContentFlagSS } from "@/app/common/entity/service/server/entityContentFlagSS";
 
 /** Lets a signed-in user report a generated section as inaccurate. */
@@ -17,6 +18,7 @@ export function FlagButton({ entityContentId, section }: { entityContentId: stri
 			const res = await entityContentFlagSS(entityContentId, section);
 			if (res.ok) {
 				setDone(true);
+				track("person_content_flagged", { section });
 				toast.success("Thanks — we'll review this.");
 			} else {
 				toast.error("Please sign in to report content.");

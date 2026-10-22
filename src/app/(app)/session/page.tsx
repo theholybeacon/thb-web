@@ -30,6 +30,7 @@ import { Play, MoreVertical, Trash2, BookOpen, CheckCircle2 } from "lucide-react
 import { useState } from "react";
 import { logger } from "@/app/utils/logger";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import { PremiumGate } from "@/components/premium";
 import { ShareStoryButton } from "@/components/share/ShareStoryButton";
 import { formatStepReference } from "@/app/common/studyStep/model/reference";
@@ -62,7 +63,8 @@ export default function SessionPage() {
     mutationFn: async (sessionId: string) => {
       await sessionDeleteSS(sessionId);
     },
-    onSuccess: () => {
+    onSuccess: (_, sessionId) => {
+      track("session_deleted", { sessionId });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       toast.success(t("deleteSession"));
       setDeleteDialogOpen(false);

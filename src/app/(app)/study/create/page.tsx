@@ -7,7 +7,7 @@ import { recommendedSlugForLocale } from "@/lib/recommendedBible";
 import { userSetDefaultBibleSS } from "@/app/common/user/service/server/userSetDefaultBibleSS";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import posthog from "posthog-js";
+import { track } from "@/lib/analytics";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
@@ -89,8 +89,9 @@ export default function CreateStudyPage() {
       // Phase 2: Save to DB (server action, fast)
       return await studyCreateSS({ ...studyInsert, bibleId: formData.bibleId, steps });
     },
-    onSuccess: () => {
-      posthog.capture("study_created", {
+    onSuccess: (study) => {
+      track("study_created", {
+        studyId: study?.id,
         topic: formData.topic,
         length: formData.length,
         depth: formData.depth,
@@ -148,7 +149,9 @@ export default function CreateStudyPage() {
                   setFormData({ ...formData, bibleId: value });
                   // Remember it: an explicit pick is the strongest signal we get
                   // about which translation this reader actually wants.
-                  void userSetDefaultBibleSS(value);
+                  void userSetDefaultBibleSS(value).then(() =>
+                    track("default_bible_set", { bibleId: value, source: "study_create" })
+                  );
                 }}
                 disabled={biblesLoading}
                 isLoading={biblesLoading}

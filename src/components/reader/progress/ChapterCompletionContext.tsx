@@ -14,6 +14,7 @@ import { chapterCompletionRecordSS } from "@/app/common/completion/service/serve
 import { chapterCompletionStatusGetSS } from "@/app/common/completion/service/server/chapterCompletionStatusGetSS";
 import type { CompletionMode } from "@/app/common/completion/model/Completion";
 import { localDateString } from "@/lib/activityClient";
+import { track } from "@/lib/analytics";
 
 export type ChapterCompletionApi = {
 	/** Modes this chapter has been finished in, in ANY translation. */
@@ -146,6 +147,19 @@ export function ChapterCompletionProvider({
 						sentRef.current.delete(mode);
 						return;
 					}
+					// lap is 0 when the server skipped a repeat (cooldown, or the audio
+					// player already recorded it), so each real pass is counted once.
+					if (res.lap > 0) {
+						track("chapter_completed", {
+							bookAbbreviation: bookAbbreviation!,
+							chapter: chapterNumber!,
+							bibleId: bibleId ?? undefined,
+							method: mode,
+							lap: res.lap,
+						});
+					}
+					for (const badge of res.newBadges) track("badge_earned", { badge, scope: "all" });
+					for (const badge of res.newBibleBadges) track("badge_earned", { badge, scope: "bible" });
 					setCompletedModes((prev) => (prev.includes(mode) ? prev : [...prev, mode]));
 					setModesInThisBible((prev) => (prev.includes(mode) ? prev : [...prev, mode]));
 					// One recorded row is one more pass at BOTH zoom levels. `res.lap` is
