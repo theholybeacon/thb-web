@@ -85,6 +85,7 @@
   },
   "devDependencies": {
     "@andresrub10/cockpit": "github:andresrub10/cockpit",
+    "@clerk/testing": "^2.2.49",
     "@playwright/test": "^1.61.1",
     "@remotion/cli": "^4.0.489",
     "@tailwindcss/postcss": "^4",
