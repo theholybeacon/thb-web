@@ -266,8 +266,8 @@
     "regenerated": "Pasos del estudio regenerados exitosamente",
     "noStudiesWithPlans": "Todavía no has creado un estudio propio: toma un plan de arriba o crea uno sobre el tema que quieras.",
     "plans": {
-      "title": "Planes listos para usar",
-      "subtitle": "Ya están escritos, listos para empezar. Toma uno y será tuyo: tu traducción, tu ritmo, tu progreso.",
+      "title": "Planes e historias listos",
+      "subtitle": "Escritos por The Holy Beacon, listos para empezar. Elige uno y será tuyo: tu traducción, tu ritmo, tu progreso.",
       "readings": "{count} lecturas",
       "coverage": "{chapters} capítulos en {books} libros",
       "start": "Comenzar plan",
@@ -275,7 +275,37 @@
       "continue": "Continuar",
       "chooseBible": "¿En qué traducción quieres leerlo?",
       "bibleHint": "El plan se copiará a tus estudios y se leerá en esta traducción.",
-      "fromCatalog": "Del catálogo"
+      "fromCatalog": "Del catálogo",
+      "filterLabel": "Mostrar",
+      "filter_all": "Todos ({count})",
+      "filter_plan": "Planes ({count})",
+      "filter_story": "Historias ({count})",
+      "startStory": "Empezar historia",
+      "chooseBibleLanguage": "Este estudio está escrito en {language}, así que se lee en una traducción en {language}."
+    },
+    "kind": {
+      "plan": "Plan",
+      "story": "Historia"
+    },
+    "by": "Por {name}",
+    "byYou": "Creado por ti",
+    "stepKinds": {
+      "scripture": "Escritura",
+      "text": "Texto",
+      "reflection": "Reflexión",
+      "character": "Personaje",
+      "image": "Imagen",
+      "video": "Video",
+      "link": "Enlace"
+    },
+    "stepKindCount": {
+      "scripture": "{count, plural, one {# pasaje} other {# pasajes}}",
+      "text": "{count, plural, one {# texto} other {# textos}}",
+      "reflection": "{count, plural, one {# reflexión} other {# reflexiones}}",
+      "character": "{count, plural, one {# personaje} other {# personajes}}",
+      "image": "{count, plural, one {# imagen} other {# imágenes}}",
+      "video": "{count, plural, one {# video} other {# videos}}",
+      "link": "{count, plural, one {# enlace} other {# enlaces}}"
     }
   },
   "createStudy": {
@@ -321,7 +351,8 @@
       "mode_listen": "escuchados",
       "mode_dictation": "dictado",
       "completed": "Completado",
-      "shareThis": "Compartir esto"
+      "shareThis": "Compartir esto",
+      "mode_done": "completado"
     },
     "title": "Mis Sesiones",
     "noSessions": "No tienes sesiones activas.",
@@ -354,7 +385,26 @@
     "skipStep": "Saltar Paso",
     "nextChapter": "Siguiente Capítulo",
     "chapterProgress": "Capítulo {current} de {total}",
-    "aiInsight": "Perspectiva IA"
+    "aiInsight": "Perspectiva IA",
+    "steps": {
+      "unavailable": "Este paso no se puede mostrar.",
+      "reflectionPlaceholder": "Escribe tu respuesta…",
+      "reflectionHint": "Tu respuesta se guarda en tus notas. Solo tú puedes verla.",
+      "saveReflection": "Guardar en mis notas",
+      "saving": "Guardando…",
+      "reflectionSaved": "Reflexión guardada en tus notas",
+      "reflectionSavedHint": "Guardada en tus notas. Puedes volver a ella cuando quieras.",
+      "reflectionError": "No se pudo guardar tu reflexión. Inténtalo de nuevo.",
+      "openNotes": "Abrir mis notas",
+      "characterLabel": "Personaje bíblico",
+      "openProfile": "Abrir el perfil completo",
+      "openLink": "Abrir en {host}",
+      "linkType": {
+        "article": "Artículo",
+        "book": "Libro",
+        "website": "Sitio web"
+      }
+    }
   },
   "audio": {
     "introduction": "Introducción",

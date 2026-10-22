@@ -46,9 +46,13 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { PremiumGate } from "@/components/premium";
+import { StudyByline } from "@/components/study";
+import { StepKindIcon } from "@/components/study/steps/StepKindIcon";
 
 // Helper function to format bible reference using canonical fields
 function formatBibleReference(step: StudyStep): string {
+  // Only a passage has a reference; a reflection's anchor is where its note goes.
+  if (step.kind !== "scripture") return "";
   const bookAbbr = step.bookAbbreviation;
   if (!bookAbbr) return "";
 
@@ -255,6 +259,14 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
             </Link>
             <div className="flex-1">
               <h1 className="text-3xl font-bold">{t("studyDetails")}</h1>
+              <div className="mt-1">
+                <StudyByline
+                  kind={study.kind}
+                  creatorId={study.creatorId}
+                  creator={study.creator}
+                  currentUserId={loggedUser?.id}
+                />
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {/* An adopted plan's steps are authored, not generated — regenerating
@@ -421,10 +433,15 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
                       <p className="font-medium">
                         Step {index + 1}: {step.title}
                       </p>
-                      {reference && (
+                      {reference ? (
                         <div className="flex items-center gap-1.5 mt-1 text-sm text-primary">
                           <BookOpen className="h-3.5 w-3.5" />
                           <span>{reference}</span>
+                        </div>
+                      ) : step.kind !== "scripture" && (
+                        <div className="flex items-center gap-1.5 mt-1 text-sm text-primary">
+                          <StepKindIcon kind={step.kind} />
+                          <span>{t(`stepKinds.${step.kind}` as "stepKinds.text")}</span>
                         </div>
                       )}
                       {step.explanation && (

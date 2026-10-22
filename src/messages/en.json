@@ -266,8 +266,8 @@
     "regenerated": "Study steps regenerated successfully",
     "noStudiesWithPlans": "You haven't created a study of your own yet — take a ready-made plan above, or build one around any topic.",
     "plans": {
-      "title": "Ready-made plans",
-      "subtitle": "Already written, ready to start. Take one and it becomes yours — your translation, your pace, your progress.",
+      "title": "Ready-made plans and stories",
+      "subtitle": "Written by The Holy Beacon, ready to start. Take one and it becomes yours: your translation, your pace, your progress.",
       "readings": "{count} readings",
       "coverage": "{chapters} chapters across {books} books",
       "start": "Start plan",
@@ -275,7 +275,37 @@
       "continue": "Continue",
       "chooseBible": "Which translation would you like to read it in?",
       "bibleHint": "The plan will be copied into your studies and read in this translation.",
-      "fromCatalog": "From the catalog"
+      "fromCatalog": "From the catalog",
+      "filterLabel": "Show",
+      "filter_all": "All ({count})",
+      "filter_plan": "Plans ({count})",
+      "filter_story": "Stories ({count})",
+      "startStory": "Start story",
+      "chooseBibleLanguage": "This study is written in {language}, so it is read in a {language} translation."
+    },
+    "kind": {
+      "plan": "Plan",
+      "story": "Story"
+    },
+    "by": "By {name}",
+    "byYou": "By you",
+    "stepKinds": {
+      "scripture": "Scripture",
+      "text": "Text",
+      "reflection": "Reflection",
+      "character": "Character",
+      "image": "Image",
+      "video": "Video",
+      "link": "Link"
+    },
+    "stepKindCount": {
+      "scripture": "{count, plural, one {# passage} other {# passages}}",
+      "text": "{count, plural, one {# text} other {# texts}}",
+      "reflection": "{count, plural, one {# reflection} other {# reflections}}",
+      "character": "{count, plural, one {# character} other {# characters}}",
+      "image": "{count, plural, one {# image} other {# images}}",
+      "video": "{count, plural, one {# video} other {# videos}}",
+      "link": "{count, plural, one {# link} other {# links}}"
     }
   },
   "createStudy": {
@@ -321,7 +351,8 @@
       "mode_listen": "listened",
       "mode_dictation": "dictation",
       "completed": "Completed",
-      "shareThis": "Share this"
+      "shareThis": "Share this",
+      "mode_done": "done"
     },
     "title": "My Sessions",
     "noSessions": "You don't have any active sessions.",
@@ -354,7 +385,26 @@
     "skipStep": "Skip Step",
     "nextChapter": "Next Chapter",
     "chapterProgress": "Chapter {current} of {total}",
-    "aiInsight": "AI Insight"
+    "aiInsight": "AI Insight",
+    "steps": {
+      "unavailable": "This step can't be shown.",
+      "reflectionPlaceholder": "Write your answer…",
+      "reflectionHint": "Your answer is saved to your notes. Only you can see it.",
+      "saveReflection": "Save to my notes",
+      "saving": "Saving…",
+      "reflectionSaved": "Reflection saved to your notes",
+      "reflectionSavedHint": "Saved to your notes. You can come back to it any time.",
+      "reflectionError": "Your reflection couldn't be saved. Please try again.",
+      "openNotes": "Open my notes",
+      "characterLabel": "Bible character",
+      "openProfile": "Open the full profile",
+      "openLink": "Open on {host}",
+      "linkType": {
+        "article": "Article",
+        "book": "Book",
+        "website": "Website"
+      }
+    }
   },
   "audio": {
     "introduction": "Introduction",
