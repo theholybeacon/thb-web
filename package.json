@@ -18,6 +18,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "seed:people": "tsx scripts/import-bible-people.ts",
     "seed:studies": "tsx scripts/seed-global-studies.ts",
+    "check:stories": "tsx scripts/check-stories.ts",
     "seed:alignment": "tsx scripts/import-alignment.ts",
     "seed:people-i18n": "tsx scripts/localize-bible-people.ts",
     "audit:study-links": "tsx scripts/audit-study-links.ts",
@@ -85,6 +86,7 @@
   },
   "devDependencies": {
     "@andresrub10/cockpit": "github:andresrub10/cockpit",
+    "@clerk/testing": "^1.14.11",
     "@playwright/test": "^1.61.1",
     "@remotion/cli": "^4.0.489",
     "@tailwindcss/postcss": "^4",
