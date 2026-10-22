@@ -16,7 +16,7 @@
  * the plans readers have already taken. Deliberate — rewriting someone's step 47
  * out from under them mid-plan would move their progress.
  *
- * Prerequisites: migrations up to 0036_study_kinds_and_rich_steps.sql applied,
+ * Prerequisites: migrations up to 0037_study_kinds_and_rich_steps.sql applied,
  * DATABASE_URL set. Character steps are checked against the entity table, so the
  * people must be imported (npm run seed:people) — even for --dry-run.
  *

@@ -1,14 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
-import { config } from "dotenv";
-
-// The signed-in tests need the worktree's Clerk keys and database (see
-// e2e/fixtures/accounts.ts). Already-set variables win.
-config({ path: ".env.local" });
 
 /**
- * End-to-end tests (e2e/). Most run signed out against public pages; the
- * signed-in ones make their own Premium test accounts (e2e/fixtures/accounts.ts)
- * and skip when there are no Clerk keys.
+ * End-to-end tests (e2e/). Most run signed out against public pages; signed-in
+ * tests sign in a test reader through Clerk's testing tokens (e2e/flows/account.ts,
+ * set up in e2e/global-setup.ts), which needs the Clerk dev keys.
  *
  * Point them at a running app with E2E_BASE_URL (or PLAYWRIGHT_BASE_URL).
  * Without either, they start the local dev server on :3014, which needs the
@@ -19,7 +14,7 @@ const baseURL = externalBaseURL ?? "http://localhost:3014";
 
 export default defineConfig({
 	testDir: "e2e",
-	globalSetup: "./e2e/global.setup.ts",
+	globalSetup: "./e2e/global-setup.ts",
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,

@@ -1,20 +1,23 @@
-import { expect, step, show, covers } from "@andresrub10/cockpit/e2e";
-import { test, hasClerk } from "./fixtures/accounts";
-import { signIn } from "./flows/account";
+import { test, expect, step, show, covers } from "@andresrub10/cockpit/e2e";
+import { resetReader, setAdmin } from "./fixtures/readers";
+import { signInAsPremiumReader } from "./flows/account";
 
-test.skip(!hasClerk, "needs the worktree's Clerk keys and database");
 // Recording a trace cuts the dev server's larger script chunks short (the root
-// layout's stops at 1.6 MB), and a half-loaded layout never starts Clerk, so
-// these tests could not sign in. The walkthrough's screenshots cover review.
+// layout's stops at 1.6 MB), and a half-loaded page never finishes signing in
+// or loading. The walkthrough's screenshots are what review uses.
 test.use({ trace: "off" });
+
 
 test(
 	"An admin adds a media source",
 	{ annotation: covers("src/app/admin/**", "src/app/common/admin/**", "src/app/common/mediaSource/**") },
-	async ({ page, accounts }) => {
-		const admin = await step("Create an admin", "A test account with isAdmin set in the test database: the app itself never sets it.", () =>
-			accounts.create({ admin: true }));
-		await signIn(page, admin, "/admin");
+	async ({ page }) => {
+		const admin = await signInAsPremiumReader(page, "admin", "Ezra Admin");
+		await step("Make the reader an admin", "Set isAdmin on this test account, in the test database: the app itself never sets it, it is done by hand.", async () => {
+			await resetReader(admin);
+			await setAdmin(admin, true);
+		});
+		await step("Open the admin panel", "Go to /admin.", () => page.goto("/admin"));
 
 		await step("The admin panel", "It has its own layout, not the reader's app: Overview, Catalog and Media sources.", async () => {
 			await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
@@ -51,9 +54,9 @@ test(
 test(
 	"The admin panel does not exist for other readers",
 	{ annotation: covers("src/app/admin/layout.tsx", "src/app/common/admin/**") },
-	async ({ page, accounts }) => {
-		const reader = await step("Create a Premium reader", "An ordinary account with Premium but no admin flag.", () => accounts.create());
-		await signIn(page, reader, "/home");
+	async ({ page }) => {
+		const reader = await signInAsPremiumReader(page, "admin-denied", "Jonah Reader");
+		await step("Not an admin", "This reader has Premium but no admin flag.", () => setAdmin(reader, false));
 
 		const response = await step("Open /admin", "Go straight to the admin panel's address.", () => page.goto("/admin"));
 

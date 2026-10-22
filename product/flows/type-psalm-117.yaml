@@ -17,6 +17,7 @@ params:
       The chapter typed. The WHOLE chapter is typed, so keep it very short
       (Psalm 117, Psalm 134, Psalm 131, Psalm 133); longer ones make a long,
       slow demo.
+    maxChars: 600
   translation:
     kind: translation
     default: kjv-en

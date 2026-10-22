@@ -32,6 +32,7 @@ import * as alignmentSchema from "@/db/schema/alignment";
 import * as alignmentBookSchema from "@/db/schema/alignmentBook";
 import * as alignmentInferredSchema from "@/db/schema/alignmentInferred";
 import * as mediaSourceSchema from "@/db/schema/mediaSource";
+import * as studyBuilderSchema from "@/db/schema/studyBuilder";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -68,5 +69,6 @@ export const db = drizzle(sql, {
 		...alignmentBookSchema,
 		...alignmentInferredSchema,
 		...mediaSourceSchema,
+		...studyBuilderSchema,
 	}
 });

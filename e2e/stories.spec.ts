@@ -1,14 +1,14 @@
 import type { Page } from "@playwright/test";
-import { expect, step, show, covers } from "@andresrub10/cockpit/e2e";
-import { test, hasClerk, ensureGlobalStudy } from "./fixtures/accounts";
-import { signIn } from "./flows/account";
+import { test, expect, step, show, covers } from "@andresrub10/cockpit/e2e";
+import { createOwnStudy, ensureGlobalStudy, resetReader } from "./fixtures/readers";
+import { signInAsPremiumReader } from "./flows/account";
+
+// Recording a trace cuts the dev server's larger script chunks short (the root
+// layout's stops at 1.6 MB), and a half-loaded page never finishes signing in
+// or loading. The walkthrough's screenshots are what review uses.
+test.use({ trace: "off" });
 import { NOAHS_ARK } from "../src/app/common/study/model/stories/noahsArk";
 
-test.skip(!hasClerk, "needs the worktree's Clerk keys and database");
-// Recording a trace cuts the dev server's larger script chunks short (the root
-// layout's stops at 1.6 MB), and a half-loaded layout never starts Clerk, so
-// these tests could not sign in. The walkthrough's screenshots cover review.
-test.use({ trace: "off" });
 
 /** The session footer's Next: completes the step on screen and opens the next one. */
 async function next(page: Page, explain: string, expectedTitle: string) {
@@ -31,16 +31,16 @@ test(
 			"src/app/common/session/**",
 		),
 	},
-	async ({ page, accounts }) => {
+	async ({ page }) => {
 		// Ten steps, each a round trip to the server: longer than the default minute.
 		test.setTimeout(180_000);
 		await step("Make sure Noah's Ark is in the catalog", "The Holy Beacon's stories are seeded from code; this adds Noah's Ark to the test database if it is not there yet, exactly as `npm run seed:studies` writes it.", () =>
 			ensureGlobalStudy(NOAHS_ARK),
 		);
-		const reader = await step("Create a Premium reader", "A new account with Premium, whose default Bible is the Berean Standard Bible.", () =>
-			accounts.create(),
-		);
-		await signIn(page, reader, "/study");
+		const reader = await signInAsPremiumReader(page, "stories-noah", "Naomi Reader");
+		await step("Start from a clean reader", "Clear what this reader did in an earlier run, so Noah's Ark has not been started yet. Their default Bible is the Berean Standard Bible.", () =>
+			resetReader(reader));
+		await step("Open Studies", "The studies page, with the catalog of ready-made studies at the top.", () => page.goto("/study"));
 
 		const storiesTab = page.getByRole("tab", { name: /^Stories/ });
 		await step("Show only the stories", "The catalog of ready-made studies now holds plans and stories; the Stories filter leaves the stories.", () =>
@@ -120,12 +120,13 @@ test(
 test(
 	"A reflection answer is kept in My Notes",
 	{ annotation: covers("src/components/study/steps/**", "src/app/common/note/**", "src/app/(app)/notes/**") },
-	async ({ page, accounts }) => {
+	async ({ page }) => {
 		await step("Make sure Noah's Ark is in the catalog", "Seeded from its definition in code if the test database does not have it yet.", () =>
 			ensureGlobalStudy(NOAHS_ARK));
-		const reader = await step("Create a Premium reader", "A new account with Premium, reading the Berean Standard Bible.", () =>
-			accounts.create());
-		await signIn(page, reader, "/study");
+		const reader = await signInAsPremiumReader(page, "stories-notes", "Ruth Reader");
+		await step("Start from a clean reader", "Clear what this reader did in an earlier run: no studies, sessions or notes yet.", () =>
+			resetReader(reader));
+		await step("Open Studies", "The studies page, with the catalog of ready-made studies at the top.", () => page.goto("/study"));
 
 		await step("Start Noah's Ark", "Start the story from the catalog in the reader's default Bible.", async () => {
 			const card = page.getByTestId("catalog-card").filter({ hasText: "Noah's Ark" });
@@ -162,17 +163,18 @@ test(
 test(
 	"A study can show a video and a link between its passages",
 	{ annotation: covers("src/components/study/steps/**", "src/app/(app)/study/[id]/**", "src/app/(app)/session/**") },
-	async ({ page, accounts }) => {
-		const reader = await step("Create a Premium reader", "A new account with Premium.", () => accounts.create());
+	async ({ page }) => {
+		const reader = await signInAsPremiumReader(page, "stories-media", "Boaz Reader");
+		await step("Start from a clean reader", "Clear the studies this reader made in an earlier run.", () => resetReader(reader));
 		const studyId = await step(
 			"Give the reader a study with a video and a link",
 			"A study the reader designed: Psalm 23, then a BibleProject video, then a link to a book. The same rows the study generator writes.",
-			() => accounts.createOwnStudy(reader, "Shepherd psalm", [
+			() => createOwnStudy(reader, "Shepherd psalm", [
 				{ title: "Watch: the Bible's story", content: { kind: "video", provider: "youtube", videoId: "GQI72THyO5I", start: 0, credit: "BibleProject" } },
 				{ title: "Read further", content: { kind: "link", linkType: "book", url: "https://www.gutenberg.org/ebooks/10", title: "The King James Bible", source: "Project Gutenberg", description: "The whole Bible, free to read online." } },
 			]),
 		);
-		await signIn(page, reader, `/study/${studyId}`);
+		await step("Open the study", "Its page, at /study/<id>.", () => page.goto(`/study/${studyId}`));
 
 		await step("The study's page", "It is a Plan, and it says it was made by the reader. The steps list marks the video and the link by their kind.", async () => {
 			await expect(page.getByTestId("study-byline")).toContainText("Plan");

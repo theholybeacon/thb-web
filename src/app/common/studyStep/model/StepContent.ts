@@ -135,3 +135,11 @@ export function youtubeEmbedUrl(video: Pick<VideoContent, "videoId" | "start" | 
 	// youtube-nocookie: no tracking cookies until the reader presses play.
 	return `https://www.youtube-nocookie.com/embed/${video.videoId}?${params}`;
 }
+
+/**
+ * True when every step is a passage, the only kind the study builder edits
+ * (see studyBuilderSS). Anything else keeps the study out of the builder.
+ */
+export function studyIsOnlyPassages(steps: { kind?: string | null }[]): boolean {
+	return steps.every((step) => (step.kind ?? "scripture") === "scripture");
+}
