@@ -22,6 +22,7 @@ export default defineConfig({
 			"src/app/common/dictionary/dao/parseEsWiktionary.test.ts",
 			"src/app/common/chapter/model/parseChapterText.test.ts",
 			"src/app/common/book/repository/BookRepository.db.test.ts",
+			"src/app/common/studyBuilder/**/*.test.ts",
 		],
 		environment: "node",
 	},

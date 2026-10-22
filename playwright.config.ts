@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * End-to-end tests (e2e/). They run signed out against public pages only.
+ * End-to-end tests (e2e/). Most run signed out against public pages; signed-in
+ * tests sign in a test reader through Clerk's testing tokens (e2e/flows/account.ts,
+ * set up in e2e/global-setup.ts), which needs the Clerk dev keys.
  *
  * Point them at a running app with E2E_BASE_URL (or PLAYWRIGHT_BASE_URL).
  * Without either, they start the local dev server on :3014, which needs the
@@ -12,6 +14,7 @@ const baseURL = externalBaseURL ?? "http://localhost:3014";
 
 export default defineConfig({
 	testDir: "e2e",
+	globalSetup: "./e2e/global-setup.ts",
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,
