@@ -8,6 +8,9 @@ import { Study, StudyFull, StudyFullWithBible, StudyInsert } from "../model/Stud
 
 const log = logger.child({ module: 'StudyPostgreSQLDao' });
 
+/** The creator columns safe to send to any reader — see StudyCreator. */
+const creatorColumns = { columns: { id: true, name: true, username: true } } as const;
+
 export class StudyPostgreSQLDao {
 
     async create(study: StudyInsert): Promise<Study> {
@@ -22,6 +25,7 @@ export class StudyPostgreSQLDao {
             where: eq(studyTable.id, id),
             with: {
                 bible: true,
+                creator: creatorColumns,
                 steps: {
                     orderBy: (steps, { asc }) => [asc(steps.stepNumber)],
                 }
@@ -37,6 +41,7 @@ export class StudyPostgreSQLDao {
             where: eq(studyTable.isGlobal, true),
             orderBy: [asc(studyTable.sortOrder), asc(studyTable.name)],
             with: {
+                creator: creatorColumns,
                 steps: {
                     orderBy: (steps, { asc: ascending }) => [ascending(steps.stepNumber)],
                 }
@@ -77,6 +82,7 @@ export class StudyPostgreSQLDao {
             where: (eq(studyTable.ownerId, ownerId)),
             with: {
                 bible: true,
+                creator: creatorColumns,
                 steps: {
                     orderBy: (steps, { asc }) => [asc(steps.stepNumber)],
                 }

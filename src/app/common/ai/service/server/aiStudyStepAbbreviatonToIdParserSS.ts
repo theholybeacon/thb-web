@@ -9,12 +9,30 @@ import { StudyStepType } from "@/app/common/studyStep/model/StudyStepType";
  * No database lookups needed - just parses the string formats into structured data.
  */
 export async function aiStudyStepAbbreviatonToIdParserSS(input: StudyStepFromAIDTO): Promise<StudyStepInsert> {
+    // Text and reflection steps carry their own material instead of a passage.
+    // Their shape is checked again (sanitizeStudySteps) when the study is saved.
+    if (input.kind === "text" || input.kind === "reflection") {
+        return {
+            studyId: "",
+            stepNumber: input.stepNumber,
+            kind: input.kind,
+            stepType: null,
+            title: input.title || `Step ${input.stepNumber}`,
+            explanation: input.explanation || "",
+            content: input.kind === "text"
+                ? { kind: "text", body: input.body ?? "" }
+                : { kind: "reflection", prompt: input.prompt ?? "" },
+            bookAbbreviation: null,
+        };
+    }
+
     // Ensure required fields have fallback values
     const title = input.title || `Step ${input.stepNumber}`;
     const explanation = input.explanation || `Read and meditate on ${input.bookAbbreviation}${input.chapterNumber ? ` ${input.chapterNumber}` : ''}${input.verseNumber ? `:${input.verseNumber}` : ''}.`;
 
     const out: StudyStepInsert = {
         studyId: "",
+        kind: "scripture",
         title,
         stepType: input.stepType,
         stepNumber: input.stepNumber,
