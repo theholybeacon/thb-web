@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: reason }, { status: reason === "PREMIUM_REQUIRED" ? 402 : 401 });
     }
 
-    const body = await request.json() as { conversationId?: string | null; message?: string | null; bibleId?: string | null };
+    const body = await request.json() as { conversationId?: string | null; message?: string | null; bibleId?: string | null; draft?: unknown };
     const locale = request.cookies.get("locale")?.value === "es" ? "es" : "en";
 
     // e2e tests and keyless local work use the scripted builder. Never in production.
@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
             conversationId: body.conversationId ?? null,
             message: body.message ?? null,
             bibleId: body.bibleId ?? null,
+            draft: body.draft,
         },
         new StudyBuilderPostgreSQLDao(),
         ai,

@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { canonBook } from "../../canon/model/canon";
-import { OPENING_INSTRUCTION } from "./prompt";
+import { OPENING_PREFIX } from "./prompt";
 import type { LearnerProfile, StudyBuilderDraft } from "../model/StudyBuilder";
 
 export type StudyBuilderChatMessage = { role: "user" | "assistant"; content: string };
@@ -43,14 +43,21 @@ export class OpenAIStudyBuilderAI implements StudyBuilderAI {
  */
 export class FakeStudyBuilderAI implements StudyBuilderAI {
 	async *streamTurn(_system: string, history: StudyBuilderChatMessage[], { profile, draft }: { profile: LearnerProfile; draft: StudyBuilderDraft | null }): AsyncIterable<string> {
-		const said = history.filter((m) => m.role === "user" && m.content !== OPENING_INSTRUCTION).map((m) => m.content);
+		const said = history.filter((m) => m.role === "user" && !m.content.startsWith(OPENING_PREFIX)).map((m) => m.content);
 		const last = (said[said.length - 1] ?? "").toLowerCase();
 		const first = profile.name.split(" ")[0];
 		const topBook = profile.reading.books[0];
 		const note = profile.notes[0];
 
 		let turn: object;
-		if (said.length === 0) {
+		if (said.length === 0 && draft) {
+			turn = {
+				reply: `Welcome back, ${first}! "${draft.name}" has ${draft.steps.length} readings right now. What would you like to change?`,
+				quickReplies: ["Add a psalm at the end", "Make it shorter"],
+				draft: null,
+				remember: [],
+			};
+		} else if (said.length === 0) {
 			const known = [
 				topBook && `you've been spending time in ${canonBook(topBook.usfm)?.englishName ?? topBook.usfm}`,
 				note && `you wrote a note on ${note.reference ?? "scripture"} about "${note.title ?? note.content.slice(0, 40)}"`,

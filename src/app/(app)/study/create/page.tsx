@@ -6,9 +6,9 @@ import { PremiumGate } from "@/components/premium";
 import { StudyBuilder } from "@/components/study/builder/StudyBuilder";
 
 /**
- * Studies are built in conversation now: the builder talks with the reader,
- * drawing on everything the app knows about them, and assembles the plan as
- * they go (src/components/study/builder).
+ * Studies are built with the AI, in conversation — it draws on everything the
+ * app knows about the reader and assembles the plan as they talk — or by hand,
+ * passage by passage (src/components/study/builder).
  */
 export default function CreateStudyPage() {
   return (

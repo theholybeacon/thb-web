@@ -1,8 +1,9 @@
 import { db } from "@/db";
-import { and, count, desc, eq, gte, inArray, max, ne, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, max, ne, sql } from "drizzle-orm";
 import { studyBuilderConversationTable, studyBuilderMemoryTable, studyBuilderMessageTable } from "@/db/schema/studyBuilder";
 import { userTable } from "@/db/schema/user";
 import { studyTable } from "@/db/schema/study";
+import { studyStepTable } from "@/db/schema/studyStep";
 import { sessionTable } from "@/db/schema/session";
 import { chapterCompletionTable } from "@/db/schema/chapterCompletion";
 import { noteTable } from "@/db/schema/note";
@@ -10,6 +11,7 @@ import { contributionTable } from "@/db/schema/contribution";
 import { communityCommentTable } from "@/db/schema/communityComment";
 import { entityTable } from "@/db/schema/entity";
 import { userDailyActivityTable } from "@/db/schema/userDailyActivity";
+import { draftStepToInsert, normalizeStep, planStepSync, stepKey } from "../model/draft";
 import type {
 	LearnerProfile,
 	StudyBuilderConversationFull,
@@ -18,6 +20,7 @@ import type {
 	StudyBuilderMemoryFact,
 	StudyBuilderMessage,
 	StudyBuilderMessagePayload,
+	StudyBuilderStatus,
 } from "../model/StudyBuilder";
 
 const day = (d: Date | string | null | undefined) => (d ? new Date(d).toISOString().slice(0, 10) : "");
@@ -30,7 +33,7 @@ function toSummary(row: ConversationRow): StudyBuilderConversationSummary {
 	return {
 		id: row.id,
 		title: row.title,
-		status: row.status === "created" ? "created" : "active",
+		status: row.status === "created" || row.status === "editing" ? row.status : "active",
 		studyId: row.studyId,
 		updatedAt: row.updatedAt.toISOString(),
 	};
@@ -54,9 +57,22 @@ export class StudyBuilderPostgreSQLDao {
 
 	// ---- conversations ------------------------------------------------------
 
-	async createConversation(userId: string, bibleId: string | null): Promise<StudyBuilderConversationFull> {
-		const [row] = await db.insert(studyBuilderConversationTable).values({ userId, bibleId }).returning();
-		return { ...toSummary(row), draft: null, bibleId: row.bibleId, messages: [] };
+	async createConversation(
+		userId: string,
+		bibleId: string | null,
+		start: Partial<{ draft: StudyBuilderDraft | null; title: string; status: StudyBuilderStatus; studyId: string }> = {},
+	): Promise<StudyBuilderConversationFull> {
+		const [row] = await db.insert(studyBuilderConversationTable).values({ userId, bibleId, ...start }).returning();
+		return { ...toSummary(row), draft: row.draft ?? null, bibleId: row.bibleId, messages: [] };
+	}
+
+	/** The conversation a study was built (or last edited) in, if there is one. */
+	async findConversationForStudy(studyId: string, userId: string): Promise<StudyBuilderConversationFull | null> {
+		const [row] = await db.select({ id: studyBuilderConversationTable.id }).from(studyBuilderConversationTable)
+			.where(and(eq(studyBuilderConversationTable.studyId, studyId), eq(studyBuilderConversationTable.userId, userId)))
+			.orderBy(desc(studyBuilderConversationTable.updatedAt))
+			.limit(1);
+		return row ? this.getConversation(row.id, userId) : null;
 	}
 
 	async getConversation(id: string, userId: string): Promise<StudyBuilderConversationFull | null> {
@@ -79,7 +95,7 @@ export class StudyBuilderPostgreSQLDao {
 
 	async updateConversation(
 		id: string,
-		data: Partial<{ draft: StudyBuilderDraft; title: string; bibleId: string; status: "active" | "created"; studyId: string }>,
+		data: Partial<{ draft: StudyBuilderDraft | null; title: string; bibleId: string; status: StudyBuilderStatus; studyId: string }>,
 	): Promise<void> {
 		await db.update(studyBuilderConversationTable)
 			.set({ ...data, updatedAt: new Date() })
@@ -94,6 +110,72 @@ export class StudyBuilderPostgreSQLDao {
 	): Promise<StudyBuilderMessage> {
 		const [row] = await db.insert(studyBuilderMessageTable).values({ conversationId, role, content, payload }).returning();
 		return toMessage(row);
+	}
+
+	// ---- studies ------------------------------------------------------------
+
+	/**
+	 * Saves an edited plan over its study without losing anyone's place (see
+	 * planStepSync): readings still in the plan keep their rows, new ones are
+	 * added, and sessions standing on a removed reading move to the one now in
+	 * its position. Everything after the inserts runs as one transaction.
+	 */
+	async applyDraftToStudy(studyId: string, draft: StudyBuilderDraft, bibleId: string): Promise<void> {
+		const saved = await db.select().from(studyStepTable)
+			.where(eq(studyStepTable.studyId, studyId))
+			.orderBy(asc(studyStepTable.stepNumber));
+		const savedKey = (row: typeof saved[number]) => {
+			const range = (start: number | null, end: number | null) => (start ? (end && end !== start ? `${start}-${end}` : String(start)) : null);
+			const step = normalizeStep({ bookAbbreviation: row.bookAbbreviation, chapterNumber: range(row.startChapter, row.endChapter), verseNumber: range(row.startVerse, row.endVerse) });
+			// A step the canon does not know cannot be in the plan: it never matches, so it is removed.
+			return step ? stepKey(step) : `unknown:${row.id}`;
+		};
+		const sync = planStepSync(saved.map((row) => ({ id: row.id, key: savedKey(row) })), draft.steps);
+
+		const rows = draft.steps.map((step, i) => ({ ...draftStepToInsert(step, i + 1), studyId }));
+		const inserted = sync.insert.length
+			? await db.insert(studyStepTable).values(sync.insert.map((i) => rows[i])).returning({ id: studyStepTable.id })
+			: [];
+		const idAt: string[] = [];
+		sync.keep.forEach((k) => (idAt[k.index] = k.id));
+		sync.insert.forEach((index, n) => (idAt[index] = inserted[n].id));
+
+		const byId = new Map(saved.map((row) => [row.id, row]));
+		const now = new Date();
+		const stepUpdates = sync.keep
+			.filter(({ id, index }) => {
+				const before = byId.get(id)!;
+				const after = rows[index];
+				return before.stepNumber !== after.stepNumber || before.title !== after.title || before.explanation !== after.explanation || before.bookAbbreviation !== after.bookAbbreviation;
+			})
+			.map(({ id, index }) => {
+				const { stepNumber, title, explanation, bookAbbreviation, stepType } = rows[index];
+				return db.update(studyStepTable).set({ stepNumber, title, explanation, bookAbbreviation, stepType, updatedAt: now }).where(eq(studyStepTable.id, id));
+			});
+		const sessionMoves = sync.remove.map(({ id, successor }) => {
+			const next = rows[successor];
+			return db.update(sessionTable)
+				.set({ currentStepId: idAt[successor], currentBookAbbreviation: next.bookAbbreviation, currentChapter: next.startChapter, currentVerse: next.startVerse, updatedAt: now })
+				.where(eq(sessionTable.currentStepId, id));
+		});
+		const removal = sync.remove.length
+			? [db.delete(studyStepTable).where(inArray(studyStepTable.id, sync.remove.map((r) => r.id)))]
+			: [];
+
+		await db.batch([
+			db.update(studyTable).set({
+				name: draft.name,
+				description: draft.description,
+				topic: draft.topic,
+				length: draft.length,
+				depth: draft.depth,
+				bibleId,
+				updatedAt: now,
+			}).where(eq(studyTable.id, studyId)),
+			...stepUpdates,
+			...sessionMoves,
+			...removal,
+		]);
 	}
 
 	// ---- memory -------------------------------------------------------------

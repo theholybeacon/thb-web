@@ -1,27 +1,20 @@
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowRight, BookOpen, Clock, Layers, Loader2, RefreshCw, Trash2, Wand2 } from "lucide-react";
+import { BookOpen, Clock, Layers, RefreshCw, Trash2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BibleSelector } from "@/components/app";
 import { cn } from "@/lib/utils";
 import { formatStepReference } from "@/app/common/studyBuilder/model/draft";
 import type { StudyBuilderDraft } from "@/app/common/studyBuilder/model/StudyBuilder";
-import type { Bible } from "@/app/common/bible/model/Bible";
 
 type Props = {
 	draft: StudyBuilderDraft | null;
 	draftVersion: number;
 	busy: boolean;
-	bibles: Bible[] | undefined;
-	biblesLoading: boolean;
-	bibleId: string;
-	onBibleChange: (id: string) => void;
+	names: Map<string, string>;
 	/** Sends a message to the builder on the reader's behalf ("Remove step 3…"). */
 	onAsk: (message: string) => void;
-	onCreate: () => void;
-	creating: boolean;
-	createdStudyId: string | null;
+	/** The translation picker and the create / save button. */
+	footer: ReactNode;
 };
 
 /**
@@ -29,7 +22,7 @@ type Props = {
  * reader can also steer it from here — each step's actions are messages to the
  * builder, so every change still goes through the conversation.
  */
-export function PlanPanel({ draft, draftVersion, busy, bibles, biblesLoading, bibleId, onBibleChange, onAsk, onCreate, creating, createdStudyId }: Props) {
+export function PlanPanel({ draft, draftVersion, busy, names, onAsk, footer }: Props) {
 	const t = useTranslations("studyBuilder");
 	const [flash, setFlash] = useState(false);
 
@@ -81,7 +74,7 @@ export function PlanPanel({ draft, draftVersion, busy, bibles, biblesLoading, bi
 
 			<ol className="flex-1 space-y-2 overflow-y-auto p-4">
 				{draft.steps.map((step, i) => {
-					const reference = formatStepReference(step);
+					const reference = formatStepReference(step, names);
 					return (
 						<li
 							key={`${draftVersion}-${i}`}
@@ -97,11 +90,11 @@ export function PlanPanel({ draft, draftVersion, busy, bibles, biblesLoading, bi
 									{step.explanation && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground group-hover:line-clamp-none">{step.explanation}</p>}
 								</div>
 								<div className="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-									<Button variant="ghost" size="icon" className="h-7 w-7" disabled={busy || !!createdStudyId} title={t("swapStep")} aria-label={t("swapStep")}
+									<Button variant="ghost" size="icon" className="h-7 w-7" disabled={busy} title={t("swapStep")} aria-label={t("swapStep")}
 										onClick={() => onAsk(t("swapStepMessage", { n: i + 1, reference }))}>
 										<RefreshCw className="h-3.5 w-3.5" />
 									</Button>
-									<Button variant="ghost" size="icon" className="h-7 w-7" disabled={busy || !!createdStudyId} title={t("removeStep")} aria-label={t("removeStep")}
+									<Button variant="ghost" size="icon" className="h-7 w-7" disabled={busy} title={t("removeStep")} aria-label={t("removeStep")}
 										onClick={() => onAsk(t("removeStepMessage", { n: i + 1, reference }))}>
 										<Trash2 className="h-3.5 w-3.5" />
 									</Button>
@@ -112,20 +105,7 @@ export function PlanPanel({ draft, draftVersion, busy, bibles, biblesLoading, bi
 				})}
 			</ol>
 
-			<div className="space-y-3 border-t p-4">
-				{createdStudyId ? (
-					<Button asChild className="w-full">
-						<Link href={`/study/${createdStudyId}`}>{t("openStudy")} <ArrowRight className="ml-2 h-4 w-4" /></Link>
-					</Button>
-				) : (
-					<>
-						<BibleSelector bibles={bibles} value={bibleId} onValueChange={onBibleChange} disabled={biblesLoading} isLoading={biblesLoading} />
-						<Button className="w-full" size="lg" onClick={onCreate} disabled={creating || busy || !bibleId || draft.steps.length === 0}>
-							{creating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("creating")}</> : t("create")}
-						</Button>
-					</>
-				)}
-			</div>
+			<div className="space-y-3 border-t p-4">{footer}</div>
 		</div>
 	);
 }

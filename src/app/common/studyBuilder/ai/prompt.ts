@@ -69,6 +69,7 @@ THE PLAN
 - Book codes (code=name(chapters)): ${BOOK_CODES}
 
 THE PLAN AS IT STANDS
+The reader can also change the plan by hand, in a manual editor next to this conversation. This is always the latest version, their own changes included: build on it, never quietly undo what they changed.
 ${draft ? JSON.stringify(draft) : "No plan yet."}
 
 WHAT YOU KNOW ABOUT THE READER
@@ -82,9 +83,26 @@ Answer with ONE JSON object and nothing else, with the keys in exactly this orde
 - remember: new durable facts about the reader worth remembering in future conversations (life situation, goals, preferences, struggles, schedule), in third person, one short sentence each. Only things they told you that are not already remembered. Usually empty.`;
 }
 
-/** The first turn has no reader message: the builder opens the conversation itself. */
+/** Every opening instruction starts with this, so a scripted model can tell it from what the reader said. */
+export const OPENING_PREFIX = "(The reader ";
+
 export const OPENING_INSTRUCTION =
-	"(The reader just opened the study builder. Greet them by first name and open the conversation: show you know them by mentioning one or two specific things from their profile, then ask what they would like to study or what is going on in their life right now. No plan yet.)";
+	`${OPENING_PREFIX}just opened the study builder. Greet them by first name and open the conversation: show you know them by mentioning one or two specific things from their profile, then ask what they would like to study or what is going on in their life right now. No plan yet.)`;
+
+/**
+ * The first turn has no reader message: the builder opens the conversation
+ * itself. What it says depends on what is already there: nothing, a plan they
+ * started by hand, or a study they came back to change.
+ */
+export function openingInstruction(draft: StudyBuilderDraft | null, editingStudy: boolean): string {
+	if (editingStudy && draft) {
+		return `${OPENING_PREFIX}came back to change their study "${draft.name}", the plan above. Greet them by first name, say in a sentence what the plan is now, and ask what they would like to change. Do not change the plan yet.)`;
+	}
+	if (draft) {
+		return `${OPENING_PREFIX}started this plan by hand and is asking for your help with it. Greet them by first name, react briefly and specifically to what they have so far, connect it to something you know about them, and ask how you can help shape it. Do not change the plan yet.)`;
+	}
+	return OPENING_INSTRUCTION;
+}
 
 /** The model's JSON, made safe. Throws only when there is nothing usable at all. */
 export function parseTurn(raw: string): StudyBuilderTurn {

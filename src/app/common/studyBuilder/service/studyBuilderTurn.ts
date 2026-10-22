@@ -1,7 +1,8 @@
 import { partialJsonString } from "../ai/partialJson";
-import { buildSystemPrompt, learnerHighlights, OPENING_INSTRUCTION, parseTurn } from "../ai/prompt";
+import { buildSystemPrompt, learnerHighlights, openingInstruction, parseTurn } from "../ai/prompt";
 import type { StudyBuilderAI, StudyBuilderChatMessage } from "../ai/StudyBuilderAI";
 import type { StudyBuilderPostgreSQLDao } from "../dao/StudyBuilderPostgreSQLDao";
+import { normalizeDraft } from "../model/draft";
 import type { StudyBuilderEvent } from "../model/StudyBuilder";
 
 /** How many earlier turns of this conversation go back to the model verbatim. */
@@ -15,6 +16,11 @@ export type StudyBuilderTurnInput = {
 	/** null asks the builder to open the conversation itself. */
 	message: string | null;
 	bibleId: string | null;
+	/**
+	 * The plan as the page has it, manual edits included. Undefined leaves the
+	 * saved plan as it is.
+	 */
+	draft?: unknown;
 };
 
 type Dao = Pick<StudyBuilderPostgreSQLDao, "createConversation" | "getConversation" | "getLearnerProfile" | "addMessage" | "updateConversation" | "addMemory">;
@@ -37,9 +43,22 @@ export async function* studyBuilderTurn(input: StudyBuilderTurnInput, dao: Dao, 
 
 	const message = input.message?.trim().slice(0, 4000) || null;
 	if (message) await dao.addMessage(conversation.id, "user", message);
-	if (input.bibleId && input.bibleId !== conversation.bibleId) {
-		await dao.updateConversation(conversation.id, { bibleId: input.bibleId });
+
+	// The reader may have changed the plan by hand since the last turn: the model works on their version.
+	let draft = conversation.draft;
+	let status = conversation.status;
+	const changes: Parameters<Dao["updateConversation"]>[1] = {};
+	if (input.draft !== undefined) {
+		const sent = normalizeDraft(input.draft);
+		if (JSON.stringify(sent) !== JSON.stringify(draft)) {
+			draft = sent;
+			changes.draft = sent;
+			if (sent) changes.title = sent.name;
+			if (conversation.studyId) status = changes.status = "editing";
+		}
 	}
+	if (input.bibleId && input.bibleId !== conversation.bibleId) changes.bibleId = input.bibleId;
+	if (Object.keys(changes).length) await dao.updateConversation(conversation.id, changes);
 
 	const profile = await dao.getLearnerProfile(input.userId, input.locale, conversation.id);
 	yield { type: "context", highlights: learnerHighlights(profile) };
@@ -49,12 +68,12 @@ export async function* studyBuilderTurn(input: StudyBuilderTurnInput, dao: Dao, 
 		.map((m) => ({ role: m.role, content: m.content }));
 	if (message) history.push({ role: "user", content: message });
 	// The model always needs a user turn to answer; the opening one is an instruction.
-	const prompt = history.length ? history : [{ role: "user" as const, content: OPENING_INSTRUCTION }];
+	const prompt = history.length ? history : [{ role: "user" as const, content: openingInstruction(draft, Boolean(conversation.studyId)) }];
 
 	let raw = "";
 	let sent = 0;
 	try {
-		for await (const chunk of ai.streamTurn(buildSystemPrompt(profile, conversation.draft), prompt, { profile, draft: conversation.draft })) {
+		for await (const chunk of ai.streamTurn(buildSystemPrompt(profile, draft), prompt, { profile, draft })) {
 			raw += chunk;
 			const reply = partialJsonString(raw, "reply");
 			if (reply && reply.text.length > sent) {
@@ -81,8 +100,9 @@ export async function* studyBuilderTurn(input: StudyBuilderTurnInput, dao: Dao, 
 		draftChanged: Boolean(turn.draft),
 		remembered: turn.remember,
 	});
-	await dao.updateConversation(conversation.id, turn.draft ? { draft: turn.draft, title: turn.draft.name } : {});
+	if (turn.draft && conversation.studyId) status = "editing";
+	await dao.updateConversation(conversation.id, turn.draft ? { draft: turn.draft, title: turn.draft.name, status } : {});
 	const remembered = await dao.addMemory(input.userId, turn.remember, conversation.id);
 
-	yield { type: "done", message: assistant, draft: turn.draft ?? conversation.draft, remembered };
+	yield { type: "done", message: assistant, draft: turn.draft ?? draft, status, remembered };
 }

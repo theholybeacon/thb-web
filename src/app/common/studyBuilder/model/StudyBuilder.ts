@@ -43,10 +43,16 @@ export type StudyBuilderMessage = {
 	createdAt: string;
 };
 
+/**
+ * active: no study yet. created: the plan is a study and the study matches it.
+ * editing: the plan of an existing study has changes that are not saved yet.
+ */
+export type StudyBuilderStatus = "active" | "created" | "editing";
+
 export type StudyBuilderConversationSummary = {
 	id: string;
 	title: string | null;
-	status: "active" | "created";
+	status: StudyBuilderStatus;
 	studyId: string | null;
 	updatedAt: string;
 };
@@ -125,6 +131,7 @@ export type StudyBuilderEvent =
 			type: "done";
 			message: StudyBuilderMessage;
 			draft: StudyBuilderDraft | null;
+			status: StudyBuilderStatus;
 			remembered: StudyBuilderMemoryFact[];
 	  }
 	| { type: "error"; error: string };

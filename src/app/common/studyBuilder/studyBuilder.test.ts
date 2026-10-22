@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { partialJsonString } from "./ai/partialJson";
-import { buildSystemPrompt, learnerHighlights, parseTurn } from "./ai/prompt";
+import { buildSystemPrompt, learnerHighlights, OPENING_INSTRUCTION, openingInstruction, parseTurn } from "./ai/prompt";
 import { FakeStudyBuilderAI, type StudyBuilderAI } from "./ai/StudyBuilderAI";
-import { draftStepToInsert, normalizeDraft, normalizeStep } from "./model/draft";
+import { draftStepToInsert, normalizeDraft, normalizeStep, parsePassageQuery, planStepSync, stepKey, studyToDraft, toUsfm } from "./model/draft";
 import { studyBuilderTurn } from "./service/studyBuilderTurn";
 import type {
 	LearnerProfile,
@@ -84,6 +84,80 @@ describe("normalizeDraft / draftStepToInsert", () => {
 	});
 });
 
+describe("toUsfm", () => {
+	it("reads codes, names and the loose abbreviations of older studies", () => {
+		expect(["ROM", "rom", "Romans", "Mat", "1 Cor", "Pr."].map(toUsfm)).toEqual(["ROM", "ROM", "ROM", "MAT", "1CO", "PRO"]);
+		expect(toUsfm("Phil")).toBeNull(); // Philippians or Philemon
+		expect(toUsfm("J")).toBeNull();
+	});
+});
+
+describe("studyToDraft", () => {
+	it("turns a saved study back into a plan", () => {
+		const draft = studyToDraft({
+			name: "Peace", description: null, topic: "anxiety", length: 3, depth: 4,
+			steps: [
+				{ bookAbbreviation: "PHP", startChapter: 4, endChapter: 4, startVerse: 4, endVerse: 9, title: "Do not be anxious", explanation: "Paul on peace." },
+				{ bookAbbreviation: "PSA", startChapter: 120, endChapter: 122, startVerse: null, endVerse: null, title: "Ascents", explanation: "" },
+				{ bookAbbreviation: "RUT", startChapter: null, endChapter: null, startVerse: null, endVerse: null, title: "Ruth", explanation: "" },
+			],
+		});
+		expect(draft).toMatchObject({ name: "Peace", description: "", topic: "anxiety", length: 3, depth: 4 });
+		expect(draft.steps.map(stepKey)).toEqual(["PHP|4|4-9", "PSA|120-122|", "RUT||"]);
+		expect(draft.steps[0].stepType).toBe("VerseRange");
+	});
+});
+
+describe("planStepSync", () => {
+	const step = (book: string, chapter: string) => normalizeStep({ bookAbbreviation: book, chapterNumber: chapter })!;
+	const saved = [
+		{ id: "a", key: "PSA|23|" },
+		{ id: "b", key: "PHP|4|" },
+		{ id: "c", key: "MAT|6|" },
+	];
+
+	it("keeps the rows of readings still in the plan, wherever they moved", () => {
+		const sync = planStepSync(saved, [step("MAT", "6"), step("JHN", "14"), step("PSA", "23")]);
+		expect(sync.keep).toEqual([{ id: "c", index: 0 }, { id: "a", index: 2 }]);
+		expect(sync.insert).toEqual([1]);
+		// Someone on Philippians 4 (position 1) moves to what is now at position 1.
+		expect(sync.remove).toEqual([{ id: "b", successor: 1 }]);
+	});
+
+	it("moves sessions on a removed last reading to the new last one", () => {
+		expect(planStepSync(saved, [step("PSA", "23")]).remove).toEqual([{ id: "b", successor: 0 }, { id: "c", successor: 0 }]);
+	});
+
+	it("matches a reading that appears twice once per saved row", () => {
+		const sync = planStepSync([{ id: "a", key: "PSA|23|" }], [step("PSA", "23"), step("PSA", "23")]);
+		expect(sync).toEqual({ keep: [{ id: "a", index: 0 }], insert: [1], remove: [] });
+	});
+});
+
+describe("parsePassageQuery", () => {
+	it("lists the books a search starts", () => {
+		expect(parsePassageQuery("jo").books).toEqual(["JOS", "JOB", "JOL", "JON", "JHN"]);
+		expect(parsePassageQuery("rom")).toEqual({ books: ["ROM"], reference: { bookAbbreviation: "ROM", chapterNumber: null, verseNumber: null } });
+	});
+
+	it("reads full references", () => {
+		expect(parsePassageQuery("John 3:16").reference).toEqual({ bookAbbreviation: "JHN", chapterNumber: "3", verseNumber: "16" });
+		expect(parsePassageQuery("1 cor 13").reference).toEqual({ bookAbbreviation: "1CO", chapterNumber: "13", verseNumber: null });
+		expect(parsePassageQuery("Psalm 120 - 122").reference).toEqual({ bookAbbreviation: "PSA", chapterNumber: "120-122", verseNumber: null });
+		expect(parsePassageQuery("Jude").reference?.bookAbbreviation).toBe("JUD");
+	});
+
+	it("reads the reader's translation's book names", () => {
+		expect(parsePassageQuery("Juan 3:16-18", new Map([["JHN", "Juan"]])).reference).toEqual({ bookAbbreviation: "JHN", chapterNumber: "3", verseNumber: "16-18" });
+	});
+
+	it("has no reference when the book is ambiguous or the chapter does not exist", () => {
+		expect(parsePassageQuery("Phil 2").reference).toBeNull();
+		expect(parsePassageQuery("Ruth 9").reference).toBeNull();
+		expect(parsePassageQuery("").books).toEqual([]);
+	});
+});
+
 describe("prompt", () => {
 	it("puts everything known about the reader in front of the model", () => {
 		const prompt = buildSystemPrompt(profile(), null);
@@ -91,6 +165,14 @@ describe("prompt", () => {
 			expect(prompt).toContain(fact);
 		}
 		expect(buildSystemPrompt(profile({ locale: "es" }), null)).toContain("Write in Spanish");
+	});
+
+	it("opens on what is already there", () => {
+		const draft = normalizeDraft({ name: "Peace", steps: [{ bookAbbreviation: "PSA", chapterNumber: "23" }] })!;
+		expect(openingInstruction(null, false)).toBe(OPENING_INSTRUCTION);
+		expect(openingInstruction(draft, false)).toContain("started this plan by hand");
+		expect(openingInstruction(draft, true)).toContain('change their study "Peace"');
+		expect(buildSystemPrompt(profile(), draft)).toContain("change the plan by hand");
 	});
 
 	it("parses a turn and survives a sloppy one", () => {
@@ -132,7 +214,7 @@ function memoryDao() {
 			conversations.get(conversationId)!.messages.push(m);
 			return m;
 		},
-		async updateConversation(id: string, data: Partial<{ draft: StudyBuilderDraft; title: string; bibleId: string }>) {
+		async updateConversation(id: string, data: Partial<{ draft: StudyBuilderDraft | null; title: string; bibleId: string; status: "active" | "created" | "editing" }>) {
 			Object.assign(conversations.get(id)!, data);
 		},
 		async addMemory(_userId: string, facts: string[]) {
@@ -186,6 +268,35 @@ describe("studyBuilderTurn", () => {
 		const events = await collect(studyBuilderTurn({ ...input, conversationId: null, message: "hi" }, dao, broken));
 		expect(events.at(-1)?.type).toBe("error");
 		expect([...dao.conversations.values()][0].messages.map((m) => m.role)).toEqual(["user"]);
+	});
+
+	it("works on the plan as the page has it, manual edits included", async () => {
+		const dao = memoryDao();
+		const ai = new FakeStudyBuilderAI();
+		const handMade = { name: "Mornings", steps: [{ bookAbbreviation: "PSA", chapterNumber: "5" }, { bookAbbreviation: "LAM", chapterNumber: "3", verseNumber: "22-24" }] };
+
+		const opening = (await collect(studyBuilderTurn({ ...input, conversationId: null, message: null, draft: handMade }, dao, ai))).at(-1) as Extract<StudyBuilderEvent, { type: "done" }>;
+		expect(opening.message.content).toContain('"Mornings" has 2 readings');
+		const id = [...dao.conversations.keys()][0];
+		expect(dao.conversations.get(id)?.draft?.steps).toHaveLength(2);
+		expect(dao.conversations.get(id)?.title).toBe("Mornings");
+
+		const added = (await collect(studyBuilderTurn({ ...input, conversationId: id, message: "Add a psalm at the end", draft: opening.draft }, dao, ai))).at(-1) as Extract<StudyBuilderEvent, { type: "done" }>;
+		expect(added.draft?.steps.map(stepKey)).toEqual(["PSA|5|", "LAM|3|22-24", "PSA|46|"]);
+		expect(added.status).toBe("active");
+	});
+
+	it("marks a study's plan as changed once a turn changes it", async () => {
+		const dao = memoryDao();
+		const ai = new FakeStudyBuilderAI();
+		const { id } = await dao.createConversation("u1", "b1");
+		Object.assign(dao.conversations.get(id)!, { studyId: "s1", status: "created", draft: normalizeDraft({ name: "Peace", steps: [{ bookAbbreviation: "PSA", chapterNumber: "23" }] }) });
+
+		const opening = (await collect(studyBuilderTurn({ ...input, conversationId: id, message: null }, dao, ai))).at(-1) as Extract<StudyBuilderEvent, { type: "done" }>;
+		expect(opening.status).toBe("created");
+		const changed = (await collect(studyBuilderTurn({ ...input, conversationId: id, message: "Add a psalm" }, dao, ai))).at(-1) as Extract<StudyBuilderEvent, { type: "done" }>;
+		expect(changed.status).toBe("editing");
+		expect(dao.conversations.get(id)?.status).toBe("editing");
 	});
 
 	it("refuses someone else's conversation", async () => {
