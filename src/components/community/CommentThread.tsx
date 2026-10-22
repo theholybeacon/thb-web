@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import type { CommentNode } from "@/app/common/community/model/Community";
 import { commentCreateSS } from "@/app/common/community/service/server/commentCreateSS";
 import { VoteButtons } from "./VoteButtons";
@@ -49,6 +50,7 @@ function CommentItem({
 		const res = await commentCreateSS({ contributionId, parentCommentId: comment.id, body: text });
 		setBusy(false);
 		if (res.ok) {
+			track("comment_posted", { isReply: true });
 			setText("");
 			setReplying(false);
 			toast.success("Reply posted");

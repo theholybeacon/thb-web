@@ -5,11 +5,14 @@ import { useTranslations } from "next-intl";
 import { Instagram, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 type Props = {
 	/** Which story to render. Mirrors the route handler's `kind`. */
 	kind: "journey" | "profile" | "session";
+	/** Where the button is, for analytics. Defaults to `kind`. */
+	source?: string;
 	/** Translation slug to scope a journey/profile story to. */
 	bible?: string | null;
 	username?: string;
@@ -36,6 +39,7 @@ type Props = {
  */
 export function ShareStoryButton({
 	kind,
+	source = kind,
 	bible,
 	username,
 	sessionId,
@@ -68,6 +72,7 @@ export function ShareStoryButton({
 
 			if (navigator.canShare?.({ files: [file] })) {
 				await navigator.share({ files: [file], title: t("title") });
+				track("story_image_shared", { source, method: "native" });
 				return;
 			}
 
@@ -79,6 +84,7 @@ export function ShareStoryButton({
 			// Revoked on the next tick: revoking synchronously can cancel the download
 			// in some browsers before it has read the blob.
 			setTimeout(() => URL.revokeObjectURL(url), 1000);
+			track("story_image_shared", { source, method: "download" });
 		} catch (e) {
 			// A dismissed share sheet rejects with AbortError; that is a choice, not a
 			// failure, and must not raise a toast.

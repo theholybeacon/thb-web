@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import { communityDeleteSS } from "@/app/common/community/service/server/communityDeleteSS";
 import type { VoteTargetType } from "@/app/common/community/model/Community";
 import {
@@ -34,6 +35,7 @@ export function DeleteAction({ targetType, id }: { targetType: VoteTargetType; i
 		const res = await communityDeleteSS(targetType, id);
 		setDeleting(false);
 		if (res.ok) {
+			track("community_deleted", { targetType });
 			setConfirming(false);
 			toast.success("Deleted");
 			onChanged();

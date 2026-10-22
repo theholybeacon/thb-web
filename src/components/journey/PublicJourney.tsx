@@ -78,6 +78,7 @@ export function PublicJourney({ stats }: { stats: PublicCompletionStats }) {
 					/>
 					<ShareStoryButton
 						kind="profile"
+						source="public_profile"
 						username={stats.username}
 						bible={stats.scope.slug}
 					/>
