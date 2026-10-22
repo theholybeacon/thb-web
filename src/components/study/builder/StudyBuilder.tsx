@@ -41,12 +41,17 @@ export function StudyBuilder() {
 	const queryClient = useQueryClient();
 	const { user } = useLoggedUserContext();
 
-	const setUrl = useCallback((id: string | null) => {
-		window.history.replaceState(null, "", id ? `/study/create?c=${id}` : "/study/create");
+	/*
+	 * The URL is left alone (?c= only deep-links into a conversation): rewriting
+	 * it with history.replaceState mid-conversation is a navigation to the app
+	 * router, which aborted in-flight server actions and could leave later ones
+	 * (like "Create this study") queued forever.
+	 */
+	const refreshConversations = useCallback(() => {
 		void queryClient.invalidateQueries({ queryKey: ["studyBuilderConversations"] });
 	}, [queryClient]);
 
-	const builder = useStudyBuilder(setUrl);
+	const builder = useStudyBuilder(refreshConversations);
 	const { messages, draft, status, streamingText, error, send, load } = builder;
 	const busy = status !== "idle";
 
@@ -69,18 +74,16 @@ export function StudyBuilder() {
 
 	const startNew = useCallback(() => {
 		load(null);
-		setUrl(null);
 		void send(null, bibleId || null);
-	}, [load, send, setUrl, bibleId]);
+	}, [load, send, bibleId]);
 
 	const open = useCallback(async (id: string) => {
 		const conversation = await studyBuilderConversationGetSS(id);
 		if (!conversation) return false;
 		load(conversation);
 		if (conversation.bibleId) setBibleId(conversation.bibleId);
-		setUrl(conversation.id);
 		return true;
-	}, [load, setUrl]);
+	}, [load]);
 
 	// First visit: the conversation in the URL, else the one left a moment ago, else a new one.
 	const started = useRef(false);
