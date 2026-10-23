@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { entityContentEnsureSS } from "@/app/common/entity/service/server/entityContentEnsureSS";
+import { track } from "@/lib/analytics";
 
 /**
  * Triggers lazy generation of a character's AI content for signed-in viewers,
@@ -37,17 +38,22 @@ export function EntityContentLoader({
 				const row = await entityContentEnsureSS(entityId);
 				if (cancelled) return;
 				if (row?.generationStatus === "ready") {
+					track("person_content_generated", { entityId, status: "ready" });
 					router.refresh();
 					setState("done");
 					return;
 				}
 				if (row?.generationStatus === "failed") {
+					track("person_content_generated", { entityId, status: "failed" });
 					setState("done");
 					return;
 				}
 				await new Promise((r) => setTimeout(r, 3000));
 			}
-			if (!cancelled) setState("done");
+			if (!cancelled) {
+				track("person_content_generated", { entityId, status: "timed_out" });
+				setState("done");
+			}
 		})();
 
 		return () => {

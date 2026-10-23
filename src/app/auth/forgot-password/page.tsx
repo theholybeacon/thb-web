@@ -12,6 +12,7 @@ import { Loader2, Mail, ArrowLeft, KeyRound, Lock, Eye, EyeOff } from "lucide-re
 import { AuthSidePanel } from "../components/AuthSidePanel";
 import { toast } from "@/lib/toast";
 import { activateAndGo } from "../lib/finishAuth";
+import { track } from "@/lib/analytics";
 
 type ForgotPasswordStep = "email" | "code" | "reset";
 
@@ -53,10 +54,12 @@ export default function ForgotPasswordPage() {
         strategy: "reset_password_email_code",
         identifier: email,
       });
+      track("password_reset_requested");
       toast.success(tForgot("emailSent"));
       setStep("code");
     } catch (err: unknown) {
       const clerkError = err as { errors?: Array<{ code: string; message: string }> };
+      track("password_reset_failed", { stage: "send_code", reason: clerkError.errors?.[0]?.code ?? "network_error" });
       if (clerkError.errors?.[0]?.code === "form_identifier_not_found") {
         toast.error(tForgot("emailNotFound"));
         setError(tForgot("emailNotFound"));
@@ -88,6 +91,7 @@ export default function ForgotPasswordPage() {
       }
     } catch (err: unknown) {
       const clerkError = err as { errors?: Array<{ code: string; message: string }> };
+      track("password_reset_failed", { stage: "verify_code", reason: clerkError.errors?.[0]?.code ?? "network_error" });
       if (clerkError.errors?.[0]?.code === "form_code_incorrect") {
         toast.error(tVerify("invalidCode"));
         setError(tVerify("invalidCode"));
@@ -121,10 +125,12 @@ export default function ForgotPasswordPage() {
       });
 
       if (result.status === "complete") {
+        track("password_reset_completed");
         toast.success(tReset("success"));
         setSuccess(tReset("success"));
         await activateAndGo(setActive, result.createdSessionId, router, "/home");
       } else {
+        track("password_reset_failed", { stage: "set_password", reason: result.status ?? "no_response" });
         toast.error(tCommon("error"));
         setError(tCommon("error"));
       }
@@ -132,6 +138,7 @@ export default function ForgotPasswordPage() {
       // longMessage carries Clerk's specific reason (breached / too weak password).
       const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
       const first = clerkError.errors?.[0];
+      track("password_reset_failed", { stage: "set_password", reason: first?.code ?? "network_error" });
       toast.error(first?.longMessage || first?.message || tCommon("error"));
       setError(first?.longMessage || first?.message || tCommon("error"));
     } finally {

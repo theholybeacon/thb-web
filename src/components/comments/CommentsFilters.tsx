@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 import type { ContributionKind } from "@/app/common/community/model/Community";
 import {
 	COMMUNITY_FEED_SORTS,
@@ -41,6 +42,14 @@ const SOURCE_KEY: Record<CommunityFeedSource, string> = {
 	entity: "sourceEntity",
 };
 
+/** Which filter the person changed, and to what (author ids only as set/cleared). */
+function trackFeedFilter(patch: Partial<CommunityFeedQuery>) {
+	for (const [filter, value] of Object.entries(patch)) {
+		const shown = filter === "authorUserId" ? (value ? "set" : "cleared") : String(value ?? "cleared");
+		track("community_feed_filtered", { filter, value: shown });
+	}
+}
+
 /**
  * The feed's filter bar.
  *
@@ -58,7 +67,7 @@ const SOURCE_KEY: Record<CommunityFeedSource, string> = {
 export function CommentsFilters({
 	query,
 	facets,
-	onChange,
+	onChange: applyFilter,
 	hasFilters,
 	onClear,
 }: {
@@ -69,6 +78,14 @@ export function CommentsFilters({
 	onClear: () => void;
 }) {
 	const t = useTranslations("comments");
+
+	const onChange = useCallback(
+		(patch: Partial<CommunityFeedQuery>) => {
+			trackFeedFilter(patch);
+			applyFilter(patch);
+		},
+		[applyFilter],
+	);
 
 	// Debounced locally so a three-digit chapter is one navigation, not three.
 	const [chapter, setChapter] = useState(query.chapter ? String(query.chapter) : "");
@@ -135,7 +152,10 @@ export function CommentsFilters({
 				</div>
 
 				{hasFilters && (
-					<Button variant="ghost" size="sm" className="ml-auto h-9" onClick={onClear}>
+					<Button variant="ghost" size="sm" className="ml-auto h-9" onClick={() => {
+						track("community_feed_filtered", { filter: "all", value: "cleared" });
+						onClear();
+					}}>
 						<X className="h-3.5 w-3.5" />
 						{t("clearFilters")}
 					</Button>

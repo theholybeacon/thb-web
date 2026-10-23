@@ -34,6 +34,7 @@ import { Plus, Play, MoreVertical, Trash2, Eye, BookOpen } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import { PremiumGate } from "@/components/premium";
 import { PlanCatalog, StudyByline } from "@/components/study";
 
@@ -100,7 +101,8 @@ export default function StudyPage() {
       };
       return await sessionCreateSS(sessionInsert);
     },
-    onSuccess: (session) => {
+    onSuccess: (session, study) => {
+      track("session_started", { studyId: study.id, sessionId: session.id, source: "study_list" });
       toast.success(t("startSession"));
       router.push(`/session/${session.id}`);
     },
@@ -114,7 +116,8 @@ export default function StudyPage() {
     mutationFn: async (studyId: string) => {
       await studyDeleteSS(studyId);
     },
-    onSuccess: () => {
+    onSuccess: (_, studyId) => {
+      track("study_deleted", { studyId, source: "study_list" });
       queryClient.invalidateQueries({ queryKey: ["studies"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       toast.success(t("deleteStudy"));

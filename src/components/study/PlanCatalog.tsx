@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import posthog from "posthog-js";
+import { track } from "@/lib/analytics";
 import { BookOpenCheck, Feather, Layers, Library, Play } from "lucide-react";
 
 import { globalStudyListSS } from "@/app/common/study/service/server/globalStudyListSS";
@@ -95,7 +95,7 @@ export function PlanCatalog() {
   const adoptMutation = useMutation({
     mutationFn: async (plan: GlobalStudyCard) => await studyAdoptSS(plan.slug, bibleId || undefined),
     onSuccess: (result, plan) => {
-      posthog.capture("global_study_adopted", { slug: plan.slug, kind: plan.kind, created: result.created });
+      track("global_study_adopted", { slug: plan.slug, kind: plan.kind, created: result.created });
       queryClient.invalidateQueries({ queryKey: ["globalStudies"] });
       queryClient.invalidateQueries({ queryKey: ["studies"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
@@ -218,7 +218,9 @@ export function PlanCatalog() {
               setBibleId(value);
               // An explicit pick is the strongest signal we get about which
               // translation this reader wants, here as in the create form.
-              void userSetDefaultBibleSS(value);
+              void userSetDefaultBibleSS(value).then(() =>
+                track("default_bible_set", { bibleId: value, source: "plan_catalog" })
+              );
             }}
             disabled={biblesLoading}
             isLoading={biblesLoading}

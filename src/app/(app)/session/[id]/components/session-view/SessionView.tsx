@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import posthog from "posthog-js";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { track } from "@/lib/analytics";
 import { chapterGetByCanonicalRefSS } from "@/app/common/chapter/service/chapterGetByCanonicalRefSS";
 import { bookGetByAbbreviationAndBibleIdSS } from "@/app/common/book/service/server/bookGetByAbbreviationAndBibleIdSS";
 import { sessionUpdateCurrentStepSS } from "@/app/common/session/service/sessionUpdateCurrentStepSS";
@@ -215,7 +215,16 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
   // Mutation to save step completion
   const saveCompletionMutation = useMutation({
     mutationFn: sessionStepCompletionCreateSS,
-    onSuccess: () => {
+    onSuccess: (_, completion) => {
+      const stepIndex = steps.findIndex((step) => step.id === completion.stepId);
+      track("step_completed", {
+        sessionId: completion.sessionId,
+        stepId: completion.stepId,
+        mode: completion.mode,
+        stepKind: steps[stepIndex]?.kind,
+        stepIndex,
+        isFirstStep: stepIndex === 0,
+      });
       queryClient.invalidateQueries({ queryKey: ["stepCompletions", initialSession.id] });
       void recordActivity("study");
       toast.success(t("toast.stepCompleted"));
@@ -233,15 +242,6 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
       const mode: StudyMode = isScriptureStep ? currentMode : "done";
       // Optimistic update via context
       markStepCompleted(currentStep.id, mode);
-
-      posthog.capture("step_completed", {
-        sessionId: initialSession.id,
-        stepId: currentStep.id,
-        mode,
-        stepKind: currentStep.kind,
-        stepIndex: currentStepIndex,
-        isFirstStep: currentStepIndex === 0,
-      });
 
       // Persist to DB
       const saved = saveCompletionMutation.mutateAsync({
@@ -283,13 +283,12 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
     // step's has to be written before the session is finished.
     await handleCompleteChapter();
 
-    posthog.capture("session_completed", {
-      sessionId: initialSession.id,
-      studyId: initialSession.study?.id,
-    });
-
     try {
       const res = await sessionFinishSS(initialSession.id);
+      track("session_completed", {
+        sessionId: initialSession.id,
+        studyId: initialSession.study?.id,
+      });
       if (res.summary) {
         setSummary(res.summary);
         return;

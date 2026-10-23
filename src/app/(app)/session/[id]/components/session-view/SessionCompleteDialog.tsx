@@ -142,7 +142,7 @@ export function SessionCompleteDialog({
 					)}
 
 					<div className="flex flex-wrap items-center gap-2 border-t pt-4">
-						<ShareStoryButton kind="session" sessionId={summary.sessionId} />
+						<ShareStoryButton kind="session" source="session_complete" sessionId={summary.sessionId} />
 						<Button asChild variant="ghost" size="sm">
 							<Link href="/journey">{tj("title")}</Link>
 						</Button>

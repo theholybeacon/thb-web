@@ -11,6 +11,7 @@ import { AppShell } from "@/components/app";
 import { Users, Heart, Globe, MessageCircle, Gift, Crown, Check, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import { membershipRequestGetAllPendingSS } from "@/app/common/membershipRequest/service/server/membershipRequestGetAllPendingSS";
 import { membershipRequestGetPendingByRequesterIdSS } from "@/app/common/membershipRequest/service/server/membershipRequestGetPendingByRequesterIdSS";
 import { membershipRequestCreateSS } from "@/app/common/membershipRequest/service/server/membershipRequestCreateSS";
@@ -65,6 +66,7 @@ export default function SponsorshipPage() {
 			queryClient.invalidateQueries({ queryKey: ["membershipRequests"] });
 			queryClient.invalidateQueries({ queryKey: ["membershipRequest", "mine"] });
 			setMessage("");
+			track("sponsorship_requested");
 			toast.success(t("requestSubmitted"));
 		},
 		onError: () => {
@@ -80,6 +82,7 @@ export default function SponsorshipPage() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["membershipRequests"] });
 			queryClient.invalidateQueries({ queryKey: ["membershipRequest", "mine"] });
+			track("sponsorship_request_cancelled");
 			toast.success(t("requestCanceled"));
 		},
 		onError: () => {
@@ -102,6 +105,7 @@ export default function SponsorshipPage() {
 			});
 			const data = await response.json();
 			if (data.url) {
+				track("gift_checkout_started", { source: "sponsorship", billingInterval: "year", recipient: "queue" });
 				window.location.href = data.url;
 			}
 		} catch (error) {

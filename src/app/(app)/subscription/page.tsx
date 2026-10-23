@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import posthog from "posthog-js";
+import { track } from "@/lib/analytics";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -120,6 +120,7 @@ export default function SubscriptionPage() {
 			});
 			const data = await response.json();
 			if (data.url) {
+				track("billing_portal_opened", { source: "subscription_page" });
 				window.location.href = data.url;
 			}
 		} catch (error) {
@@ -131,7 +132,7 @@ export default function SubscriptionPage() {
 
 	const handleSubscribe = async () => {
 		if (!selectedPrice) return;
-		posthog.capture("checkout_started", { source: "subscription_page" });
+		track("checkout_started", { billingInterval, source: "subscription_page" });
 		setIsLoadingCheckout(true);
 		try {
 			const response = await fetch("/api/stripe/checkout", {

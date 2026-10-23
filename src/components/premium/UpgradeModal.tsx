@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import posthog from "posthog-js";
+import { track } from "@/lib/analytics";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useLocale, useTranslations } from "next-intl";
@@ -44,7 +44,7 @@ export function UpgradeModal({ open, onOpenChange, inline = false }: UpgradeModa
 			router.push("/sign-in");
 			return;
 		}
-		posthog.capture("checkout_started", { billingInterval, source: "upgrade_modal" });
+		track("checkout_started", { billingInterval, source: "upgrade_modal" });
 		setIsLoading(true);
 		try {
 			const response = await fetch("/api/stripe/checkout", {

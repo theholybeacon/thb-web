@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
-import posthog from "posthog-js";
+import { track } from "@/lib/analytics";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { UpgradeModal } from "./UpgradeModal";
 
@@ -15,7 +15,7 @@ export function PremiumGate({ children, fallback }: PremiumGateProps) {
 
 	useEffect(() => {
 		if (!loading && user && !isPremium) {
-			posthog.capture("paywall_shown");
+			track("paywall_shown");
 		}
 	}, [loading, user, isPremium]);
 

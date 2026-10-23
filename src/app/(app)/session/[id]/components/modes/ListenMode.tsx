@@ -22,6 +22,7 @@ import {
 import { cacheAudio, isAudioCached } from "@/lib/audioCache";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 
 interface ListenModeProps {
 	verses: Verse[];
@@ -209,6 +210,7 @@ export function ListenMode({
 		try {
 			await cacheAudio(player.track.url);
 			setDownloaded(true);
+			track("audio_downloaded");
 			toast.success(t("audio.downloaded"));
 		} catch {
 			toast.error(t("audio.downloadFailed"));
@@ -331,7 +333,10 @@ export function ListenMode({
 					<Button
 						size="lg"
 						className="h-14 w-14 rounded-full"
-						onClick={() => void player.toggle()}
+						onClick={() => {
+							if (player.status !== "playing") track("audio_played", { source: "listen_mode", bibleId });
+							void player.toggle();
+						}}
 						disabled={busy || player.queue.length === 0}
 					>
 						{busy ? (

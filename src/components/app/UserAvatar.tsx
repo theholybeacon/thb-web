@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User, Moon, Sun, Crown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 
 interface UserAvatarProps {
   size?: "sm" | "md" | "lg";
@@ -56,7 +57,9 @@ export function UserAvatar({ size = "md", showDropdown = true }: UserAvatarProps
   };
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    track("theme_changed", { theme: next });
   };
 
   const avatarContent = (
@@ -73,6 +76,8 @@ export function UserAvatar({ size = "md", showDropdown = true }: UserAvatarProps
   }
 
   const handleSignOut = async () => {
+    // Before signOut: LoggedUserContext resets PostHog once the session is gone.
+    track("logged_out");
     await signOut();
     toast.success(t("signOut"));
     router.push("/");

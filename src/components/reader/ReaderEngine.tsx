@@ -29,6 +29,7 @@ import { ChapterCompleteButton } from "./progress/ChapterCompleteButton";
 import { useTextSelection } from "./selection/useTextSelection";
 import { scrollVerseAnchorToTop } from "./scrollToVerse";
 import { isShortRange, parseVerseHash, toVerseRange, type VerseRange } from "./verseHighlight";
+import { track } from "@/lib/analytics";
 
 export type ReaderMode = "read" | "type" | "listen";
 
@@ -420,7 +421,11 @@ export function ReaderEngine({
 									size="sm"
 									className={cn("h-8 px-3", mode === m.id && "bg-background shadow-sm")}
 									aria-pressed={mode === m.id}
-									onClick={() => onModeChange(m.id)}
+									onClick={() => {
+										if (m.id === mode) return;
+										onModeChange(m.id);
+										track("reading_mode_changed", { mode: m.id });
+									}}
 								>
 									<m.icon className="h-4 w-4 mr-1.5" />
 									<span className="hidden sm:inline">{t(m.labelKey)}</span>

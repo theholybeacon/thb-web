@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import { contributionCreateSS } from "@/app/common/community/service/server/contributionCreateSS";
 import type { ContributionKind, ContributionTarget } from "@/app/common/community/model/Community";
 import { useCommunity } from "./CommunityContext";
@@ -49,6 +50,7 @@ export function AddContributionForm({
 		const res = await contributionCreateSS({ target, kind, body });
 		setBusy(false);
 		if (res.ok) {
+			track("contribution_posted", { kind, on: target.kind });
 			setBody("");
 			toast.success("Contribution posted");
 			onDone?.();

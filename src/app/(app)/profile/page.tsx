@@ -24,6 +24,7 @@ import { normalizeUsername } from "@/lib/username";
 import { User, Mail, Globe, Camera, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 
 // Common countries with ISO codes
 const COUNTRIES = [
@@ -92,6 +93,11 @@ export default function ProfilePage() {
 	const updateMutation = useMutation({
 		mutationFn: async () => {
 			if (!user?.id) throw new Error("User not found");
+			const changes = {
+				changedName: name !== user.name,
+				changedUsername: username !== user.username,
+				changedCountry: country !== (user.country || ""),
+			};
 
 			// Clerk first: it owns handle uniqueness across the whole instance, and
 			// sign-up writes the same value there. Letting the DB win here would
@@ -116,9 +122,10 @@ export default function ProfilePage() {
 				country,
 			});
 			if (!result.ok) throw new Error(result.error);
-			return result.user;
+			return changes;
 		},
-		onSuccess: () => {
+		onSuccess: (changes) => {
+			track("profile_updated", changes);
 			reload?.();
 			queryClient.invalidateQueries({ queryKey: ["user"] });
 			toast.success(t("toast.saved"));
@@ -168,6 +175,7 @@ export default function ProfilePage() {
 
 			const data = await response.json();
 			setProfilePicture(data.url);
+			track("avatar_uploaded");
 			toast.success(t("toast.updated"));
 		} catch (error) {
 			console.error("Upload error:", error);

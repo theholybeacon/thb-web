@@ -13,6 +13,8 @@ import { subscriptionGetByUserIdSS } from '../common/subscription/service/server
 import { isPremiumUser } from '@/lib/premium';
 import { captureTimezone } from '@/lib/activityClient';
 import posthog from 'posthog-js';
+import { track } from '@/lib/analytics';
+import { consumeGoogleLoginPending, trackLoginSuccess } from '@/app/auth/lib/loginTelemetry';
 
 const LoggedUserContext = createContext<LoggedUserContextType>({
   user: null,
@@ -42,7 +44,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
     if (clerkUser) {
       setState(prev => ({ ...prev, loading: true }));
       try {
-        const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
+        const { user: dbUser } = await fetchOrCreateUser(clerkUser.id, clerkUser);
         const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser);
         setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
         localStorage.setItem('user', JSON.stringify(dbUser));
@@ -85,12 +87,20 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
         syncInProgress.current = true;
         setState(prev => ({ ...prev, loading: true }));
         try {
-          const dbUser = await fetchOrCreateUser(clerkUser.id, clerkUser);
+          const { user: dbUser, created } = await fetchOrCreateUser(clerkUser.id, clerkUser);
           const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser);
           setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
           localStorage.setItem('user', JSON.stringify(dbUser));
           localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
           posthog.identify(dbUser.id, { email: dbUser.email, name: dbUser.name });
+          // After identify, so these land on the person rather than the anonymous id.
+          const googleRoundTrip = consumeGoogleLoginPending();
+          if (created) {
+            const viaGoogle = clerkUser.externalAccounts?.some((account) => account.provider.includes('google'));
+            track('signed_up', { method: viaGoogle ? 'google' : 'password' });
+          } else if (googleRoundTrip) {
+            trackLoginSuccess('google');
+          }
           // Needed by the daily email cron to resolve this user's local day.
           void captureTimezone();
         } catch (error) {
@@ -166,11 +176,12 @@ async function pickAvailableUsername(base: string): Promise<string> {
   return `${base}-${Date.now().toString(36)}`;
 }
 
-async function fetchOrCreateUser(clerkUserId: string, clerkUser: ClerkUserData): Promise<User> {
+/** `created` is true only when this call inserted the user row: their first sign-in ever. */
+async function fetchOrCreateUser(clerkUserId: string, clerkUser: ClerkUserData): Promise<{ user: User; created: boolean }> {
   // First, try to find user by authId
   try {
     const existingUser = await userGetByAuthIdSS(clerkUserId);
-    return existingUser;
+    return { user: existingUser, created: false };
   } catch {
     // User not found by authId, try by email
   }
@@ -190,7 +201,7 @@ async function fetchOrCreateUser(clerkUserId: string, clerkUser: ClerkUserData):
       // User exists with this email, update their authId to link with Clerk
       const updatedUser = { ...userByEmail, authId: clerkUserId };
       await userUpdateSS(updatedUser);
-      return updatedUser;
+      return { user: updatedUser, created: false };
     }
   }
 
@@ -203,7 +214,5 @@ async function fetchOrCreateUser(clerkUserId: string, clerkUser: ClerkUserData):
     isEmailVerified: true, // Clerk handles email verification
   });
 
-  posthog.capture('signed_up');
-
-  return newUser;
+  return { user: newUser, created: true };
 }

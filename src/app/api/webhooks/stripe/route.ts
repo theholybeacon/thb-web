@@ -8,9 +8,22 @@ import { GiftSubscriptionRepository } from "@/app/common/giftSubscription/reposi
 import { MembershipRequestRepository } from "@/app/common/membershipRequest/repository/MembershipRequestRepository";
 import { logger } from "@/app/utils/logger";
 import { sendGiftReceivedEmail, sendSponsorshipFulfilledEmail } from "@/lib/email";
-import { getPostHogServer } from "@/lib/posthog-server";
+import { trackServerEvent } from "@/lib/posthog-server";
 
 const log = logger.child({ module: "StripeWebhook" });
+
+/*
+ * PostHog events sent from here, the authoritative record of money changing
+ * hands (the browser can't be trusted to report these, and often isn't open).
+ * The distinct id is always the database user id, the same one the browser
+ * identifies with:
+ *   trial_started / subscription_activated  a subscription was created
+ *   gift_purchased                          someone paid for a gift or a sponsorship (the gifter)
+ *   subscription_cancel_scheduled           cancel at period end turned on in the billing portal
+ *   subscription_cancel_reverted            ...and turned off again
+ *   subscription_canceled                   the subscription ended
+ *   payment_failed                          a renewal payment failed
+ */
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -43,7 +56,10 @@ export async function POST(request: NextRequest) {
 				await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
 				break;
 			case "customer.subscription.updated":
-				await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+				await handleSubscriptionUpdated(
+					event.data.object as Stripe.Subscription,
+					event.data.previous_attributes as Partial<Stripe.Subscription> | undefined
+				);
 				break;
 			case "customer.subscription.deleted":
 				await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
@@ -178,6 +194,11 @@ async function handleGiftCheckout(
 		}
 	}
 
+	await trackServerEvent(gifterId, "gift_purchased", {
+		billingInterval,
+		recipient: membershipRequestId ? "queue" : recipientEmail ? "email" : "link",
+	});
+
 	log.info({ giftRecordId: giftRecord.id }, "handleGiftCheckout finished");
 }
 
@@ -281,22 +302,18 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 	log.info({ userId, subscriptionId: subscription.id }, "Upserted subscription record");
 
 	// Authoritative funnel event (server-side truth, not spoofable by the client).
-	const posthog = getPostHogServer();
-	if (posthog) {
-		posthog.capture({
-			distinctId: userId,
-			event: subscription.status === "trialing" ? "trial_started" : "subscription_activated",
-			properties: {
-				status: subscription.status,
-				billingInterval: interval,
-				stripeSubscriptionId: subscription.id,
-			},
-		});
-		await posthog.shutdown();
-	}
+	await trackServerEvent(userId, subscription.status === "trialing" ? "trial_started" : "subscription_activated", {
+		status: subscription.status,
+		billingInterval: interval,
+		stripeSubscriptionId: subscription.id,
+		gifted: Boolean(gifterId),
+	});
 }
 
-async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+async function handleSubscriptionUpdated(
+	subscription: Stripe.Subscription,
+	previous: Partial<Stripe.Subscription> | undefined
+) {
 	log.info({ subscriptionId: subscription.id }, "Handling customer.subscription.updated");
 
 	const subscriptionRepository = new SubscriptionRepository();
@@ -314,6 +331,18 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 	});
 
 	log.info({ subscriptionId: subscription.id }, "Updated subscription record");
+
+	// Only when this update flipped it, not on every renewal or status change.
+	if (previous && "cancel_at_period_end" in previous) {
+		const userId = await userIdForSubscription(subscription.id, subscription.metadata?.userId);
+		if (userId) {
+			await trackServerEvent(
+				userId,
+				subscription.cancel_at_period_end ? "subscription_cancel_scheduled" : "subscription_cancel_reverted",
+				{ billingInterval: interval, stripeSubscriptionId: subscription.id }
+			);
+		}
+	}
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -327,6 +356,15 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 	});
 
 	log.info({ subscriptionId: subscription.id }, "Marked subscription as canceled");
+
+	const userId = await userIdForSubscription(subscription.id, subscription.metadata?.userId);
+	if (userId) {
+		await trackServerEvent(userId, "subscription_canceled", {
+			stripeSubscriptionId: subscription.id,
+			// Ended while still on the free trial, so it never became a paid one.
+			duringTrial: Boolean(subscription.trial_end && subscription.ended_at && subscription.ended_at <= subscription.trial_end),
+		});
+	}
 }
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
@@ -343,6 +381,21 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 	});
 
 	log.info({ subscriptionId }, "Marked subscription as past_due");
+
+	const userId = await userIdForSubscription(subscriptionId);
+	if (userId) {
+		await trackServerEvent(userId, "payment_failed", {
+			stripeSubscriptionId: subscriptionId,
+			attemptCount: invoice.attempt_count,
+		});
+	}
+}
+
+/** The database user a Stripe subscription belongs to: from its metadata, else our record of it. */
+async function userIdForSubscription(stripeSubscriptionId: string, metadataUserId?: string): Promise<string | null> {
+	if (metadataUserId) return metadataUserId;
+	const record = await new SubscriptionRepository().getByStripeSubscriptionId(stripeSubscriptionId);
+	return record?.userId ?? null;
 }
 
 function mapStripeStatus(

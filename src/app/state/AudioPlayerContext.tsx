@@ -12,6 +12,7 @@ import {
 } from "react";
 import { AudioAsset, AudioSegment, AudioTrack, AudioVoice, DEFAULT_VOICE, resolveVoice } from "@/app/common/audio/model/AudioAsset";
 import { getCachedAudioUrl } from "@/lib/audioCache";
+import { track as trackEvent } from "@/lib/analytics";
 
 export type AudioStatus =
 	| "idle"
@@ -502,7 +503,7 @@ async function onTrackComplete(track: AudioTrack, timeSpentSeconds: number) {
 				import("@/app/common/completion/service/server/chapterCompletionRecordSS"),
 				import("@/lib/activityClient"),
 			]);
-			await chapterCompletionRecordSS({
+			const res = await chapterCompletionRecordSS({
 				bookAbbreviation: track.bookAbbreviation,
 				chapter: track.chapterNumber,
 				mode: "listen",
@@ -510,6 +511,17 @@ async function onTrackComplete(track: AudioTrack, timeSpentSeconds: number) {
 				secondsSpent: timeSpentSeconds,
 				localDate: localDateString(),
 			});
+			if (res.lap > 0) {
+				trackEvent("chapter_completed", {
+					bookAbbreviation: track.bookAbbreviation,
+					chapter: track.chapterNumber,
+					bibleId: track.bibleId ?? undefined,
+					method: "listen",
+					lap: res.lap,
+				});
+			}
+			for (const badge of res.newBadges) trackEvent("badge_earned", { badge, scope: "all" });
+			for (const badge of res.newBibleBadges) trackEvent("badge_earned", { badge, scope: "bible" });
 		} catch {
 			// Never let a stats write break playback.
 		}
@@ -526,6 +538,7 @@ async function onTrackComplete(track: AudioTrack, timeSpentSeconds: number) {
 			mode: "listen",
 			timeSpentSeconds,
 		});
+
 	} catch {
 		// Never let a stats write break playback.
 	}

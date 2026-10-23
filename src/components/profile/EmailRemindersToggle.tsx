@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { userSetEmailRemindersSS } from "@/app/common/user/service/server/userSetEmailRemindersSS";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 
 /**
  * In-app opt-out for the daily reminder emails. The other way out is the
@@ -31,6 +32,7 @@ export function EmailRemindersToggle() {
 		},
 		onSuccess: (next) => {
 			setEnabled(next);
+			track("email_reminders_toggled", { enabled: next });
 			reload?.();
 			toast.success(t("toast.saved"));
 		},

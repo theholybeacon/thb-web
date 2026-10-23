@@ -45,7 +45,12 @@
       "additionalVerification": "Verificación adicional requerida",
       "passwordResetRequired": "Por tu seguridad, debes restablecer esta contraseña: apareció en una filtración de datos conocida.",
       "resetPassword": "Restablecer tu contraseña",
-      "captchaFailed": "No pudimos verificar que eres humano. Inténtalo de nuevo o desactiva los bloqueadores de anuncios para este sitio."
+      "captchaFailed": "No pudimos verificar que eres humano. Inténtalo de nuevo o desactiva los bloqueadores de anuncios para este sitio.",
+      "networkError": "No pudimos conectar con el servicio de inicio de sesión. Revisa tu conexión e inténtalo de nuevo.",
+      "somethingWentWrong": "Algo salió mal al iniciar sesión. Inténtalo de nuevo.",
+      "googleFailed": "El inicio de sesión con Google no terminó. Inténtalo de nuevo.",
+      "clerkUnavailable": "El inicio de sesión no está cargando. Revisa tu conexión o desactiva los bloqueadores de anuncios para este sitio y recarga.",
+      "reload": "Recargar la página"
     },
     "signUp": {
       "title": "Crea tu cuenta",
@@ -1157,5 +1162,12 @@
     "comingSoon": "Estamos terminando este documento. El texto completo se publicará aquí en breve.",
     "questions": "Mientras tanto,",
     "backHome": "vuelve a la página de inicio."
+  },
+  "errorPage": {
+    "title": "Algo salió mal",
+    "body": "Ya recibimos el aviso y lo revisaremos. Inténtalo de nuevo o vuelve al inicio.",
+    "retry": "Intentar de nuevo",
+    "home": "Ir al inicio",
+    "reference": "Referencia del error"
   }
 }

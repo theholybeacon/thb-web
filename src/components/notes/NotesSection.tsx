@@ -10,6 +10,7 @@ import { noteCreateSS } from "@/app/common/note/service/server/noteCreateSS";
 import { noteUpdateSS } from "@/app/common/note/service/server/noteUpdateSS";
 import { noteDeleteSS } from "@/app/common/note/service/server/noteDeleteSS";
 import { Button } from "@/components/ui/button";
+import { track } from "@/lib/analytics";
 import {
   Select,
   SelectContent,
@@ -128,6 +129,7 @@ export function NotesSection({
         title: values.title,
         content: values.content,
       });
+      track("note_created", { source: "reader", scope });
       setComposing(false);
       toast.success(t("noteSaved"));
       onChanged();
@@ -144,6 +146,7 @@ export function NotesSection({
     setSaving(true);
     try {
       await noteUpdateSS({ id: editingNote.id, title: values.title, content: values.content });
+      track("note_updated", { source: "reader" });
       setEditingNote(null);
       toast.success(t("noteSaved"));
       onChanged();
@@ -160,6 +163,7 @@ export function NotesSection({
     setDeleting(true);
     try {
       await noteDeleteSS(noteToDelete.id);
+      track("note_deleted", { source: "reader" });
       setNoteToDelete(null);
       toast.success(t("noteDeleted"));
       onChanged();

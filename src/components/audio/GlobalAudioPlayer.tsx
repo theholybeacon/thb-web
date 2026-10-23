@@ -7,6 +7,7 @@ import { Play, Pause, SkipBack, SkipForward, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAudioPlayer } from "@/app/state/AudioPlayerContext";
 import { cn } from "@/lib/utils";
+import { track as trackEvent } from "@/lib/analytics";
 
 /**
  * Wires the player into the OS, and shows a mini-player when the user navigates
@@ -125,7 +126,15 @@ export function GlobalAudioPlayer() {
 					<SkipBack className="h-4 w-4" />
 				</Button>
 
-				<Button size="icon" className="rounded-full" onClick={() => void player.toggle()} disabled={busy}>
+				<Button
+					size="icon"
+					className="rounded-full"
+					onClick={() => {
+						if (status !== "playing") trackEvent("audio_played", { source: "global_player", bibleId: track?.bibleId });
+						void player.toggle();
+					}}
+					disabled={busy}
+				>
 					{busy ? (
 						<Loader2 className="h-4 w-4 animate-spin" />
 					) : status === "playing" ? (

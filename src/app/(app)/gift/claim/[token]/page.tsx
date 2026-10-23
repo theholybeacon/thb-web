@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/app";
 import { Gift, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { track } from "@/lib/analytics";
 import { giftSubscriptionGetByClaimTokenSS } from "@/app/common/giftSubscription/service/server/giftSubscriptionGetByClaimTokenSS";
 
 export default function ClaimGiftPage({ params }: { params: Promise<{ token: string }> }) {
@@ -64,6 +65,8 @@ export default function ClaimGiftPage({ params }: { params: Promise<{ token: str
 				setStatus("error");
 				return;
 			}
+
+			track("gift_claimed");
 
 			// Reload user context to get updated subscription status
 			await reload();

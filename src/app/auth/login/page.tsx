@@ -12,6 +12,10 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { AuthSidePanel } from "../components/AuthSidePanel";
 import { toast } from "@/lib/toast";
 import { activateAndGo, safeRedirect } from "../lib/finishAuth";
+import { clerkErrorOf, markGoogleLoginPending, trackLoginAttempt, trackLoginFailure, trackLoginSuccess } from "../lib/loginTelemetry";
+
+// How long Clerk gets to load before the page says sign-in is unavailable.
+const CLERK_LOAD_TIMEOUT_MS = 10_000;
 
 export default function LoginPage() {
   const t = useTranslations("auth.login");
@@ -27,11 +31,32 @@ export default function LoginPage() {
   // Set when the account can only continue through a password reset (breached
   // password, or Clerk asking for a new one) — the form shows a shortcut to it.
   const [needsReset, setNeedsReset] = useState(false);
+  // Clerk never loaded (blocked script, outage, bad network): the form can't work.
+  const [clerkUnavailable, setClerkUnavailable] = useState(false);
 
   // Already signed in: skip the form instead of failing with session_exists.
   useEffect(() => {
     if (isSignedIn) router.replace(safeRedirect());
   }, [isSignedIn, router]);
+
+  useEffect(() => {
+    if (isLoaded) {
+      setClerkUnavailable(false);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setClerkUnavailable(true);
+      trackLoginFailure({ stage: "clerk_load", reason: "clerk_not_loaded" });
+    }, CLERK_LOAD_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [isLoaded]);
+
+  // The SSO callback sends people back here when Google sign-in didn't finish.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("error") === "google") {
+      setError(t("googleFailed"));
+    }
+  }, [t]);
 
   const showError = (message: string) => {
     toast.error(message);
@@ -45,50 +70,79 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
     setNeedsReset(false);
+    trackLoginAttempt("password");
 
+    let result: Awaited<ReturnType<typeof signIn.create>>;
     try {
-      const result = await signIn.create({
+      result = await signIn.create({
         identifier: email,
         password,
       });
-
-      if (result.status === "complete") {
-        toast.success(t("welcomeBack"));
-        await activateAndGo(setActive, result.createdSessionId, router);
-      } else if (result.status === "needs_new_password") {
-        setNeedsReset(true);
-        showError(t("passwordResetRequired"));
-      } else {
-        // needs_first_factor / needs_second_factor: MFA and passwordless
-        // factors are off for this instance, so this is only a guard.
-        toast.warning(t("additionalVerification"));
-        setError(t("additionalVerification"));
-      }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
-      const first = clerkError.errors?.[0];
-      if (first?.code === "form_password_incorrect" || first?.code === "form_identifier_not_found") {
+      setIsLoading(false);
+      const first = clerkErrorOf(err);
+      if (first?.code === "session_exists") {
+        router.replace(safeRedirect());
+        return;
+      }
+      trackLoginFailure({ method: "password", stage: "credentials", reason: first?.code ?? "network_error", error: err });
+      if (!first) {
+        // Not an answer from Clerk: the request never got through.
+        showError(t("networkError"));
+      } else if (first.code === "form_password_incorrect" || first.code === "form_identifier_not_found") {
         showError(t("invalidCredentials"));
-      } else if (first?.code === "form_password_pwned") {
+      } else if (first.code === "form_password_pwned") {
         // Production enforces breached-password checks on sign-in too; the only
         // way forward for this account is a reset.
         setNeedsReset(true);
         showError(t("passwordResetRequired"));
-      } else if (first?.code === "session_exists") {
-        router.replace(safeRedirect());
-      } else if (first?.code?.startsWith("captcha_")) {
+      } else if (first.code.startsWith("captcha_")) {
         showError(t("captchaFailed"));
       } else {
-        showError(first?.longMessage || first?.message || t("invalidCredentials"));
+        showError(first.message || t("somethingWentWrong"));
       }
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    if (result.status === "complete") {
+      try {
+        await activateAndGo(setActive, result.createdSessionId, router);
+        trackLoginSuccess("password");
+        toast.success(t("welcomeBack"));
+      } catch (err) {
+        // The password was right but the session wouldn't start.
+        trackLoginFailure({
+          method: "password",
+          stage: "activate_session",
+          reason: clerkErrorOf(err)?.code ?? "activate_failed",
+          error: err,
+        });
+        showError(t("somethingWentWrong"));
+      }
+    } else if (result.status === "needs_new_password") {
+      trackLoginFailure({ method: "password", stage: "credentials", reason: "needs_new_password" });
+      setNeedsReset(true);
+      showError(t("passwordResetRequired"));
+    } else if (result.status === "needs_first_factor" || result.status === "needs_second_factor") {
+      // MFA and passwordless factors are off for this instance, so this is
+      // only a guard.
+      trackLoginFailure({ method: "password", stage: "credentials", reason: result.status });
+      toast.warning(t("additionalVerification"));
+      setError(t("additionalVerification"));
+    } else {
+      // No status at all: clerk-js swallows a failed request and hands back the
+      // empty sign-in, so the request never got through.
+      trackLoginFailure({ method: "password", stage: "credentials", reason: result.status ?? "no_response" });
+      showError(t("networkError"));
+    }
+    setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
     if (!isLoaded) return;
 
+    trackLoginAttempt("google");
+    markGoogleLoginPending();
     try {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
@@ -96,8 +150,13 @@ export default function LoginPage() {
         redirectUrlComplete: safeRedirect(),
       });
     } catch (err) {
-      console.error("Google sign in error:", err);
-      toast.error(t("invalidCredentials"));
+      trackLoginFailure({
+        method: "google",
+        stage: "google_redirect",
+        reason: clerkErrorOf(err)?.code ?? "redirect_failed",
+        error: err,
+      });
+      showError(t("googleFailed"));
     }
   };
 
@@ -169,8 +228,20 @@ export default function LoginPage() {
 
           {/* Email/Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {clerkUnavailable && (
+              <div role="alert" className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+                {t("clerkUnavailable")}
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="mt-2 block font-medium text-primary hover:text-primary/80"
+                >
+                  {t("reload")}
+                </button>
+              </div>
+            )}
             {error && (
-              <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+              <div role="alert" className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
                 {error}
                 {needsReset && (
                   <Link

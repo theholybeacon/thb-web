@@ -13,6 +13,7 @@ import { dailyVerseGetSS } from "@/app/common/dailyVerse/service/server/dailyVer
 import { localDateString } from "@/lib/activityClient";
 import { verseHash } from "@/components/reader/verseHighlight";
 import { JourneyHomeCard } from "@/components/journey/JourneyHomeCard";
+import { track } from "@/lib/analytics";
 
 /** Streak counter + verse-of-the-day, the daily reason to open the app. */
 export function DailyHomeWidget() {
@@ -48,6 +49,7 @@ export function DailyHomeWidget() {
 		try {
 			const res = await recordDailyActivitySS(today, "verse");
 			if (res.ok) {
+				track("verse_of_the_day_read");
 				if (typeof window !== "undefined") localStorage.setItem("thb_activity_date", today);
 				await queryClient.invalidateQueries({ queryKey: ["streak", today] });
 			}

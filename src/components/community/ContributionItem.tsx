@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import type { ContributionFull } from "@/app/common/community/model/Community";
 import { commentCreateSS } from "@/app/common/community/service/server/commentCreateSS";
 import { communityFlagSS } from "@/app/common/community/service/server/communityFlagSS";
@@ -38,6 +39,7 @@ export function ContributionItem({
 		const res = await commentCreateSS({ contributionId: contribution.id, body: text });
 		setBusy(false);
 		if (res.ok) {
+			track("comment_posted", { isReply: false });
 			setText("");
 			setCommenting(false);
 			toast.success("Comment posted");
@@ -50,8 +52,10 @@ export function ContributionItem({
 	const flag = async () => {
 		if (!requirePremium()) return;
 		const res = await communityFlagSS("contribution", contribution.id);
-		if (res.ok) toast.success("Thanks — we'll review this.");
-		else toast.error("Could not report");
+		if (res.ok) {
+			track("community_flagged", { targetType: "contribution" });
+			toast.success("Thanks — we'll review this.");
+		} else toast.error("Could not report");
 	};
 
 	if (!show) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { dictionaryLookupSS } from "@/app/common/dictionary/service/server/dictionaryLookupSS";
@@ -9,6 +9,7 @@ import type { DictionaryLookupResult } from "@/app/common/dictionary/model/Dicti
 import type { AlignmentLookupResult, AlignedOriginal } from "@/app/common/alignment/model/Alignment";
 import type { ReaderSelection } from "@/components/reader/selection/useTextSelection";
 import { DEFINITION_LANGUAGES, type DefinitionLanguage, defaultDefinitionLanguage } from "@/lib/dictionaryLanguage";
+import { track } from "@/lib/analytics";
 
 export interface DictionarySectionProps {
 	selection: ReaderSelection | null;
@@ -69,11 +70,15 @@ export function DictionarySection({
 	const [dictionaryLoading, setDictionaryLoading] = useState(false);
 	const [alignmentLoading, setAlignmentLoading] = useState(false);
 	const [showAllVerseWords, setShowAllVerseWords] = useState(false);
+	// The current selection's dictionary lookup, so the alignment effect can
+	// report a word lookup once (definition-language switches don't count).
+	const dictionaryLookup = useRef<Promise<DictionaryLookupResult | null>>(Promise.resolve(null));
 
 	// Separate from the alignment lookup so switching the definition language
 	// does not refetch (and flash) the original-language block.
 	useEffect(() => {
 		if (!selection || !lang) {
+			dictionaryLookup.current = Promise.resolve(null);
 			setDictionary(null);
 			return;
 		}
@@ -81,7 +86,9 @@ export function DictionarySection({
 		let cancelled = false;
 		setDictionaryLoading(true);
 		setDictionary(null);
-		void dictionaryLookupSS(selection.text, lang, definitionLang).then((dict) => {
+		const lookup = dictionaryLookupSS(selection.text, lang, definitionLang);
+		dictionaryLookup.current = lookup;
+		void lookup.then((dict) => {
 			if (cancelled) return;
 			setDictionary(dict);
 			setDictionaryLoading(false);
@@ -100,6 +107,7 @@ export function DictionarySection({
 		setAlignmentLoading(true);
 		setAlignment(null);
 		setShowAllVerseWords(false);
+		const dictionaryLookupForSelection = dictionaryLookup.current;
 
 		const lookupAlignment = () =>
 			bookAbbreviation && chapterNumber
@@ -120,6 +128,17 @@ export function DictionarySection({
 			if (cancelled) return;
 			setAlignment(align);
 			setAlignmentLoading(false);
+			void dictionaryLookupForSelection
+				.catch(() => null)
+				.then((dict) => {
+					if (cancelled) return;
+					track("word_looked_up", {
+						lang: lang ?? undefined,
+						bibleVersion: bibleVersion ?? undefined,
+						foundInDictionary: Boolean(dict),
+						alignmentTier: align?.tier ?? null,
+					});
+				});
 
 			/*
 			 * `loading` means this book is being fetched from Blob right now — the

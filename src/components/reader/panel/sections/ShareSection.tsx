@@ -13,6 +13,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 
 /**
  * What the reader is looking at, in the terms the public /bible routes use.
@@ -128,6 +129,7 @@ export function ShareSection({ context, verses, selectedVerseNumber }: ShareSect
 	const write = async (value: string, kind: "link" | "text") => {
 		try {
 			await navigator.clipboard.writeText(value);
+			track("verse_shared", { method: "copy", what: kind, scope });
 			setCopied(kind);
 			toast.success(kind === "link" ? t("linkCopied") : t("textCopied"));
 			setTimeout(() => setCopied(null), 2000);
@@ -141,6 +143,7 @@ export function ShareSection({ context, verses, selectedVerseNumber }: ShareSect
 		if (typeof navigator !== "undefined" && navigator.share) {
 			try {
 				await navigator.share({ title: reference, text: reference, url });
+				track("verse_shared", { method: "native", what: "link", scope });
 				return;
 			} catch (e) {
 				// A dismissed share sheet is a choice, not a failure — do not then

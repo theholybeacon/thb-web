@@ -6,6 +6,7 @@ import { Check, Link2, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import { userSetPublicProfileSS } from "@/app/common/completion/service/server/userSetPublicProfileSS";
 import { ShareStoryButton } from "@/components/share/ShareStoryButton";
 import { localDateString } from "@/lib/activityClient";
@@ -48,6 +49,7 @@ export function ShareJourney({
 		try {
 			const res = await userSetPublicProfileSS(next);
 			if (!res.ok) throw new Error("failed");
+			track("journey_visibility_changed", { isPublic: next });
 		} catch {
 			setEnabled(previous);
 			toast.error(t("shareDisabled"));
@@ -56,9 +58,11 @@ export function ShareJourney({
 		}
 	};
 
-	const copy = async () => {
+	/** `counted` is false when the share sheet was dismissed: the copy is a fallback, not a share. */
+	const copy = async (counted = true) => {
 		try {
 			await navigator.clipboard.writeText(url);
+			if (counted) track("journey_shared", { method: "copy" });
 			setCopied(true);
 			toast.success(t("shareCopied"));
 			setTimeout(() => setCopied(false), 2000);
@@ -71,9 +75,14 @@ export function ShareJourney({
 		if (typeof navigator !== "undefined" && navigator.share) {
 			try {
 				await navigator.share({ title: t("title"), url });
+				track("journey_shared", { method: "native" });
 				return;
-			} catch {
+			} catch (e) {
 				// User dismissed the sheet, or the browser refused — fall back to copy.
+				if (e instanceof DOMException && e.name === "AbortError") {
+					void copy(false);
+					return;
+				}
 			}
 		}
 		void copy();
@@ -84,7 +93,7 @@ export function ShareJourney({
 			<h2 className="mb-4 font-heading text-lg font-semibold">{t("shareTitle")}</h2>
 
 			<div className="mb-5 flex flex-wrap items-center gap-3 border-b pb-5">
-				<ShareStoryButton kind="journey" bible={scope} date={localDateString()} />
+				<ShareStoryButton kind="journey" source="journey_page" bible={scope} date={localDateString()} />
 				<span className="text-xs text-muted-foreground">{t("shareStoryHint")}</span>
 			</div>
 

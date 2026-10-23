@@ -13,6 +13,8 @@ import { AuthSidePanel } from "../components/AuthSidePanel";
 import { UsernameField, UsernameStatus } from "../components/UsernameField";
 import { toast } from "@/lib/toast";
 import { activateAndGo, safeRedirect } from "../lib/finishAuth";
+import { clerkErrorOf, markGoogleLoginPending } from "../lib/loginTelemetry";
+import { track } from "@/lib/analytics";
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
@@ -97,6 +99,7 @@ export default function SignUpPage() {
 
     setIsLoading(true);
     setError("");
+    track("signup_attempted", { method: "password" });
 
     try {
       // Split name into first and last name
@@ -117,6 +120,7 @@ export default function SignUpPage() {
         strategy: "email_code",
       });
 
+      track("signup_code_sent");
       toast.info(tVerify("subtitle", { email }));
       setVerificationCode("");
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
@@ -124,6 +128,7 @@ export default function SignUpPage() {
     } catch (err: unknown) {
       const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string; meta?: { paramName?: string } }> };
       const first = clerkError.errors?.[0];
+      track("signup_failed", { method: "password", stage: "create", reason: first?.code ?? "network_error" });
       // Both the email and the handle report as form_identifier_exists — only
       // meta.paramName says which one the user actually has to change.
       if (first?.code === "form_identifier_exists" && first.meta?.paramName === "username") {
@@ -157,10 +162,14 @@ export default function SignUpPage() {
       const result = await signUp.attemptEmailAddressVerification({
         code: verificationCode,
       });
+      track("signup_code_verified");
       await continueSignUp(result);
     } catch (err: unknown) {
       const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
       const first = clerkError.errors?.[0];
+      if (first?.code !== "verification_already_verified") {
+        track("signup_failed", { method: "password", stage: "verify_code", reason: first?.code ?? "network_error" });
+      }
       if (first?.code === "form_code_incorrect") {
         showError(tVerify("invalidCode"));
       } else if (first?.code === "verification_expired") {
@@ -215,6 +224,7 @@ export default function SignUpPage() {
     try {
       const result = await signUp.update({ username });
       if (result.status === "complete" || !result.missingFields.includes("username")) {
+        track("username_chosen", { source: "sign_up" });
         await continueSignUp(result);
       } else {
         showError(tCommon("error"));
@@ -222,6 +232,7 @@ export default function SignUpPage() {
     } catch (err: unknown) {
       const clerkError = err as { errors?: Array<{ code: string; message: string; longMessage?: string }> };
       const first = clerkError.errors?.[0];
+      track("signup_failed", { method: "password", stage: "username", reason: first?.code ?? "network_error" });
       showError(first?.code === "form_identifier_exists" ? tUsername("taken") : (first?.longMessage || first?.message || tCommon("error")));
     } finally {
       setIsLoading(false);
@@ -231,6 +242,9 @@ export default function SignUpPage() {
   const handleGoogleSignUp = async () => {
     if (!isLoaded) return;
 
+    track("signup_attempted", { method: "google" });
+    // Clerk turns this into a sign-in when the Google account already has one.
+    markGoogleLoginPending();
     try {
       await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
@@ -239,6 +253,7 @@ export default function SignUpPage() {
       });
     } catch (err) {
       console.error("Google sign up error:", err);
+      track("signup_failed", { method: "google", stage: "google_redirect", reason: clerkErrorOf(err)?.code ?? "redirect_failed" });
       toast.error(tCommon("error"));
     }
   };

@@ -5,12 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import posthog from "posthog-js";
 import { ArrowLeft, ArrowUp, Check, CheckCircle2, Circle, Hand, History, Loader2, MessageSquarePlus, RotateCcw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BibleSelector } from "@/components/app";
 import { toast } from "@/lib/toast";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { bibleGetAllSS } from "@/app/common/bible/service/bibleGetAllSS";
@@ -182,7 +182,7 @@ export function StudyBuilder({ studyId: editStudyId }: { studyId?: string }) {
 		try {
 			const conversationId = await builder.ensureSaved();
 			const { studyId } = await studyBuilderCreateStudySS(conversationId, bibleId, draft);
-			posthog.capture("study_created", { source: mode === "manual" ? "builder_manual" : "builder", length: draft.length, depth: draft.depth, steps: draft.steps.length });
+			track("study_created", { studyId, source: mode === "manual" ? "builder_manual" : "builder", length: draft.length, depth: draft.depth, steps: draft.steps.length });
 			toast.success(t("created"));
 			void queryClient.invalidateQueries({ queryKey: ["studyBuilderConversations"] });
 			void queryClient.invalidateQueries({ queryKey: ["studies"] });
@@ -199,7 +199,7 @@ export function StudyBuilder({ studyId: editStudyId }: { studyId?: string }) {
 		try {
 			const conversationId = await builder.ensureSaved();
 			await studyBuilderSaveStudySS(conversationId, bibleId, draft);
-			posthog.capture("study_edited", { mode, steps: draft.steps.length });
+			track("study_edited", { studyId: editStudyId, mode, steps: draft.steps.length });
 			builder.setConversationStatus("created");
 			setSavedBibleId(bibleId);
 			toast.success(t("saved"));
@@ -224,7 +224,9 @@ export function StudyBuilder({ studyId: editStudyId }: { studyId?: string }) {
 				value={bibleId}
 				onValueChange={(id) => {
 					setBibleId(id);
-					void userSetDefaultBibleSS(id);
+					void userSetDefaultBibleSS(id).then(() =>
+						track("default_bible_set", { bibleId: id, source: "study_create" })
+					);
 				}}
 				disabled={biblesLoading}
 				isLoading={biblesLoading}

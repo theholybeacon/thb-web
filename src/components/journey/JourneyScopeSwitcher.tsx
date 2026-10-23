@@ -16,6 +16,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { JourneyScopeValue } from "@/lib/journeyScope";
+import { track } from "@/lib/analytics";
 
 /** Above this many translations the pill row stops fitting and becomes a picker. */
 const PILL_LIMIT = 3;
@@ -50,6 +51,13 @@ export function JourneyScopeSwitcher({ options, value, onChange, hrefFor, classN
 
 	const selected = value ? options.find((o) => o.slug === value) : undefined;
 	const label = selected ? selected.label : t("scopeAll");
+	const change =
+		onChange &&
+		((next: JourneyScopeValue) => {
+			if (next === value) return;
+			onChange(next);
+			track("journey_scope_changed", { scope: next ?? "all" });
+		});
 
 	if (options.length <= PILL_LIMIT) {
 		return (
@@ -59,7 +67,7 @@ export function JourneyScopeSwitcher({ options, value, onChange, hrefFor, classN
 					slug={null}
 					label={t("scopeAll")}
 					icon
-					onChange={onChange}
+					onChange={change}
 					hrefFor={hrefFor}
 				/>
 				{options.map((o) => (
@@ -69,7 +77,7 @@ export function JourneyScopeSwitcher({ options, value, onChange, hrefFor, classN
 						slug={o.slug}
 						label={o.label}
 						count={o.chapters}
-						onChange={onChange}
+						onChange={change}
 						hrefFor={hrefFor}
 					/>
 				))}
@@ -98,7 +106,7 @@ export function JourneyScopeSwitcher({ options, value, onChange, hrefFor, classN
 								slug={null}
 								label={t("scopeAll")}
 								active={!value}
-								onChange={onChange}
+								onChange={change}
 								hrefFor={hrefFor}
 							/>
 							{options.map((o) => (
@@ -108,7 +116,7 @@ export function JourneyScopeSwitcher({ options, value, onChange, hrefFor, classN
 									label={o.label}
 									count={o.chapters}
 									active={value === o.slug}
-									onChange={onChange}
+									onChange={change}
 									hrefFor={hrefFor}
 								/>
 							))}

@@ -14,6 +14,7 @@ import { AppShell } from "@/components/app";
 import { PremiumGate } from "@/components/premium";
 import { NoteCard, NoteEditor } from "@/components/notes";
 import { Button } from "@/components/ui/button";
+import { track } from "@/lib/analytics";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -75,6 +76,7 @@ export default function NotesPage() {
       return await noteUpdateSS({ id: editingNote.id, title: values.title, content: values.content });
     },
     onSuccess: () => {
+      track("note_updated", { source: "notes_page" });
       invalidateNotes();
       setEditingNote(null);
       toast.success(t("noteSaved"));
@@ -88,6 +90,7 @@ export default function NotesPage() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => await noteDeleteSS(id),
     onSuccess: () => {
+      track("note_deleted", { source: "notes_page" });
       invalidateNotes();
       setNoteToDelete(null);
       toast.success(t("noteDeleted"));

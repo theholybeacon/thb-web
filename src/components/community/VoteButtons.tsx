@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 import { communityVoteSS } from "@/app/common/community/service/server/communityVoteSS";
 import type { VoteTargetType } from "@/app/common/community/model/Community";
 import { useCommunity } from "./CommunityContext";
@@ -35,6 +36,7 @@ export function VoteButtons({
 		try {
 			const res = await communityVoteSS(targetType, targetId, next);
 			if (res.ok && typeof res.score === "number") {
+				track("community_voted", { value: next, targetType });
 				setScore(res.score);
 				setVote(res.userVote ?? next);
 			} else {
