@@ -125,9 +125,28 @@ visual:
   sans: Inter                  # interface
 
 # Content pillars: what the studio rotates through. Weights are a hint, not a quota.
+#   kind: value    gives people something for their life (art, a story, a virtue,
+#                  Scripture). No selling: no demo needed, no pitch, at most a quiet
+#                  sign-off (the name, nothing asked).
+#   kind: product  shows The Holy Beacon itself. Still has to be worth watching.
 pillars:
-  - { id: show-the-feature, weight: 0.4, about: "One feature, shown live, doing the thing." }
-  - { id: scripture-moment, weight: 0.25, about: "A passage, verbatim, presented beautifully, with the app as the place it lives." }
-  - { id: people-of-the-bible, weight: 0.15, about: "A name in a chapter → who they were, cited." }
-  - { id: honest-limits, weight: 0.1, about: "What we refuse to fake (word-level sync, invented claims, copyrighted narration)." }
-  - { id: sponsorship-story, weight: 0.1, about: "Nobody turned away for not being able to pay." }
+  # ── value: most of what we post ──
+  - { id: virtues, kind: value, weight: 0.16, about: "One virtue lived out (coherence, temperance, patience, gratitude, forgiveness, courage, humility): what Scripture says about it and one concrete way to live it today. Speaks to the viewer, never preaches at them." }
+  - { id: bible-stories, kind: value, weight: 0.14, about: "A Bible story told as a story: tension, turn, ending. Characters, stakes, a line that stays. Entertaining first; cited, never invented." }
+  - { id: life-wisdom, kind: value, weight: 0.12, about: "Scripture for a real moment of life (anxiety, work, rest, grief, friendship, decisions): one idea, one passage, one thing to try." }
+  - { id: scripture-moment, kind: value, weight: 0.1, about: "A passage, verbatim, presented beautifully: image, rhythm and silence carry it. Nothing to sell." }
+  - { id: people-of-the-bible, kind: value, weight: 0.07, about: "A person in Scripture and what their life teaches, cited." }
+  - { id: songs-and-scripture, kind: value, weight: 0.07, about: "A song people know but never noticed is Christian, or quotes the Bible or speaks of God (any genre: pop, rock, hip-hop, country, classics): the line, the passage it echoes, and what it means. Name the song and artist; quote at most a few words of the lyric (never lyrics line by line on screen) and never use the recording; the Scripture it echoes is shown verbatim; anything about the artist's faith only from a real source." }
+  - { id: basics, kind: value, weight: 0.09, about: "Christianity 101, like a short catechism: one basic question answered plainly from Scripture (who is Jesus, what is grace, the Trinity, why the cross, what prayer is, the Creed line by line, the Lord's Prayer, the Ten Commandments, the Beatitudes). For newcomers and the curious; works as a numbered series. Stay on what Christians broadly share; where traditions differ, say so in a line and don't take sides." }
+  # ── product: the rest ──
+  - { id: show-the-feature, kind: product, weight: 0.17, about: "One feature, shown live, doing the thing." }
+  - { id: honest-limits, kind: product, weight: 0.04, about: "What we refuse to fake (word-level sync, invented claims, copyrighted narration)." }
+  - { id: sponsorship-story, kind: product, weight: 0.04, about: "Nobody turned away for not being able to pay." }
+
+# Value over promotion. Every video is scored 0–10 on both (agents/balance.ts in
+# the studio); QA holds back anything outside these lines.
+balance:
+  valueShare: 0.75        # at least this share of a month's videos come from value pillars
+  minValue: 7             # every video, whatever its pillar
+  maxPromoValue: 2        # a value-pillar video: promotion at most this
+  maxPromoProduct: 6      # a product video: promotion at most this, and always below its value

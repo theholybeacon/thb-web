@@ -219,6 +219,7 @@ const MODE_LABEL: Record<string, string> = {
 	type: "typed",
 	listen: "listened",
 	dictation: "dictation",
+	done: "done",
 };
 
 function formatDuration(seconds: number): string {

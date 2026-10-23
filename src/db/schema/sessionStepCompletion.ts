@@ -4,7 +4,9 @@ import { studyStepTable } from "./studyStep";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
-export const studyModeEnum = pgEnum("study_mode", ["read", "type", "listen", "dictation"]);
+// "done" completes a step that is not Scripture (text, video, reflection...),
+// which has no read / type / listen to choose between.
+export const studyModeEnum = pgEnum("study_mode", ["read", "type", "listen", "dictation", "done"]);
 
 export const sessionStepCompletionTable = pgTable("session_step_completion", {
 	id: uuid().defaultRandom().primaryKey(),

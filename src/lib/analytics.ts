@@ -37,15 +37,15 @@ export type AnalyticsEvents = {
   default_bible_set: { bibleId: string; source: string };
 
   // Studies and sessions
-  /** `topic` is what the person typed for the AI study builder. */
-  study_created: { studyId?: string; topic: string; length: number; depth: number };
-  global_study_adopted: { slug: string; created: boolean };
-  study_edited: { studyId: string };
+  /** Built in the study builder: in conversation with the AI ("builder") or by hand ("builder_manual"). */
+  study_created: { studyId?: string; source: "builder" | "builder_manual"; length: number; depth: number; steps: number };
+  global_study_adopted: { slug: string; kind: string; created: boolean };
+  study_edited: { studyId: string; mode: string | null; steps: number };
   study_deleted: { studyId: string; source: "study_list" | "study_detail" };
   study_regenerated: { studyId: string; stepCount?: number };
   session_started: { studyId?: string; sessionId: string; source: "study_list" | "study_detail" };
   session_deleted: { sessionId: string };
-  step_completed: { sessionId: string; stepId: string; mode: string; stepIndex: number; isFirstStep: boolean };
+  step_completed: { sessionId: string; stepId: string; mode: string; stepKind?: string; stepIndex: number; isFirstStep: boolean };
   session_completed: { sessionId: string; studyId?: string };
   /** Read, type or listen, switched in the reader or the session player. */
   reading_mode_changed: { mode: string };

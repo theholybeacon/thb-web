@@ -27,11 +27,15 @@ export const userTable = pgTable("user", {
 	// Stripe — a lifetime user has no `subscription` row. See src/lib/premium.ts.
 	lifetimePremium: boolean().notNull().default(false),
 	lifetimePremiumGrantedAt: timestamp(),
+	// Opens the /admin panel. Set by hand in the database and nowhere else: no
+	// DAO, service or script in this codebase writes it, and none may.
+	isAdmin: boolean().notNull().default(false),
 	createdAt: timestamp().defaultNow(),
 });
 
 export const userRelations = relations(userTable, ({ one, many }) => ({
-	studies: many(studyTable),
+	studies: many(studyTable, { relationName: "studyOwner" }),
+	createdStudies: many(studyTable, { relationName: "studyCreator" }),
 	defaultBible: one(bibleTable, {
 		fields: [userTable.defaultBibleId],
 		references: [bibleTable.id],

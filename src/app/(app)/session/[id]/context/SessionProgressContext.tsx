@@ -66,18 +66,24 @@ export function SessionProgressProvider({
   const [completedSteps, setCompletedSteps] = useState<Map<string, StudyMode[]>>(new Map());
   const [modeProgress, setModeProgress] = useState<ModeProgress | null>(null);
 
-  // Sync completedSteps from React Query stepCompletions data
+  // Sync completedSteps from React Query stepCompletions data. Merged into what
+  // is already marked rather than replacing it: a refetch started by one step's
+  // save can land after the next step was marked, and would otherwise un-tick
+  // it until the next refetch. Completions are never removed mid-session.
   useEffect(() => {
     if (!stepCompletions) return;
-    const map = new Map<string, StudyMode[]>();
-    for (const completion of stepCompletions) {
-      const existing = map.get(completion.stepId) || [];
-      if (!existing.includes(completion.mode)) {
-        existing.push(completion.mode);
+    setCompletedSteps((prev) => {
+      const map = new Map<string, StudyMode[]>();
+      for (const [stepId, modes] of prev) map.set(stepId, [...modes]);
+      for (const completion of stepCompletions) {
+        const existing = map.get(completion.stepId) || [];
+        if (!existing.includes(completion.mode)) {
+          existing.push(completion.mode);
+        }
+        map.set(completion.stepId, existing);
       }
-      map.set(completion.stepId, existing);
-    }
-    setCompletedSteps(map);
+      return map;
+    });
   }, [stepCompletions]);
 
   // Reset mode progress when step or mode changes

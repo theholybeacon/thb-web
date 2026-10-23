@@ -41,6 +41,8 @@ import { SessionCompleteDialog } from "./SessionCompleteDialog";
 import { sessionFinishSS } from "@/app/common/session/service/sessionFinishSS";
 import type { SessionSummary } from "@/app/common/session/model/SessionSummary";
 import { formatStepReference } from "@/app/common/studyStep/model/reference";
+import { StepContentView } from "@/components/study/steps/StepContentView";
+import { StepKindIcon } from "@/components/study/steps/StepKindIcon";
 
 interface SessionViewParams {
   session: SessionFull;
@@ -123,6 +125,9 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
   });
 
   const currentStep = steps[currentStepIndex];
+  // A step that is not Scripture (text, reflection, image...) has no chapters,
+  // no reader and no read / type / listen: it shows its content and is "done".
+  const isScriptureStep = (currentStep?.kind ?? "scripture") === "scripture";
   const totalSteps = steps.length;
   const progress = totalSteps > 0 ? Math.round(((currentStepIndex + 1) / totalSteps) * 100) : 0;
 
@@ -136,12 +141,12 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
       }
       return await bookGetByAbbreviationAndBibleIdSS(bibleId, currentStep.bookAbbreviation);
     },
-    enabled: Boolean(bibleId && currentStep?.bookAbbreviation),
+    enabled: Boolean(bibleId && currentStep?.bookAbbreviation && isScriptureStep),
   });
 
   // Calculate chapter range for current step
   const getChapterRange = () => {
-    if (!currentStep) return { start: 1, end: 1, total: 1 };
+    if (!currentStep || !isScriptureStep) return { start: 1, end: 1, total: 1 };
 
     const startChapter = currentStep.startChapter ?? 1;
     const endChapter = currentStep.endChapter ??
@@ -176,7 +181,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
         actualChapterNumber
       );
     },
-    enabled: Boolean(bibleId && currentStep?.bookAbbreviation && actualChapterNumber),
+    enabled: Boolean(bibleId && currentStep?.bookAbbreviation && actualChapterNumber && isScriptureStep),
   });
 
   // Study steps may carry loose abbreviations ("Pr.", "Mat"); alignment and
@@ -216,6 +221,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
         sessionId: completion.sessionId,
         stepId: completion.stepId,
         mode: completion.mode,
+        stepKind: steps[stepIndex]?.kind,
         stepIndex,
         isFirstStep: stepIndex === 0,
       });
@@ -229,20 +235,23 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
   });
 
   // Handle completing current chapter (and step if on last chapter)
-  const handleCompleteChapter = (stats?: { accuracy?: number; wpm?: number; timeSpentSeconds?: number }) => {
+  // Resolves once the step's completion is saved (or failed: the toast has
+  // said so), so finishing the study can wait for its last step.
+  const handleCompleteChapter = async (stats?: { accuracy?: number; wpm?: number; timeSpentSeconds?: number }) => {
     if (isLastChapterInStep) {
+      const mode: StudyMode = isScriptureStep ? currentMode : "done";
       // Optimistic update via context
-      markStepCompleted(currentStep.id, currentMode);
+      markStepCompleted(currentStep.id, mode);
 
       // Persist to DB
-      saveCompletionMutation.mutate({
+      const saved = saveCompletionMutation.mutateAsync({
         sessionId: initialSession.id,
         stepId: currentStep.id,
-        mode: currentMode,
+        mode,
         accuracy: stats?.accuracy,
         wpm: stats?.wpm,
         timeSpentSeconds: stats?.timeSpentSeconds,
-      });
+      }).catch(() => undefined);
 
       if (currentStepIndex < totalSteps - 1) {
         // Move to next step
@@ -251,6 +260,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
         setCurrentChapterInStep(1);
         updateStepMutation.mutate(nextStep.id);
       }
+      await saved;
     } else {
       // Move to next chapter within the step
       setCurrentChapterInStep(currentChapterInStep + 1);
@@ -269,7 +279,9 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
     if (isFinishing) return;
     setIsFinishing(true);
 
-    handleCompleteChapter();
+    // Awaited: the recap is read from the saved completions, so the last
+    // step's has to be written before the session is finished.
+    await handleCompleteChapter();
 
     try {
       const res = await sessionFinishSS(initialSession.id);
@@ -330,7 +342,9 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
   const isLastStep = currentStepIndex === totalSteps - 1;
   const isFirstStep = currentStepIndex === 0;
 
-  const currentReference = isMultiChapterStep
+  const currentReference = !isScriptureStep
+    ? ""
+    : isMultiChapterStep
     ? formatBibleReference(currentStep, chapterData?.bookName, actualChapterNumber)
     : formatBibleReference(currentStep, chapterData?.bookName);
 
@@ -371,7 +385,8 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
             const isActive = index === currentStepIndex;
             const completedModes = getStepCompletionModes(step.id);
             const isCompleted = completedModes.length > 0;
-            const stepReference = formatBibleReference(step);
+            const stepIsScripture = (step.kind ?? "scripture") === "scripture";
+            const stepReference = stepIsScripture ? formatBibleReference(step) : "";
             const showModeProgress = isActive && modeProgress && !modeProgress.isComplete && modeProgress.total > 0;
 
             return (
@@ -407,10 +422,15 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                     >
                       {t("session.stepNumber", { number: index + 1 })}
                     </p>
-                    {stepReference && (
+                    {stepReference ? (
                       <p className="text-xs text-primary/70 truncate mt-0.5 flex items-center gap-1">
                         <BookOpen className="h-3 w-3 inline-block" />
                         {stepReference}
+                      </p>
+                    ) : !stepIsScripture && (
+                      <p className="text-xs text-primary/70 truncate mt-0.5 flex items-center gap-1">
+                        <StepKindIcon kind={step.kind} className="h-3 w-3 inline-block" />
+                        {t(`study.stepKinds.${step.kind}` as never)}
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground truncate mt-0.5">
@@ -504,7 +524,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                   >
                     <List className="h-4 w-4" />
                   </Button>
-                  <BookOpen className="h-4 w-4" />
+                  <StepKindIcon kind={currentStep?.kind ?? "scripture"} className="h-4 w-4" />
                   <span>
                     {t("session.stepNumber", { number: currentStepIndex + 1 })} {t("session.of")} {totalSteps}
                   </span>
@@ -534,6 +554,11 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
           {/* The engine owns scrolling and centring so its info panel can sit
               beside the text column and reflow it instead of covering it. */}
           <div className="flex min-h-0 flex-1 flex-col">
+            {!isScriptureStep && currentStep ? (
+              <div className="min-h-0 flex-1">
+                <StepContentView step={currentStep} bibleId={bibleId} />
+              </div>
+            ) : (
             <div className={cn(
               "min-h-0 flex-1",
               currentMode === "type" && "h-full"
@@ -563,6 +588,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                 isLoading={isChapterLoading}
               />
             </div>
+            )}
           </div>
 
           {/* Navigation footer */}
@@ -626,7 +652,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
               ) : (
                 <Button
                   variant="outline"
-                  onClick={() => handleCompleteChapter()}
+                  onClick={() => void handleCompleteChapter()}
                   disabled={updateStepMutation.isPending || saveCompletionMutation.isPending}
                 >
                   <span className="hidden sm:inline">{t("common.next")}</span>

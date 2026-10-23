@@ -1,19 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { dictionaryLookupSS } from "@/app/common/dictionary/service/server/dictionaryLookupSS";
 import { alignmentLookupSS } from "@/app/common/alignment/service/server/alignmentLookupSS";
 import type { DictionaryLookupResult } from "@/app/common/dictionary/model/Dictionary";
 import type { AlignmentLookupResult, AlignedOriginal } from "@/app/common/alignment/model/Alignment";
 import type { ReaderSelection } from "@/components/reader/selection/useTextSelection";
+import { DEFINITION_LANGUAGES, type DefinitionLanguage, defaultDefinitionLanguage } from "@/lib/dictionaryLanguage";
 import { track } from "@/lib/analytics";
 
 export interface DictionarySectionProps {
 	selection: ReaderSelection | null;
 	/** ISO code of the translation's language; null disables the dictionary half. */
 	lang: string | null;
+	/** Language the definitions are written in, and the reader's way to change it. */
+	definitionLang: DefinitionLanguage;
+	onDefinitionLangChange: (lang: DefinitionLanguage) => void;
 	/** `bible.version`, used to find an exact alignment source. */
 	bibleVersion?: string | null;
 	bookAbbreviation?: string;
@@ -52,25 +56,58 @@ const POLL_MAX_TRIES = 12;
 export function DictionarySection({
 	selection,
 	lang,
+	definitionLang,
+	onDefinitionLangChange,
 	bibleVersion,
 	bookAbbreviation,
 	chapterNumber,
 	verseText,
 }: DictionarySectionProps) {
 	const t = useTranslations("reader");
+	const locale = useLocale();
 	const [dictionary, setDictionary] = useState<DictionaryLookupResult | null>(null);
 	const [alignment, setAlignment] = useState<AlignmentLookupResult | null>(null);
-	const [loading, setLoading] = useState(false);
+	const [dictionaryLoading, setDictionaryLoading] = useState(false);
+	const [alignmentLoading, setAlignmentLoading] = useState(false);
 	const [showAllVerseWords, setShowAllVerseWords] = useState(false);
+	// The current selection's dictionary lookup, so the alignment effect can
+	// report a word lookup once (definition-language switches don't count).
+	const dictionaryLookup = useRef<Promise<DictionaryLookupResult | null>>(Promise.resolve(null));
+
+	// Separate from the alignment lookup so switching the definition language
+	// does not refetch (and flash) the original-language block.
+	useEffect(() => {
+		if (!selection || !lang) {
+			dictionaryLookup.current = Promise.resolve(null);
+			setDictionary(null);
+			return;
+		}
+
+		let cancelled = false;
+		setDictionaryLoading(true);
+		setDictionary(null);
+		const lookup = dictionaryLookupSS(selection.text, lang, definitionLang);
+		dictionaryLookup.current = lookup;
+		void lookup.then((dict) => {
+			if (cancelled) return;
+			setDictionary(dict);
+			setDictionaryLoading(false);
+		});
+
+		return () => {
+			cancelled = true;
+		};
+		// `nonce` changes on every selection, including re-selecting the same word.
+	}, [selection?.nonce, selection, lang, definitionLang]);
 
 	useEffect(() => {
 		if (!selection) return;
 
 		let cancelled = false;
-		setLoading(true);
-		setDictionary(null);
+		setAlignmentLoading(true);
 		setAlignment(null);
 		setShowAllVerseWords(false);
+		const dictionaryLookupForSelection = dictionaryLookup.current;
 
 		const lookupAlignment = () =>
 			bookAbbreviation && chapterNumber
@@ -87,20 +124,21 @@ export function DictionarySection({
 				: Promise.resolve(null);
 
 		void (async () => {
-			const [dict, align] = await Promise.all([
-				lang ? dictionaryLookupSS(selection.text, lang) : Promise.resolve(null),
-				lookupAlignment(),
-			]);
+			const align = await lookupAlignment();
 			if (cancelled) return;
-			setDictionary(dict);
 			setAlignment(align);
-			setLoading(false);
-			track("word_looked_up", {
-				lang: lang ?? undefined,
-				bibleVersion: bibleVersion ?? undefined,
-				foundInDictionary: Boolean(dict),
-				alignmentTier: align?.tier ?? null,
-			});
+			setAlignmentLoading(false);
+			void dictionaryLookupForSelection
+				.catch(() => null)
+				.then((dict) => {
+					if (cancelled) return;
+					track("word_looked_up", {
+						lang: lang ?? undefined,
+						bibleVersion: bibleVersion ?? undefined,
+						foundInDictionary: Boolean(dict),
+						alignmentTier: align?.tier ?? null,
+					});
+				});
 
 			/*
 			 * `loading` means this book is being fetched from Blob right now — the
@@ -127,14 +165,50 @@ export function DictionarySection({
 		return <p className="text-sm text-muted-foreground">{t("dictionary.hint")}</p>;
 	}
 
+	const loading = dictionaryLoading || alignmentLoading;
+	// The Bible's own language first: it is the default, and the natural reading.
+	const definitionLanguageOptions = [...DEFINITION_LANGUAGES].sort(
+		(a, b) => Number(b === defaultDefinitionLanguage(lang)) - Number(a === defaultDefinitionLanguage(lang)),
+	);
+	const languageName = (code: string) => {
+		const name = new Intl.DisplayNames([locale], { type: "language" }).of(code) ?? code;
+		return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1);
+	};
+
 	const verseWords = alignment?.verseWords ?? [];
 	const visibleVerseWords = showAllVerseWords ? verseWords : verseWords.slice(0, VERSE_WORD_LIMIT);
 
 	return (
 		<div className="space-y-4">
-			<p className="text-sm font-medium break-words">
-				<span className="font-serif">{selection.text}</span>
-			</p>
+			<div className="flex flex-wrap items-center justify-between gap-2">
+				<p className="text-sm font-medium break-words">
+					<span className="font-serif">{selection.text}</span>
+				</p>
+				{lang && (
+					<div
+						role="group"
+						aria-label={t("dictionary.definitionLanguage")}
+						title={t("dictionary.definitionLanguage")}
+						className="flex rounded-md border p-0.5 text-xs"
+					>
+						{definitionLanguageOptions.map((code) => (
+							<button
+								key={code}
+								type="button"
+								aria-pressed={definitionLang === code}
+								onClick={() => onDefinitionLangChange(code)}
+								className={
+									definitionLang === code
+										? "rounded bg-primary px-2 py-0.5 font-medium text-primary-foreground"
+										: "rounded px-2 py-0.5 text-muted-foreground hover:text-foreground"
+								}
+							>
+								{languageName(code)}
+							</button>
+						))}
+					</div>
+				)}
+			</div>
 
 			{loading && (
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -256,7 +330,9 @@ export function DictionarySection({
 				<div className="space-y-0.5 border-t pt-3 text-[11px] leading-snug text-muted-foreground">
 					{dictionary?.payload && (
 						<p>
-							{t("dictionary.creditDictionary")}{" "}
+							{dictionary.definitionLang === "es"
+								? t("dictionary.creditDictionaryEs")
+								: t("dictionary.creditDictionary")}{" "}
 							{dictionary.payload.sourceUrl && (
 								<a
 									href={dictionary.payload.sourceUrl}

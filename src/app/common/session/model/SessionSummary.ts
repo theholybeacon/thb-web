@@ -1,12 +1,17 @@
 import { StudyMode } from "@/app/common/sessionStepCompletion/model/SessionStepCompletion";
+import { StepKind } from "@/app/common/studyStep/model/StepContent";
 
 /** One step as it appears in the finished-session recap. */
 export type SessionSummaryStep = {
 	stepId: string;
 	stepNumber: number;
 	title: string;
-	/** "John 3:16" — already localized to the study's translation where possible. */
+	/**
+	 * "John 3:16" — already localized to the study's translation where possible.
+	 * A step that is not Scripture has no passage and shows its title instead.
+	 */
 	reference: string;
+	kind: StepKind;
 	bookAbbreviation: string | null;
 	bookName: string | null;
 	chapters: number;
@@ -40,7 +45,7 @@ export type SessionSummary = {
 	totalSeconds: number;
 };
 
-export const STUDY_MODES: StudyMode[] = ["read", "type", "listen", "dictation"];
+export const STUDY_MODES: StudyMode[] = ["read", "type", "listen", "dictation", "done"];
 
 export function emptyModeTotals(): Record<StudyMode, { steps: number; seconds: number }> {
 	return {
@@ -48,5 +53,6 @@ export function emptyModeTotals(): Record<StudyMode, { steps: number; seconds: n
 		type: { steps: 0, seconds: 0 },
 		listen: { steps: 0, seconds: 0 },
 		dictation: { steps: 0, seconds: 0 },
+		done: { steps: 0, seconds: 0 },
 	};
 }

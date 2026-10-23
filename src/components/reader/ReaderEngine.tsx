@@ -21,6 +21,7 @@ import { ReadMode, TypeMode, ListenMode } from "@/app/(app)/session/[id]/compone
 import { UpgradeModal } from "@/components/premium/UpgradeModal";
 import { ReaderPanel } from "./panel/ReaderPanel";
 import { useReaderPanel } from "./panel/useReaderPanel";
+import { useDefinitionLanguage } from "./panel/useDefinitionLanguage";
 import { useReaderFontScale } from "./useReaderFontScale";
 import { StepExplanationBanner } from "./StepExplanationBanner";
 import { ChapterCompletionProvider } from "./progress/ChapterCompletionContext";
@@ -128,6 +129,7 @@ export function ReaderEngine({
 	// needs no exclusion here.
 	const selection = useTextSelection();
 	const dictionaryLang = useMemo(() => languageNameToIso(bibleLanguage), [bibleLanguage]);
+	const { definitionLang, chooseDefinitionLang } = useDefinitionLanguage(dictionaryLang);
 
 	// The selected verse's own text. Languages with no editorial alignment infer
 	// their original-language match from it, so it has to reach the panel.
@@ -313,6 +315,8 @@ export function ReaderEngine({
 		mentions,
 		selection,
 		dictionaryLang,
+		definitionLang,
+		onDefinitionLangChange: chooseDefinitionLang,
 		bibleVersion,
 		bookAbbreviation,
 		selectedVerseText,

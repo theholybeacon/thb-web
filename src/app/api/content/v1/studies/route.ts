@@ -1,6 +1,7 @@
 import { canonBook } from "@/app/common/canon/model/canon";
 import {
 	globalStudyChapterCount,
+	isScriptureStepDef,
 	stepChapterSpan,
 } from "@/app/common/study/model/globalStudy";
 import { GLOBAL_STUDIES } from "@/app/common/study/model/globalStudyCatalog";
@@ -23,13 +24,15 @@ export const GET = withContentApi(async () => {
 	return ok({
 		studyPlans: GLOBAL_STUDIES.map((plan) => ({
 			slug: plan.slug,
+			kind: plan.kind ?? "plan",
+			language: plan.language ?? "en",
 			name: plan.name,
 			description: plan.description,
 			readings: plan.steps.length,
 			chapters: globalStudyChapterCount(plan),
 			coversWholeCanon: plan.coversWholeCanon,
 			catalogUrl: "/study",
-			readings_preview: plan.steps.slice(0, 5).map((step) => {
+			readings_preview: plan.steps.filter(isScriptureStepDef).slice(0, 5).map((step) => {
 				const span = stepChapterSpan(step);
 				return {
 					title: step.title,

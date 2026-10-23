@@ -1,6 +1,10 @@
 # Named selectors for flows. The app has no test ids yet: these lean on lucide
 # icon classes, ids, roles and structure. If a UI refactor breaks a flow, fix it
 # here. Better long-term: add data-demo="name" to the component and use that.
+# What "still loading" looks like: empty skeleton blocks (not the typing caret,
+# not the blurred glows), spinners. The recorder cuts the time it's on screen
+# and QA blocks a take where it never went away.
+app.loading: "div.animate-pulse:empty:not([class*='blur']), .animate-spin, [aria-busy='true']"
 mode.read: "button:has(svg.lucide-eye)"
 mode.type: "button:has(svg.lucide-keyboard)"
 mode.listen: "button:has(svg.lucide-headphones)"

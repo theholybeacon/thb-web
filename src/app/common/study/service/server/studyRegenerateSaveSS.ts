@@ -6,6 +6,7 @@ import { StudyStepRepository } from "@/app/common/studyStep/repository/StudyStep
 import { SessionRepository } from "@/app/common/session/repository/SessionRepository";
 import { StudyStepInsert } from "@/app/common/studyStep/model/StudyStep";
 import { requireOwnedStudySS } from "./studyOwnership";
+import { sanitizeStudySteps } from "@/app/common/studyStep/model/sanitizeSteps";
 
 export async function studyRegenerateSaveSS(studyId: string, steps: StudyStepInsert[]): Promise<StudyFull> {
     const studyRepository = new StudyRepository();
@@ -30,7 +31,7 @@ export async function studyRegenerateSaveSS(studyId: string, steps: StudyStepIns
 
     // Create new steps
     const createdSteps = [];
-    for (const step of steps) {
+    for (const step of sanitizeStudySteps(steps)) {
         step.studyId = studyId;
         createdSteps.push(await studyStepRepository.create(step));
     }

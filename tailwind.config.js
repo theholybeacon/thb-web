@@ -5,6 +5,9 @@ const config = {
 		"./components/**/*.{ts,tsx}",
 		"./app/**/*.{ts,tsx}",
 		"./src/**/*.{ts,tsx}",
+		// No project-root glob ("*.{js,ts,...}"): it made webpack watch the whole
+		// checkout, so every screenshot and trace an e2e run wrote rebuilt the
+		// layout under the page being tested. No root-level file has classes.
 	],
 	prefix: "",
 	theme: {

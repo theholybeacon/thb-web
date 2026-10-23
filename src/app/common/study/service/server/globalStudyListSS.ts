@@ -5,9 +5,12 @@ import { StudyRepository } from "../../repository/StudyRepository";
 import { SessionRepository } from "@/app/common/session/repository/SessionRepository";
 import { requirePremiumUserSS } from "../../../subscription/service/server/requirePremiumUserSS";
 import { stepChapterCount } from "@/app/common/studyStep/model/reference";
+import { isStudyKind } from "../../model/StudyKind";
+import { StepKind } from "@/app/common/studyStep/model/StepContent";
 
 /**
- * The catalog of ready-made plans, with the reader's own progress folded in.
+ * The catalog of ready-made plans and stories, with the reader's own progress
+ * folded in.
  *
  * Adoption state is resolved here rather than on the client because it is the
  * difference between a "Start" and a "Continue" button, and a card that offers
@@ -33,14 +36,26 @@ export async function globalStudyListSS(): Promise<GlobalStudyCard[]> {
 			const copy = copyByTemplate.get(study.id);
 			const session = copy ? await sessionRepository.findByUserAndStudy(user.id, copy.id) : null;
 
+			const stepKinds: Partial<Record<StepKind, number>> = {};
+			for (const step of study.steps) {
+				const kind = step.kind as StepKind;
+				stepKinds[kind] = (stepKinds[kind] ?? 0) + 1;
+			}
+			const creator = (study as { creator?: { name: string } | null }).creator;
+
 			return {
 				id: study.id,
 				slug: study.slug!,
+				kind: isStudyKind(study.kind) ? study.kind : "plan",
+				language: study.language,
+				creatorName: creator?.name ?? null,
 				name: study.name,
 				description: study.description,
+				stepKinds,
 				stepCount: study.steps.length,
 				chapterCount: study.steps.reduce((total, step) => total + stepChapterCount(step), 0),
-				bookCount: new Set(study.steps.map((step) => step.bookAbbreviation).filter(Boolean)).size,
+				bookCount: new Set(study.steps.filter((step) => step.kind === "scripture")
+					.map((step) => step.bookAbbreviation).filter(Boolean)).size,
 				adopted: copy ? { studyId: copy.id, sessionId: session?.id ?? null } : null,
 			};
 		}),
