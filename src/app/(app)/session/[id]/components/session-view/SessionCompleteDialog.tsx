@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Check, Eye, Headphones, Keyboard, Mic, Trophy } from "lucide-react";
+import { Check, CheckCheck, Eye, Headphones, Keyboard, Mic, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ShareStoryButton } from "@/components/share/ShareStoryButton";
@@ -22,6 +22,8 @@ export function ModeIcon({ mode, className }: { mode: StudyMode; className?: str
 			return <Headphones className={cls} />;
 		case "dictation":
 			return <Mic className={cls} />;
+		case "done":
+			return <CheckCheck className={cls} />;
 		default:
 			return null;
 	}
@@ -33,6 +35,7 @@ const MODE_LABEL_KEY: Record<StudyMode, string> = {
 	type: "complete.mode_type",
 	listen: "complete.mode_listen",
 	dictation: "complete.mode_dictation",
+	done: "complete.mode_done",
 };
 
 function formatDuration(seconds: number, hLabel: string, mLabel: string): string {

@@ -2,6 +2,7 @@
 
 import { requirePremiumUserSS } from "@/app/common/subscription/service/server/requirePremiumUserSS";
 import { studyCreateSS } from "@/app/common/study/service/server/studyCreateSS";
+import { studyIsOnlyPassages } from "@/app/common/studyStep/model/StepContent";
 import { requireOwnedStudySS } from "@/app/common/study/service/server/studyOwnership";
 import { StudyBuilderPostgreSQLDao } from "../../dao/StudyBuilderPostgreSQLDao";
 import { draftStepToInsert, normalizeDraft, studyToDraft } from "../../model/draft";
@@ -70,6 +71,7 @@ export async function studyBuilderDraftSaveSS(
  */
 export async function studyBuilderOpenForStudySS(studyId: string): Promise<{ conversation: StudyBuilderConversationFull; bibleId: string | null }> {
 	const study = await requireOwnedStudySS(studyId);
+	requireOnlyPassages(study.steps);
 	const dao = new StudyBuilderPostgreSQLDao();
 	const saved = studyToDraft(study);
 	const found = await dao.findConversationForStudy(study.id, study.ownerId!);
@@ -92,11 +94,20 @@ export async function studyBuilderSaveStudySS(conversationId: string, bibleId: s
 	const dao = new StudyBuilderPostgreSQLDao();
 	const conversation = await dao.getConversation(conversationId, user.id);
 	if (!conversation?.studyId) throw new Error("Conversation not found");
-	await requireOwnedStudySS(conversation.studyId);
+	requireOnlyPassages((await requireOwnedStudySS(conversation.studyId)).steps);
 	const plan = requirePlan(draft, bibleId);
 	await dao.applyDraftToStudy(conversation.studyId, plan, bibleId);
 	await dao.updateConversation(conversation.id, { draft: plan, title: plan.name, status: "created", bibleId });
 	return { studyId: conversation.studyId };
+}
+
+/**
+ * The builder's plan is a list of passages. A study with any other kind of
+ * step (a story, a plan with text or reflections) cannot round-trip through
+ * it: saving would treat every step it does not know as removed and delete it.
+ */
+function requireOnlyPassages(steps: { kind: string }[]): void {
+	if (!studyIsOnlyPassages(steps)) throw new Error("STUDY_HAS_STEPS_THE_BUILDER_CANNOT_EDIT");
 }
 
 function requirePlan(draft: unknown, bibleId: string): StudyBuilderDraft {

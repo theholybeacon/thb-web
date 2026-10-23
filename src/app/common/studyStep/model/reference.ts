@@ -17,7 +17,9 @@ export function formatStepReference(
 	bookName?: string,
 	currentChapter?: number,
 ): string {
-	if (!step) return "";
+	// Only a passage has a reference. A reflection's book and chapter are where
+	// its note is saved, not something the step reads.
+	if (!step || (step.kind && step.kind !== "scripture")) return "";
 
 	const book = bookName || step.bookAbbreviation;
 	if (!book) return "";
@@ -45,8 +47,9 @@ export function formatStepReference(
 }
 
 /** Canonical chapters a step covers — the denominator for "chapters studied". */
-export function stepChapterCount(step: StudyStep): number {
-	if (!step.startChapter) return 0;
+export function stepChapterCount(step: Pick<StudyStep, "kind" | "startChapter" | "endChapter">): number {
+	// A reflection's anchor is where its note goes, not a chapter it reads.
+	if (step.kind !== "scripture" || !step.startChapter) return 0;
 	const end = step.endChapter ?? step.startChapter;
 	return Math.max(1, end - step.startChapter + 1);
 }

@@ -16,6 +16,26 @@ export const studyTable = pgTable("study", {
 	topic: varchar({ length: 1000 }).notNull(),
 
 	/**
+	 * What the study is: a reading plan or one of the Bible's stories (Noah's
+	 * Ark, David and Goliath). Both run on the same engine; the kind only
+	 * changes how the study is labelled and filtered. See StudyKind.
+	 */
+	kind: varchar({ length: 10 }).notNull().default("plan"),
+	/**
+	 * The one language the study is written in (ISO 639-1: "en", "es"). Titles,
+	 * explanations and text steps are in this language, so it is read with a
+	 * Bible in the same language. Another language is another study.
+	 */
+	language: varchar({ length: 5 }).notNull().default("en"),
+	/**
+	 * Who designed the study — not who is running it. `ownerId` is whose copy
+	 * this is; adopting a plan makes the reader the owner of their copy, but the
+	 * creator stays whoever designed it. NULL means The Holy Beacon: the global
+	 * catalog and every copy taken from it.
+	 */
+	creatorId: uuid().references((): AnyPgColumn => userTable.id, { onDelete: "set null" }),
+
+	/**
 	 * NULL only for global studies — the ready-made plans in the catalog belong
 	 * to nobody, so there is no user to attribute them to. Every study a reader
 	 * can edit, run or delete has an owner, and the ownership checks in
@@ -51,6 +71,7 @@ export const studyTable = pgTable("study", {
 }, (table) => ({
 	// The catalog listing: a handful of rows out of every study ever created.
 	globalIdx: index("study_global_idx").on(table.isGlobal, table.sortOrder),
+	creatorIdx: index("study_creator_idx").on(table.creatorId),
 	// "has this reader already adopted this plan?", asked on every catalog render.
 	sourceOwnerIdx: index("study_source_owner_idx").on(table.sourceStudyId, table.ownerId),
 }));
@@ -59,6 +80,12 @@ export const studyRelations = relations(studyTable, ({ one, many }) => ({
 	owner: one(userTable, {
 		fields: [studyTable.ownerId],
 		references: [userTable.id],
+		relationName: "studyOwner",
+	}),
+	creator: one(userTable, {
+		fields: [studyTable.creatorId],
+		references: [userTable.id],
+		relationName: "studyCreator",
 	}),
 	bible: one(bibleTable, {
 		fields: [studyTable.bibleId],
