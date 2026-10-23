@@ -6,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import posthog from "posthog-js";
 import { useTranslations } from "next-intl";
 import { studyGetByIdSS } from "@/app/common/study/service/server/studyGetByIdSS";
-import { studyUpdateSS } from "@/app/common/study/service/server/studyUpdateSS";
 import { studyDeleteSS } from "@/app/common/study/service/server/studyDeleteSS";
 import { studyRegenerateSaveSS } from "@/app/common/study/service/server/studyRegenerateSaveSS";
 import { sessionCreateSS } from "@/app/common/session/service/sessionCreateSS";
@@ -14,10 +13,6 @@ import { logger } from "@/app/utils/logger";
 import { SessionInsert } from "@/app/common/session/model/Session";
 import { StudyStep } from "@/app/common/studyStep/model/StudyStep";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
 import { AppShell } from "@/components/app";
 import {
   AlertDialog,
@@ -34,21 +29,27 @@ import {
   Play,
   Trash2,
   RefreshCw,
-  Save,
   Circle,
-  Users,
+  Clock,
+  Layers,
+  Pencil,
   Sparkles,
   BookOpen,
   Library,
 } from "lucide-react";
-import { useState, useEffect, use } from "react";
+import { useState, use } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { PremiumGate } from "@/components/premium";
+import { StudyByline } from "@/components/study";
+import { StepKindIcon } from "@/components/study/steps/StepKindIcon";
+import { studyIsOnlyPassages } from "@/app/common/studyStep/model/StepContent";
 
 // Helper function to format bible reference using canonical fields
 function formatBibleReference(step: StudyStep): string {
+  // Only a passage has a reference; a reflection's anchor is where its note goes.
+  if (step.kind !== "scripture") return "";
   const bookAbbr = step.bookAbbreviation;
   if (!bookAbbr) return "";
 
@@ -79,7 +80,7 @@ function formatBibleReference(step: StudyStep): string {
 export default function StudyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const t = useTranslations("study");
-  const tCreate = useTranslations("createStudy");
+  const tBuilder = useTranslations("studyBuilder");
   const tPlans = useTranslations("study.plans");
   const tCommon = useTranslations("common");
   const { user: loggedUser, loading: userLoading, isPremium } = useLoggedUserContext();
@@ -88,14 +89,6 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-
-  // Form state
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [topic, setTopic] = useState("");
-  const [length, setLength] = useState(5);
-  const [depth, setDepth] = useState(5);
 
   const { data: study, isLoading, isError } = useQuery({
     queryKey: ["study", id],
@@ -103,39 +96,6 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
       return await studyGetByIdSS(id);
     },
     enabled: Boolean(id) && isPremium,
-  });
-
-  // Initialize form when study loads
-  useEffect(() => {
-    if (study) {
-      setName(study.name);
-      setDescription(study.description || "");
-      setTopic(study.topic || "");
-      setLength(study.length);
-      setDepth(study.depth);
-    }
-  }, [study]);
-
-  const updateMutation = useMutation({
-    mutationFn: async () => {
-      await studyUpdateSS(id, {
-        name,
-        description,
-        topic,
-        length,
-        depth,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["study", id] });
-      queryClient.invalidateQueries({ queryKey: ["studies"] });
-      setIsEditing(false);
-      toast.success(t("saved"));
-    },
-    onError: (e) => {
-      logger.error(e);
-      toast.error(tCommon("error"));
-    },
   });
 
   const deleteMutation = useMutation({
@@ -205,17 +165,6 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
     },
   });
 
-  const handleCancelEdit = () => {
-    if (study) {
-      setName(study.name);
-      setDescription(study.description || "");
-      setTopic(study.topic || "");
-      setLength(study.length);
-      setDepth(study.depth);
-    }
-    setIsEditing(false);
-  };
-
   if (userLoading || isLoading) {
     return (
       <AppShell>
@@ -255,6 +204,14 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
             </Link>
             <div className="flex-1">
               <h1 className="text-3xl font-bold">{t("studyDetails")}</h1>
+              <div className="mt-1">
+                <StudyByline
+                  kind={study.kind}
+                  creatorId={study.creatorId}
+                  creator={study.creator}
+                  currentUserId={loggedUser?.id}
+                />
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {/* An adopted plan's steps are authored, not generated — regenerating
@@ -282,121 +239,48 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          {/* Study Info Card */}
+          {/* Study Info Card — editing happens in the builder, by hand or with the AI */}
           <div className="rounded-lg border bg-card p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-semibold">{t("editStudy")}</h2>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
                 {study.sourceStudyId && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                  <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
                     <Library className="h-3 w-3" />
                     {tPlans("fromCatalog")}
                   </span>
                 )}
+                <h2 className="text-2xl font-semibold" data-testid="study-name">{study.name}</h2>
+                {study.description && <p className="mt-1 text-muted-foreground">{study.description}</p>}
               </div>
-              {!isEditing ? (
-                <Button variant="outline" onClick={() => setIsEditing(true)}>
-                  {tCommon("edit")}
+              {/* The builder edits passages only; a study with text, images or
+                  reflections would lose them there (studyBuilderSS refuses it). */}
+              {studyIsOnlyPassages(study.steps ?? []) && (
+                <Button variant="outline" asChild className="shrink-0">
+                  <Link href={`/study/${study.id}/edit`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    {t("editStudy")}
+                  </Link>
                 </Button>
-              ) : (
-                <div className="flex gap-2">
-                  <Button variant="ghost" onClick={handleCancelEdit}>
-                    {tCommon("cancel")}
-                  </Button>
-                  <Button
-                    onClick={() => updateMutation.mutate()}
-                    disabled={updateMutation.isPending}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <Save className="mr-2 h-4 w-4" />
-                    {updateMutation.isPending ? t("saving") : t("saveChanges")}
-                  </Button>
-                </div>
               )}
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">{tCreate("name")}</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={!isEditing}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <Label htmlFor="description">{tCreate("description")}</Label>
-                </div>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={!isEditing}
-                  rows={3}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {tCreate("descriptionHint")}
-                </p>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <Label htmlFor="topic">{tCreate("topic")}</Label>
-                </div>
-                <Textarea
-                  id="topic"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  disabled={!isEditing}
-                  className="border-primary/30 focus-visible:ring-primary/50"
-                  rows={4}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {tCreate("topicHint")}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label>{tCreate("length")}</Label>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground mt-1 mb-2">
-                    <span>{tCreate("lengthShort")}</span>
-                    <span>{tCreate("lengthLong")}</span>
-                  </div>
-                  <Slider
-                    value={[length]}
-                    onValueChange={([v]: number[]) => setLength(v)}
-                    min={1}
-                    max={10}
-                    step={1}
-                    disabled={!isEditing}
-                  />
-                  <p className="text-sm text-muted-foreground mt-1 text-center">{length}/10</p>
-                </div>
-
-                <div>
-                  <Label>{tCreate("depth")}</Label>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground mt-1 mb-2">
-                    <span>{tCreate("depthShallow")}</span>
-                    <span>{tCreate("depthDeep")}</span>
-                  </div>
-                  <Slider
-                    value={[depth]}
-                    onValueChange={([v]: number[]) => setDepth(v)}
-                    min={1}
-                    max={10}
-                    step={1}
-                    disabled={!isEditing}
-                  />
-                  <p className="text-sm text-muted-foreground mt-1 text-center">{depth}/10</p>
-                </div>
-              </div>
+            {study.topic && (
+              <p className="mt-4 flex items-start gap-2 text-sm">
+                <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>{study.topic}</span>
+              </p>
+            )}
+            <div className="mt-4 flex flex-wrap gap-2 text-xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1">
+                <Clock className="h-3 w-3" /> {tBuilder(`lengths.${Math.min(10, Math.max(1, study.length))}`)}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1">
+                <Layers className="h-3 w-3" /> {tBuilder("depthValue", { depth: study.depth })}
+              </span>
+              {study.bible && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1">
+                  <BookOpen className="h-3 w-3" /> {study.bible.name}
+                </span>
+              )}
             </div>
           </div>
 
@@ -421,10 +305,15 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
                       <p className="font-medium">
                         Step {index + 1}: {step.title}
                       </p>
-                      {reference && (
+                      {reference ? (
                         <div className="flex items-center gap-1.5 mt-1 text-sm text-primary">
                           <BookOpen className="h-3.5 w-3.5" />
                           <span>{reference}</span>
+                        </div>
+                      ) : step.kind !== "scripture" && (
+                        <div className="flex items-center gap-1.5 mt-1 text-sm text-primary">
+                          <StepKindIcon kind={step.kind} />
+                          <span>{t(`stepKinds.${step.kind}` as "stepKinds.text")}</span>
                         </div>
                       )}
                       {step.explanation && (

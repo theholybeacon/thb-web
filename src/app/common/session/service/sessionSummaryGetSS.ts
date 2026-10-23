@@ -6,6 +6,7 @@ import { bookGetAllByBibleIdSS } from "@/app/common/book/service/server/bookGetA
 import { SessionStepCompletionRepository } from "@/app/common/sessionStepCompletion/repository/SessionStepCompletionRepository";
 import { StudyMode } from "@/app/common/sessionStepCompletion/model/SessionStepCompletion";
 import { formatStepReference, stepChapterCount } from "@/app/common/studyStep/model/reference";
+import { isStepKind } from "@/app/common/studyStep/model/StepContent";
 import { bibleLabel } from "@/lib/bibleLabel";
 import { SessionRepository } from "../repository/SessionRepository";
 import { SessionFullWithBible } from "../model/Session";
@@ -96,13 +97,15 @@ export async function sessionSummaryGetSS(sessionId: string): Promise<SessionSum
 			chaptersStudied += chapters;
 		}
 
-		const bookName = step.bookAbbreviation ? (bookNames[step.bookAbbreviation] ?? null) : null;
+		const isScripture = step.kind === "scripture";
+		const bookName = isScripture && step.bookAbbreviation ? (bookNames[step.bookAbbreviation] ?? null) : null;
 		return {
 			stepId: step.id,
 			stepNumber: step.stepNumber,
 			title: step.title,
-			reference: formatStepReference(step, bookName ?? undefined),
-			bookAbbreviation: step.bookAbbreviation,
+			kind: isStepKind(step.kind) ? step.kind : "scripture",
+			reference: isScripture ? formatStepReference(step, bookName ?? undefined) : step.title,
+			bookAbbreviation: isScripture ? step.bookAbbreviation : null,
 			bookName,
 			chapters,
 			modes,

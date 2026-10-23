@@ -31,7 +31,24 @@ export class AIOpenAiDao {
 
 				Response Format: Pure JSON array, no extra text or markdown.
 
-				Required Fields for Each Step (ALL fields are REQUIRED, never null):
+				Write every title, explanation, body and prompt in the language of this Bible (${bible.language}).
+
+				Step Kinds:
+				- "scripture": a passage to read. Most steps are scripture steps.
+				- "text": a short piece of background that helps the reader understand the passages
+				  around it (historical setting, who someone is, how a passage connects to another).
+				  Every claim must cite a verse, e.g. "(Genesis 12:1)". At most one text step per four
+				  scripture steps, and never two text steps in a row.
+				- "reflection": a single personal question about what was just read. Use one near the
+				  end, and at most one per five steps.
+
+				Fields for a "text" step: kind, stepNumber, title, explanation (one sentence), body
+				(2-4 short paragraphs separated by a blank line, plain text, no markdown).
+				Fields for a "reflection" step: kind, stepNumber, title, explanation (one sentence),
+				prompt (the question).
+
+				Required Fields for Each "scripture" Step (ALL fields are REQUIRED, never null):
+				- kind: "scripture"
 				- stepNumber: Sequential step number (integer)
 				- bibleId: "${bible.id}"
 				- bookAbbreviation: MUST be one of the exact abbreviations listed above (string)
@@ -56,6 +73,7 @@ export class AIOpenAiDao {
 				- Mix different step types for depth and variety
 				- Arrange steps to build understanding progressively
 				- Set verseNumber to null when stepType is FullBook, ChapterRange, or SingleChapter
+				- The study must be mostly Scripture: text and reflection steps support the readings, they never replace them
 
 				RESPOND ONLY WITH THE JSON ARRAY. NO OTHER TEXT.` });
 

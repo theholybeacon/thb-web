@@ -1,6 +1,6 @@
 /**
- * Seeds the global study catalog — the ready-made reading plans every user can
- * adopt from /study.
+ * Seeds the global study catalog — the ready-made plans and stories every user
+ * can adopt from /study.
  *
  * The plans are authored in code (src/app/common/study/model/plans) rather than
  * in a migration so they can be reviewed in a diff and validated before they
@@ -16,7 +16,9 @@
  * the plans readers have already taken. Deliberate — rewriting someone's step 47
  * out from under them mid-plan would move their progress.
  *
- * Prerequisites: migrations/0031_global_studies.sql applied, DATABASE_URL set.
+ * Prerequisites: migrations up to 0037_study_kinds_and_rich_steps.sql applied,
+ * DATABASE_URL set. Character steps are checked against the entity table, so the
+ * people must be imported (npm run seed:people) — even for --dry-run.
  *
  * Run:  npx tsx scripts/seed-global-studies.ts
  *       npx tsx scripts/seed-global-studies.ts --dry-run   (validate only)
@@ -26,13 +28,15 @@ loadEnvConfig(process.cwd());
 
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { studyTable } from "../src/db/schema/study";
 import { studyStepTable } from "../src/db/schema/studyStep";
+import { entityTable } from "../src/db/schema/entity";
 import { GLOBAL_STUDIES } from "../src/app/common/study/model/globalStudyCatalog";
 import {
 	globalStudyChapterCount,
 	globalStudyStepInserts,
+	isScriptureStepDef,
 	validateGlobalStudy,
 } from "../src/app/common/study/model/globalStudy";
 
@@ -72,14 +76,28 @@ async function main() {
 		process.exit(1);
 	}
 
+	const db = drizzle(neon(process.env.DATABASE_URL!));
+
+	// A character step names a profile by slug; one that does not exist would
+	// render as an empty step, so it is a seed failure like a bad chapter.
+	const slugs = [...new Set(GLOBAL_STUDIES.flatMap((def) => def.steps.flatMap((step) =>
+		!isScriptureStepDef(step) && step.content.kind === "character" ? [step.content.entitySlug] : [])))];
+	if (slugs.length) {
+		const found = new Set((await db.select({ slug: entityTable.slug }).from(entityTable)
+			.where(inArray(entityTable.slug, slugs))).map((row) => row.slug));
+		const missing = slugs.filter((slug) => !found.has(slug));
+		if (missing.length) {
+			console.error(`\nNo character profile for: ${missing.join(", ")}\nNothing written.`);
+			process.exit(1);
+		}
+	}
+
 	if (dryRun) {
 		console.log("\nDry run — nothing written.");
 		return;
 	}
 
-	console.log(`\nSeeding ${GLOBAL_STUDIES.length} plan(s) into ${describeDatabase(process.env.DATABASE_URL!)}\n`);
-
-	const db = drizzle(neon(process.env.DATABASE_URL!));
+	console.log(`\nSeeding ${GLOBAL_STUDIES.length} studies into ${describeDatabase(process.env.DATABASE_URL!)}\n`);
 
 	for (const def of GLOBAL_STUDIES) {
 		const fields = {
@@ -89,7 +107,11 @@ async function main() {
 			depth: def.depth,
 			length: def.length,
 			sortOrder: def.sortOrder,
+			kind: def.kind ?? "plan",
+			language: def.language ?? "en",
 			isGlobal: true as const,
+			// The catalog is designed by The Holy Beacon, which is a NULL creator.
+			creatorId: null,
 			// A template belongs to nobody and is read in no particular
 			// translation; the copy made at adoption time carries both.
 			ownerId: null,

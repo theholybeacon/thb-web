@@ -35,10 +35,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
 import { PremiumGate } from "@/components/premium";
-import { PlanCatalog } from "@/components/study";
+import { PlanCatalog, StudyByline } from "@/components/study";
 
 // Helper function to format bible reference using canonical fields
 function formatBibleReference(step: StudyStep): string {
+  // Only a passage has a reference; a reflection's anchor is where its note goes.
+  if (step.kind !== "scripture") return "";
   const bookAbbr = step.bookAbbreviation;
   if (!bookAbbr) return "";
 
@@ -192,6 +194,12 @@ export default function StudyPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <Link href={`/study/${study.id}`} className="flex-1 min-w-0">
+                    <StudyByline
+                      kind={study.kind}
+                      creatorId={study.creatorId}
+                      creator={study.creator}
+                      currentUserId={loggedUser?.id}
+                    />
                     <h3 className="text-xl font-semibold hover:text-primary transition-colors">
                       {study.name}
                     </h3>

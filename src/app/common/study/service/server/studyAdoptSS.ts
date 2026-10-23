@@ -6,6 +6,8 @@ import { StudyStepRepository } from "@/app/common/studyStep/repository/StudyStep
 import { SessionRepository } from "@/app/common/session/repository/SessionRepository";
 import { requirePremiumUserSS } from "../../../subscription/service/server/requirePremiumUserSS";
 import { StudyStepInsert } from "@/app/common/studyStep/model/StudyStep";
+import { BibleRepository } from "@/app/common/bible/repository/BibleRepository";
+import { languageNameToIso } from "@/lib/bibleLanguage";
 
 const log = logger.child({ module: "studyAdoptSS" });
 
@@ -77,12 +79,29 @@ export async function studyAdoptSS(slug: string, bibleId?: string): Promise<Adop
 		throw new Error("BIBLE_REQUIRED");
 	}
 
+	// A study is written in one language, and its text steps and explanations
+	// sit between the passages: reading them against a Bible in another language
+	// would switch language at every step. The picker only offers matching
+	// translations; this is the same rule for a direct call.
+	const bible = await new BibleRepository().getBasicById(resolvedBibleId);
+	if (!bible) {
+		throw new Error("BIBLE_NOT_FOUND");
+	}
+	if (languageNameToIso(bible.language) !== template.language) {
+		throw new Error("BIBLE_LANGUAGE_MISMATCH");
+	}
+
 	const copy = await studyRepository.create({
 		name: template.name,
 		description: template.description,
 		topic: template.topic,
 		depth: template.depth,
 		length: template.length,
+		kind: template.kind,
+		language: template.language,
+		// The reader owns their copy; the creator is still whoever designed the
+		// template (NULL: The Holy Beacon).
+		creatorId: template.creatorId,
 		ownerId: user.id,
 		bibleId: resolvedBibleId,
 		sourceStudyId: template.id,
@@ -91,6 +110,8 @@ export async function studyAdoptSS(slug: string, bibleId?: string): Promise<Adop
 	const stepInserts: StudyStepInsert[] = template.steps.map((step) => ({
 		studyId: copy.id,
 		stepNumber: step.stepNumber,
+		kind: step.kind,
+		content: step.content,
 		stepType: step.stepType,
 		title: step.title,
 		explanation: step.explanation,
