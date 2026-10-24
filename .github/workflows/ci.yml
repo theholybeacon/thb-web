@@ -23,7 +23,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      # @andresrub10/cockpit is a private git dependency (e2e tooling only) that
+      # CI cannot fetch over SSH; drop it before installing.
+      - run: npm pkg delete devDependencies.@andresrub10/cockpit && npm install
       - run: npm run typecheck
       # No DATABASE_URL here, so the *.db.test.ts suites skip themselves.
       - run: npm run test
