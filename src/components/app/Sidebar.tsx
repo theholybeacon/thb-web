@@ -40,7 +40,9 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       if (!loggedUser?.id) return [];
       return await sessionGetAllByOwnerId(loggedUser.id);
     },
-    enabled: Boolean(loggedUser?.id),
+    // Sessions are premium: the server action throws PREMIUM_REQUIRED for
+    // everyone else, so don't call it (and retry it) on every page they open.
+    enabled: Boolean(loggedUser?.id) && isPremium,
   });
 
   const navItems = [
