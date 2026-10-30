@@ -15,7 +15,8 @@ import { cn } from "@/lib/utils";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { bibleGetAllSS } from "@/app/common/bible/service/bibleGetAllSS";
 import { userSetDefaultBibleSS } from "@/app/common/user/service/server/userSetDefaultBibleSS";
-import { recommendedSlugForLocale } from "@/lib/recommendedBible";
+import { pickDefaultBible } from "@/lib/bibleFollowsLanguage";
+import { useBibleFollowsLanguage } from "@/components/app/useBibleFollowsLanguage";
 import {
 	studyBuilderConversationGetSS,
 	studyBuilderConversationListSS,
@@ -52,6 +53,7 @@ const MODE_KEY = "thb.studyBuilder.mode";
 export function StudyBuilder({ studyId: editStudyId }: { studyId?: string }) {
 	const t = useTranslations("studyBuilder");
 	const locale = useLocale();
+	const [followsLanguage] = useBibleFollowsLanguage();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const queryClient = useQueryClient();
@@ -95,13 +97,13 @@ export function StudyBuilder({ studyId: editStudyId }: { studyId?: string }) {
 		window.localStorage.setItem(MODE_KEY, next);
 	}
 
-	// Translation: the conversation's own, then the reader's stored choice, then the locale's default.
+	// Translation: the conversation's own, then the reader's stored choice (if in the app's
+	// language, while the Bible follows it), then the locale's default.
 	useEffect(() => {
 		if (!bibles?.length || bibleId) return;
-		const stored = user?.defaultBibleId ? bibles.find((b) => b.id === user.defaultBibleId) : undefined;
-		const match = stored ?? bibles.find((b) => b.slug === recommendedSlugForLocale(locale)) ?? bibles.find((b) => b.slug === "bsb-en");
+		const match = pickDefaultBible(bibles, { storedId: user?.defaultBibleId, locale, followsLanguage });
 		if (match) setBibleId(match.id);
-	}, [bibles, bibleId, locale, user?.defaultBibleId]);
+	}, [bibles, bibleId, locale, user?.defaultBibleId, followsLanguage]);
 
 	const startNew = useCallback(() => {
 		load(null);

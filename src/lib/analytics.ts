@@ -32,7 +32,9 @@ export type AnalyticsEvents = {
   profile_updated: { changedName: boolean; changedUsername: boolean; changedCountry: boolean };
   avatar_uploaded: Record<string, never>;
   email_reminders_toggled: { enabled: boolean };
-  language_changed: { locale: string; from?: string };
+  language_changed: { locale: string; from?: string; bible_follows?: boolean; bible_moved?: boolean };
+  bible_follows_language_changed: { follows: boolean };
+  bible_language_notice_action: { action: "read_default" | "keep"; bible: string; locale: string };
   theme_changed: { theme: string };
   default_bible_set: { bibleId: string; source: string };
 

@@ -1169,5 +1169,17 @@
     "retry": "Intentar de nuevo",
     "home": "Ir al inicio",
     "reference": "Referencia del error"
+  },
+  "languageMenu": {
+    "label": "Idioma",
+    "appLanguage": "Idioma de la app",
+    "bibleFollows": "La Biblia sigue el idioma de la app",
+    "bibleFollowsOn": "Al cambiar el idioma también cambia la traducción que lees.",
+    "bibleFollowsOff": "Tú eliges la traducción, en cualquier idioma."
+  },
+  "bibleLanguageNotice": {
+    "message": "Esta Biblia está en {bibleLanguage}, pero la app está en {appLanguage}.",
+    "readDefault": "Leer la {translation}",
+    "keep": "Mantener esta traducción"
   }
 }
