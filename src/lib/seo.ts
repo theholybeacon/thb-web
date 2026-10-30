@@ -19,14 +19,15 @@ import { RECOMMENDED_SLUGS } from "@/lib/recommendedBible";
 //
 // The six recommended translations (src/lib/recommendedBible.ts) are indexed by
 // definition: they are what we point readers at, so they are what search should
-// find. The extra English entries are kept because they were already indexed and
-// carry existing search equity. Note the real slugs are rvr09-sp / blt-po /
+// find. The extra entries (English, and the former Spanish pick) are kept because they were already indexed and
+// carry existing search equity. Note the real slugs are vbl-sp-2 / blt-po /
 // l1912-ge — the suffix follows the api.bible language *name*, not the ISO code.
 export const INDEXED_TRANSLATION_SLUGS: ReadonlySet<string> = new Set([
-  ...RECOMMENDED_SLUGS, // bsb-en, rvr09-sp, jnd-fr, l1912-ge, blt-po, db1885-it
+  ...RECOMMENDED_SLUGS, // bsb-en, vbl-sp-2, jnd-fr, l1912-ge, blt-po, db1885-it
   "kjv-en", // King James Version
   "web-en", // World English Bible
   "asv-en", // American Standard Version
+  "rvr09-sp", // Reina-Valera 1909: the Spanish recommendation until vbl-sp-2
 ]);
 
 export function isIndexedTranslation(slug: string | null | undefined): boolean {

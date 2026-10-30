@@ -53,10 +53,13 @@ export const RECOMMENDED_BIBLES: RecommendedBible[] = [
 	},
 	{
 		lang: "es",
-		slug: "rvr09-sp",
-		version: "RVR09",
-		label: "Reina-Valera 1909",
-		why: "The classic Spanish Bible, and the only Reina-Valera in the public domain.",
+		// Modern Spanish rather than the Reina-Valera 1909: readers who switch the
+		// app to Español land here, and should read the language they speak today.
+		// vbl-sp-2, not vbl-sp: that row is the New Testament alone.
+		slug: "vbl-sp-2",
+		version: "VBL",
+		label: "Versión Biblia Libre",
+		why: "A modern Spanish translation in today's language, freely licensed.",
 		features: { audio: true, alignment: "inferred" },
 	},
 	{

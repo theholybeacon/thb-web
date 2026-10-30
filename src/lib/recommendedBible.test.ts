@@ -12,7 +12,7 @@ import { ALIGNMENT_ANCHORS } from "@/app/common/alignment/model/alignmentAnchors
  */
 const STORED_LANGUAGE_NAME: Record<string, string> = {
 	"bsb-en": "English",
-	"rvr09-sp": "Spanish",
+	"vbl-sp-2": "Spanish",
 	"jnd-fr": "French",
 	"l1912-ge": "German, Standard",
 	"blt-po": "Portuguese",

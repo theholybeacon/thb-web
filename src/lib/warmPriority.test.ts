@@ -26,7 +26,7 @@ describe("WARM_PRIORITY_SLUGS", () => {
 	it("leads with the recommended bibles in language order", () => {
 		expect(WARM_PRIORITY_SLUGS.slice(0, RECOMMENDED_LANG_ORDER.length)).toEqual([
 			"bsb-en",
-			"rvr09-sp",
+			"vbl-sp-2",
 			"db1885-it",
 			"jnd-fr",
 			"l1912-ge",

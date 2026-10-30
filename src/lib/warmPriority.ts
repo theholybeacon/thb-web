@@ -31,7 +31,7 @@ import { isRecommended, recommendedForLanguageCode } from "@/lib/recommendedBibl
 export const RECOMMENDED_LANG_ORDER = ["en", "es", "it", "fr", "de", "pt"] as const;
 
 /**
- * bsb-en, rvr09-sp, db1885-it, jnd-fr, l1912-ge, blt-po, then kjv-en, web-en, asv-en.
+ * bsb-en, vbl-sp-2, db1885-it, jnd-fr, l1912-ge, blt-po, then kjv-en, web-en, asv-en, rvr09-sp.
  *
  * Same SET as `INDEXED_TRANSLATION_SLUGS` — only the order differs.
  */
