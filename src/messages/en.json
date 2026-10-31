@@ -1365,5 +1365,17 @@
     "bannerDays": "{count, plural, one {This is the last day of your free premium week.} other {Your free premium week: # days left.}}",
     "bannerKeep": "Keep premium",
     "subscriptionNote": "Your free premium week ends on {date}. Subscribe to keep every premium feature after that."
+  },
+  "languageMenu": {
+    "label": "Language",
+    "appLanguage": "App language",
+    "bibleFollows": "Bible follows app language",
+    "bibleFollowsOn": "Changing the language also changes the translation you read.",
+    "bibleFollowsOff": "You choose the translation yourself, in any language."
+  },
+  "bibleLanguageNotice": {
+    "message": "This Bible is in {bibleLanguage}, but the app is in {appLanguage}.",
+    "readDefault": "Read the {translation}",
+    "keep": "Keep this translation"
   }
 }

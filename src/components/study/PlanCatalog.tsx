@@ -13,7 +13,8 @@ import { bibleGetAllSS } from "@/app/common/bible/service/bibleGetAllSS";
 import { userSetDefaultBibleSS } from "@/app/common/user/service/server/userSetDefaultBibleSS";
 import { GlobalStudyCard } from "@/app/common/study/model/Study";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
-import { recommendedSlugForLocale } from "@/lib/recommendedBible";
+import { pickDefaultBible } from "@/lib/bibleFollowsLanguage";
+import { useBibleFollowsLanguage } from "@/components/app/useBibleFollowsLanguage";
 import { languageNameToIso } from "@/lib/bibleLanguage";
 import { HOLY_BEACON_CREATOR, StudyKind } from "@/app/common/study/model/StudyKind";
 import { STEP_KINDS } from "@/app/common/studyStep/model/StepContent";
@@ -46,6 +47,7 @@ export function PlanCatalog() {
   const tStudy = useTranslations("study");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const [followsLanguage] = useBibleFollowsLanguage();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user: loggedUser, isPremium } = useLoggedUserContext();
@@ -77,20 +79,21 @@ export function PlanCatalog() {
   /*
    * Preselect a translation the same way the create-study form does: a stored
    * preference is a real choice and beats the language default, which is only
-   * our best guess. Never overrides a pick already made in this dialog.
+   * our best guess, unless it is in another language and the Bible follows the
+   * language (src/lib/bibleFollowsLanguage.ts). Never overrides a pick already
+   * made in this dialog.
    */
   useEffect(() => {
     if (!bibles?.length) return;
     if (bibleId && bibles.some((b) => b.id === bibleId)) return;
-    const stored = loggedUser?.defaultBibleId
-      ? bibles.find((b) => b.id === loggedUser.defaultBibleId)
-      : undefined;
-    const match =
-      stored ??
-      bibles.find((b) => b.slug === recommendedSlugForLocale(locale)) ??
-      bibles.find((b) => b.slug === "bsb-en");
-    setBibleId((match ?? bibles[0]).id);
-  }, [bibles, bibleId, locale, loggedUser?.defaultBibleId]);
+    const match = pickDefaultBible(bibles, {
+      storedId: loggedUser?.defaultBibleId,
+      // The list is the plan's language: that is the language the Bible follows here.
+      locale: planToStart?.language ?? locale,
+      followsLanguage,
+    });
+    if (match) setBibleId(match.id);
+  }, [bibles, bibleId, locale, planToStart?.language, loggedUser?.defaultBibleId, followsLanguage]);
 
   const adoptMutation = useMutation({
     mutationFn: async (plan: GlobalStudyCard) => await studyAdoptSS(plan.slug, bibleId || undefined),
