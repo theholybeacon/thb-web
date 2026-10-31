@@ -54,3 +54,6 @@ studio/.auth/
 # cockpit
 cockpit-report/
 .env.local
+
+# clerk configuration (can include secrets)
+/.clerk/

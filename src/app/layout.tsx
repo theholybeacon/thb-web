@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   ),
   title: "The Holy Beacon — Study the Bible, deeply",
   description:
-    "AI study plans, three ways through every chapter — read it, hear it narrated, or type it — plus profiles of the people behind the text and notes that stay attached to the verse.",
+    "Every chapter with its context beside it: the people in the passage, the Hebrew and Greek behind each word, and your notes on the verse. Read it, listen to it, or type it, and follow study plans built around what you want to understand.",
   icons: {
     icon: [{ url: "/favicon.ico?2", sizes: "any", type: "image/x-icon" }],
   },

@@ -1,8 +1,8 @@
 import { Header } from "./layout/components/Header"
 import { HeroSection } from "./components/HeroSection"
+import { StartSection } from "./components/StartSection"
 import { ExploreSection } from "./components/ExploreSection"
 import { StudyPlansSection } from "./components/StudyPlansSection"
-import { RoadmapSection } from "./components/RoadmapSection"
 import { FeaturePreviewSection } from "./components/FeaturePreviewSection"
 import { PricingSection } from "./components/PricingSection"
 import { Footer } from "./layout/components/Footer"
@@ -13,9 +13,9 @@ export default function LandingPage() {
       <Header />
       <main className="flex-1">
         <HeroSection />
+        <StartSection />
         <ExploreSection />
         <StudyPlansSection />
-        <RoadmapSection />
         <FeaturePreviewSection />
         <PricingSection />
       </main>

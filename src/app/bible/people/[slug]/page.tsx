@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { User, BookOpen } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import {
@@ -20,9 +21,17 @@ import { CHARACTER_INDEX_MIN_MENTIONS } from "@/lib/seo";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
-function yearLabel(y: number | null): string | null {
+type PeopleT = Awaited<ReturnType<typeof getTranslations<"people">>>;
+
+function yearLabel(y: number | null, t: PeopleT): string | null {
 	if (y == null) return null;
-	return y < 0 ? `${Math.abs(y)} BC` : `${y} AD`;
+	return y < 0 ? t("yearBC", { year: Math.abs(y) }) : t("yearAD", { year: y });
+}
+
+/** Theographic stores "Male"/"Female"; anything else is shown as stored. */
+function genderLabel(gender: string, t: PeopleT): string {
+	const key = gender.toLowerCase();
+	return key === "male" || key === "female" ? t(`gender.${key}`) : gender;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -55,14 +64,15 @@ export default async function CharacterPage({ params }: PageProps) {
 	const entity = await getEntityBySlug(slug);
 	if (!entity) notFound();
 
+	const t = await getTranslations("people");
 	const references = await getEntityReferences(entity.id);
 	const content = await getEntityContent(entity.id);
 	const { userId } = await auth();
 	const community = userId ? await communityListSS(entity.id) : await getAnonymousCommunity(entity.id);
 	const isPremium = await isPremiumUserSS();
 	const aliases = (entity.aliases as string[] | null) ?? [];
-	const birth = yearLabel(entity.birthYear);
-	const death = yearLabel(entity.deathYear);
+	const birth = yearLabel(entity.birthYear, t);
+	const death = yearLabel(entity.deathYear, t);
 
 	// Map bookAbbreviation → reader link parts, for resolving AI citations.
 	const linkMap: RefLinkMap = {};
@@ -82,10 +92,10 @@ export default async function CharacterPage({ params }: PageProps) {
 				<div>
 					<h1 className="text-3xl font-heading font-bold">{entity.name}</h1>
 					{aliases.length > 0 && (
-						<p className="text-sm text-muted-foreground mt-1">Also called: {aliases.join(", ")}</p>
+						<p className="text-sm text-muted-foreground mt-1">{t("alsoCalled", { names: aliases.join(", ") })}</p>
 					)}
 					<div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground mt-1">
-						{entity.gender && <span>{entity.gender}</span>}
+						{entity.gender && <span>{genderLabel(entity.gender, t)}</span>}
 						{(birth || death) && <span>{birth ?? "?"} – {death ?? "?"}</span>}
 					</div>
 				</div>
@@ -106,13 +116,13 @@ export default async function CharacterPage({ params }: PageProps) {
 				<div className="flex items-center gap-2 mb-3">
 					<BookOpen className="h-5 w-5 text-primary" />
 					<h2 className="text-xl font-heading font-semibold">
-						Scripture references
+						{t("scriptureReferences")}
 						<span className="text-muted-foreground font-normal text-base ml-2">({references.totalMentions})</span>
 					</h2>
 				</div>
 
 				{references.groups.length === 0 || !references.bibleSlug ? (
-					<p className="text-muted-foreground">No references available yet.</p>
+					<p className="text-muted-foreground">{t("noReferences")}</p>
 				) : (
 					<div className="space-y-4">
 						{references.groups.map((g) => (
@@ -139,7 +149,7 @@ export default async function CharacterPage({ params }: PageProps) {
 
 			{/* General community discussion (always available, even before AI content) */}
 			<section className="mt-8">
-				<h2 className="text-xl font-heading font-semibold mb-2">Community</h2>
+				<h2 className="text-xl font-heading font-semibold mb-2">{t("community")}</h2>
 				<SectionCommunity
 					entityId={entity.id}
 					section="general"
@@ -152,7 +162,7 @@ export default async function CharacterPage({ params }: PageProps) {
 
 			{/* Attribution */}
 			<footer className="mt-10 pt-4 border-t text-xs text-muted-foreground">
-				Character data from{" "}
+				{t("dataFrom")}{" "}
 				<a
 					href="https://github.com/robertrouse/theographic-bible-metadata"
 					target="_blank"

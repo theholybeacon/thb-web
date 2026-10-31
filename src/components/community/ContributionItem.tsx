@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
@@ -18,7 +19,7 @@ import { useCommunity } from "./CommunityContext";
  * Deliberately has no entry for "comment" — the default kind. Classifying a post
  * is opt-in, and an unclassified one shows the author's name and nothing else.
  */
-const KIND_LABEL: Record<string, string> = { fact: "Fact", analysis: "Analysis", correction: "Correction" };
+const LABELLED_KINDS = new Set(["fact", "analysis", "correction"]);
 
 export function ContributionItem({
 	contribution,
@@ -27,6 +28,8 @@ export function ContributionItem({
 	contribution: ContributionFull;
 	linkMap: RefLinkMap;
 }) {
+	const t = useTranslations("community");
+	const tCommon = useTranslations("common");
 	const { requirePremium, onChanged } = useCommunity();
 	const [show, setShow] = useState(contribution.score > -3);
 	const [commenting, setCommenting] = useState(false);
@@ -42,10 +45,10 @@ export function ContributionItem({
 			track("comment_posted", { isReply: false });
 			setText("");
 			setCommenting(false);
-			toast.success("Comment posted");
+			toast.success(t("commentPosted"));
 			onChanged();
 		} else {
-			toast.error("Could not post comment");
+			toast.error(t("commentFailed"));
 		}
 	};
 
@@ -54,14 +57,14 @@ export function ContributionItem({
 		const res = await communityFlagSS("contribution", contribution.id);
 		if (res.ok) {
 			track("community_flagged", { targetType: "contribution" });
-			toast.success("Thanks — we'll review this.");
-		} else toast.error("Could not report");
+			toast.success(t("reported"));
+		} else toast.error(t("reportFailed"));
 	};
 
 	if (!show) {
 		return (
 			<button className="text-xs text-muted-foreground hover:underline py-2" onClick={() => setShow(true)}>
-				Contribution hidden by community — show
+				{t("contributionHidden")}
 			</button>
 		);
 	}
@@ -71,7 +74,7 @@ export function ContributionItem({
 	if (contribution.deleted) {
 		return (
 			<div className="py-3 border-t first:border-t-0">
-				<p className="text-sm italic text-muted-foreground">[deleted]</p>
+				<p className="text-sm italic text-muted-foreground">{t("deleted")}</p>
 				{contribution.comments.length > 0 && (
 					<div className="mt-2">
 						<CommentThread contributionId={contribution.id} comments={contribution.comments} />
@@ -91,9 +94,9 @@ export function ContributionItem({
 			/>
 			<div className="flex-1 min-w-0">
 				<div className="flex items-center gap-2 mb-1">
-					{KIND_LABEL[contribution.kind] && (
+					{LABELLED_KINDS.has(contribution.kind) && (
 						<span className="text-[10px] uppercase tracking-wide rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
-							{KIND_LABEL[contribution.kind]}
+							{t(`kind.${contribution.kind}` as "kind.fact")}
 						</span>
 					)}
 					<span className="text-xs font-medium text-foreground">{contribution.author.name}</span>
@@ -109,13 +112,13 @@ export function ContributionItem({
 							if (requirePremium()) setCommenting((v) => !v);
 						}}
 					>
-						Comment
+						{t("comment")}
 					</button>
 					<button
 						className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1"
 						onClick={flag}
 					>
-						<Flag className="h-3 w-3" /> Report
+						<Flag className="h-3 w-3" /> {t("report")}
 					</button>
 					{contribution.isMine && <DeleteAction targetType="contribution" id={contribution.id} />}
 				</div>
@@ -126,14 +129,14 @@ export function ContributionItem({
 							onChange={(e) => setText(e.target.value)}
 							rows={2}
 							className="w-full rounded border bg-background p-2 text-sm"
-							placeholder="Add a comment…"
+							placeholder={t("commentPlaceholder")}
 						/>
 						<div className="flex gap-2">
 							<Button size="sm" onClick={submitComment} disabled={busy}>
-								Comment
+								{t("comment")}
 							</Button>
 							<Button size="sm" variant="ghost" onClick={() => setCommenting(false)}>
-								Cancel
+								{tCommon("cancel")}
 							</Button>
 						</div>
 					</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { AiContent } from "@/components/entity/AiContent";
@@ -25,12 +25,19 @@ export function StepExplanationBanner({ explanation }: StepExplanationBannerProp
 	const t = useTranslations();
 	const [expanded, setExpanded] = useState(true);
 
+	// On a phone the insight starts folded to one line: open, it can take a third
+	// of the screen from the text it is about. After mount, so the server render
+	// and the first client render agree.
+	useEffect(() => {
+		if (window.matchMedia("(max-width: 767px)").matches) setExpanded(false);
+	}, []);
+
 	if (!explanation) return null;
 
 	const label = expanded ? t("reader.explanation.collapse") : t("reader.explanation.expand");
 
 	return (
-		<div className="mx-auto w-full max-w-4xl px-4 pt-3 md:px-6">
+		<div className="thb-keyboard-hide mx-auto w-full max-w-4xl px-2 pt-1.5 sm:px-4 sm:pt-3 md:px-6">
 			<AiContent>
 				<div className="flex min-w-0 flex-1 items-start gap-2">
 					<p

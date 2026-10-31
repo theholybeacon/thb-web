@@ -50,7 +50,8 @@
       "somethingWentWrong": "Something went wrong signing you in. Please try again.",
       "googleFailed": "Google sign-in didn't finish. Please try again.",
       "clerkUnavailable": "Sign-in isn't loading right now. Check your connection, or turn off ad blockers for this site, then reload.",
-      "reload": "Reload the page"
+      "reload": "Reload the page",
+      "completingSignIn": "Completing sign in..."
     },
     "signUp": {
       "title": "Create your account",
@@ -166,7 +167,9 @@
     "darkMode": "Dark Mode",
     "untitledStudy": "Untitled Study",
     "all": "All",
-    "subscription": "Subscription"
+    "subscription": "Subscription",
+    "close": "Close",
+    "user": "User"
   },
   "toast": {
     "success": "Success",
@@ -233,18 +236,20 @@
     "unavailableBody": "We couldn't load the text from our scripture provider. Please try again in a few minutes.",
     "recommendedTitle": "Recommended translations",
     "recommendedSubtitle": "One trusted translation per language — each one listenable, with dictionary and original-language support.",
-    "readNow": "Read now"
+    "readNow": "Read now",
+    "selectBookToStart": "Select a book from the sidebar to start reading.",
+    "loadingChapter": "Loading chapter..."
   },
   "home": {
     "welcome": "Welcome back, {name}",
     "welcomeDefault": "Welcome back, Friend",
-    "subtitle": "Continue your spiritual journey",
+    "subtitle": "Pick up where you left off in the Word.",
     "myStudies": "My Studies",
-    "myStudiesDesc": "View and manage your Bible study programs",
+    "myStudiesDesc": "Your study plans and stories, and where each one stands.",
     "activeSessions": "Active Sessions",
-    "activeSessionsDesc": "Continue where you left off",
+    "activeSessionsDesc": "Go back to the passage you were in.",
     "newStudy": "New Study",
-    "newStudyDesc": "Start a new Bible study journey"
+    "newStudyDesc": "Describe what you want to understand and get a plan, passage by passage."
   },
   "study": {
     "title": "My Studies",
@@ -311,7 +316,11 @@
       "image": "{count, plural, one {# image} other {# images}}",
       "video": "{count, plural, one {# video} other {# videos}}",
       "link": "{count, plural, one {# link} other {# links}}"
-    }
+    },
+    "startShort": "Start",
+    "stepTitle": "Step {number}: {title}",
+    "noSteps": "No steps yet. Click \"{action}\" to create them.",
+    "dangerZone": "Danger Zone"
   },
   "createStudy": {
     "title": "Create Study",
@@ -367,13 +376,17 @@
       "posts": "{count, plural, one {# question or post} other {# questions and posts}}",
       "comments": "{count, plural, one {# comment} other {# comments}}",
       "conversations": "{count, plural, one {# earlier conversation} other {# earlier conversations}}",
-      "memory": "{count} things remembered"
+      "memory": "{count} things remembered",
+      "start": "Where you're starting"
     },
     "memoryButton": "{count, plural, =0 {Memory} one {Remembers # thing} other {Remembers # things}}",
     "memoryTitle": "What the builder remembers",
     "memoryHint": "Learned from your conversations. It uses these every time you build a study.",
     "memoryEmpty": "Nothing yet. It learns as you talk.",
     "forget": "Forget this",
+    "showPlan": "Show plan",
+    "planPending": "No plan yet",
+    "closePlan": "Close",
     "planLabel": "Your plan",
     "planEmptyTitle": "Your plan will take shape here",
     "planEmptyHint": "As we talk, I'll draft readings and refine them with you.",
@@ -448,7 +461,8 @@
       "stepTitle": "Title",
       "stepExplanation": "What to look for in this reading",
       "done": "Done"
-    }
+    },
+    "chatError": "The study builder is unavailable right now. Please try again."
   },
   "session": {
     "complete": {
@@ -496,6 +510,7 @@
     "skipStep": "Skip Step",
     "nextChapter": "Next Chapter",
     "chapterProgress": "Chapter {current} of {total}",
+    "stepsButton": "Steps",
     "aiInsight": "AI Insight",
     "steps": {
       "unavailable": "This step can't be shown.",
@@ -515,7 +530,8 @@
         "book": "Book",
         "website": "Website"
       }
-    }
+    },
+    "finishShort": "Finish"
   },
   "audio": {
     "introduction": "Introduction",
@@ -614,7 +630,15 @@
     "emptyAll": "Nobody has posted yet.",
     "emptyHint": "Open any chapter in the Bible explorer and start a discussion.",
     "onCharacter": "On {name}",
-    "viewAllComments": "View all {count} comments"
+    "viewAllComments": "View all {count} comments",
+    "age": {
+      "now": "now",
+      "minutes": "{count}m",
+      "hours": "{count}h",
+      "days": "{count}d",
+      "months": "{count}mo",
+      "years": "{count}y"
+    }
   },
   "reader": {
     "chapter": "Chapter {number}",
@@ -735,7 +759,8 @@
     "needHelp": "Need help affording premium?",
     "pricesUnavailable": "Pricing is temporarily unavailable.",
     "retry": "Try again",
-    "checkoutFailed": "We could not start checkout. Please try again."
+    "checkoutFailed": "We could not start checkout. Please try again.",
+    "signInRequired": "Please sign in to access this content."
   },
   "subscription": {
     "title": "Subscription",
@@ -766,7 +791,10 @@
     "peopleIveSponsored": "People I've Sponsored",
     "noSponsorshipsYet": "You haven't sponsored anyone yet.",
     "sponsorSomeoneDescription": "Share the gift of premium with someone who needs help accessing The Holy Beacon.",
-    "sponsoredCount": "{count} people sponsored"
+    "sponsoredCount": "{count} people sponsored",
+    "trialBanner": "You're on a free trial. Add a payment method to keep premium access when it ends.",
+    "opening": "Opening…",
+    "addPaymentMethod": "Add payment method"
   },
   "gift": {
     "title": "Gift Premium",
@@ -845,7 +873,6 @@
     "nav": {
       "features": "Features",
       "studyPlans": "Study Plans",
-      "roadmap": "Roadmap",
       "pricing": "Pricing",
       "explore": "Explore"
     },
@@ -858,11 +885,9 @@
       "badge": "Free · No account needed",
       "title": "Explore the",
       "titleHighlight": "Bible",
-      "description": "Read Scripture in hundreds of translations with our free, beautifully designed Bible explorer. No account required.",
+      "description": "Read Scripture free in 400+ translations, with no account. Every chapter keeps its context beside the text: who is in it, and what each word means.",
       "multipleTranslations": "Hundreds of Translations",
       "multipleTranslationsDesc": "Read in many languages and versions — King James, World English, Berean Standard, American Standard, Reina-Valera, and hundreds more.",
-      "cleanReading": "Clean Reading Experience",
-      "cleanReadingDesc": "A distraction-free interface built for focused Scripture reading, in light or dark theme.",
       "easyNavigation": "Easy Navigation",
       "easyNavigationDesc": "Jump to any book or chapter instantly, and keep moving with prev/next that carries you across book boundaries.",
       "seoOptimized": "Built to Share",
@@ -875,28 +900,45 @@
       "translations": "Translations",
       "books": "Books",
       "free": "Free",
-      "forever": "Forever"
+      "forever": "Forever",
+      "sample": {
+        "books": {
+          "GEN": "Genesis",
+          "EXO": "Exodus",
+          "LEV": "Leviticus",
+          "NUM": "Numbers",
+          "DEU": "Deuteronomy"
+        },
+        "verses": {
+          "1": "In the beginning God created the heaven and the earth.",
+          "2": "And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.",
+          "3": "And God said, Let there be light: and there was light.",
+          "4": "And God saw the light, that it was good: and God divided the light from the darkness."
+        }
+      },
+      "contextPanel": "Context Beside the Text",
+      "contextPanelDesc": "Open the chapter panel to see everyone named in the passage, and highlight any word for its definition and the Hebrew or Greek word behind it."
     },
     "hero": {
       "badge": "Read · Listen · Type",
       "title": "Study the Bible,",
       "titleHighlight": "deeply",
-      "description": "Most Bible apps hand you a verse and move on. The Holy Beacon gives you AI study plans, three ways through every chapter — read it, hear it narrated, or type it — plus profiles of the people behind the text and notes that stay attached to the verse.",
+      "description": "Every chapter opens with its context beside it: the people in the passage, the Hebrew and Greek behind each word, and your notes on the verse. Read it, listen to it, or type it out word by word, and follow a study plan built around what you want to understand.",
       "cta": "Start Your Journey",
       "exploreFree": "Explore the Bible free",
       "translations": "Translations",
       "characters": "Bible characters",
       "waysToStudy": "Ways to study",
       "yourGuide": "Your guide to Scripture",
-      "characterProfiles": "Character profiles",
-      "audioNarration": "Audio narration",
-      "verseNotes": "Verse notes"
+      "verseNotes": "Notes on the verse",
+      "peopleInPassage": "People in the passage",
+      "originalLanguage": "Hebrew & Greek words"
     },
     "studyPlans": {
-      "badge": "Live Now",
+      "badge": "Study plans",
       "title": "Learn With",
       "titleHighlight": "Purpose",
-      "description": "The beating heart of The Holy Beacon is its AI study plan generator. Describe what you want to learn and get a structured plan — passage by passage, session by session — with your progress tracked as you go.",
+      "description": "Describe what you want to understand and get a structured plan, passage by passage and session by session, with your progress kept as you go. Or start one of the ready-made plans and stories.",
       "customDuration": "Customizable Duration",
       "customDurationDesc": "From quick daily devotionals to in-depth multi-week studies, tailor your plan to fit your schedule.",
       "adjustableDepth": "Adjustable Depth",
@@ -918,14 +960,11 @@
       "exampleLevel": "Intermediate"
     },
     "features": {
-      "badge": "Available Now",
-      "title": "Everything",
-      "titleHighlight": "you get",
-      "description": "Not a verse-a-day app. Every chapter comes with the people in it, narrated audio, your own notes, and the study structure to work through it.",
+      "badge": "In every chapter",
+      "title": "Go deeper into",
+      "titleHighlight": "every passage",
+      "description": "The people in the text, the words behind it, three ways to take it in, and a place to keep and share what you find.",
       "learnMore": "Learn More",
-      "liveBadge": "Live",
-      "comingNext": "Coming next",
-      "moreOnRoadmap": "See what lands in the next two quarters",
       "scriptureHD": {
         "title": "Scripture in HD",
         "description": "Character profiles, cited timelines, and the people behind every chapter.",
@@ -937,8 +976,8 @@
         "preview2Desc": "See a person's arc across Scripture and how they connect to everyone around them. Every claim is cited to a real verse mention — nothing invented.",
         "preview3Title": "People in This Chapter",
         "preview3Desc": "Names light up inside the text as you read. Tap one to open their profile without losing your place in the chapter.",
-        "preview4Title": "Cross-references & context",
-        "preview4Desc": "We're building smart verse connections and historical and cultural context layers so you can trace a theme across the whole Bible."
+        "preview4Title": "Words in Their Original Language",
+        "preview4Desc": "Highlight any word to read its definition and the Hebrew or Greek word behind it, from Strong's lexicon. Spanish Bibles are defined in Spanish."
       },
       "multiModal": {
         "title": "Multi-Modal Bible",
@@ -950,97 +989,28 @@
         "preview2Title": "Narrated Audio",
         "preview2Desc": "Listen to any chapter with two voices, adjustable speed, and verse-by-verse highlighting that follows along. Download for offline listening on your commute.",
         "preview3Title": "Type-the-Word Mode",
-        "preview3Desc": "Type Scripture out word by word with live speed and accuracy. Slower than reading, and that is exactly the point.",
-        "preview4Title": "Side-by-side translations",
-        "preview4Desc": "Compare two translations of the same passage in a single view — in progress for the next release."
+        "preview3Desc": "Type Scripture out word by word with live speed and accuracy. Slower than reading, and that is exactly the point."
       },
       "studyNotes": {
-        "title": "Study & Notes",
-        "description": "AI study plans plus notes that stay attached to the verse.",
+        "title": "Study, Notes & Discussion",
+        "description": "Study plans, notes that stay on the verse, and discussion on the passage.",
         "modalTitle": "Study & Notes",
-        "modalDescription": "Structure for your study, and a place to keep what you find.",
+        "modalDescription": "Structure for your study, a place to keep what you find, and others to talk it through with.",
         "preview1Title": "AI Study Plan Generator",
         "preview1Desc": "Describe what you want to learn and set the length and depth. You get a passage-by-passage plan you can work through session by session, and regenerate any time.",
         "preview2Title": "Notes at Every Scope",
         "preview2Desc": "Attach a note to a single verse, a chapter, a whole book, or a translation. Search across all of them and jump straight back to the passage.",
         "preview3Title": "Verse of the Day & Streaks",
         "preview3Desc": "A fresh verse each day and a streak that counts the days you showed up, with an optional daily reminder by email.",
-        "preview4Title": "Chapter summaries",
-        "preview4Desc": "AI summaries and key themes for any chapter, coming to the reading panel next quarter."
+        "preview4Title": "Discuss the Passage",
+        "preview4Desc": "Start a discussion on a verse, a chapter, a book, or a translation, and read what others have found there, with replies and votes."
       }
-    },
-    "roadmap": {
-      "badge": "Where we are",
-      "title": "Feature",
-      "titleHighlight": "Roadmap",
-      "description": "Three phases are live today. Here's what lands over the next two quarters.",
-      "phases": [
-        {
-          "status": "live",
-          "timeline": "Shipped",
-          "title": "AI-Guided Study Plans",
-          "description": "Describe what you want to learn and get a structured, passage-by-passage plan built around your schedule and depth.",
-          "features": [
-            "Customizable duration and depth",
-            "Thematic study generation",
-            "Progress tracked across sessions"
-          ]
-        },
-        {
-          "status": "live",
-          "timeline": "Shipped",
-          "title": "Scripture in HD",
-          "description": "The people behind the text — profiles, timelines, and relationships, every claim cited to a real verse.",
-          "features": [
-            "Character profiles A–Z with aliases and dates",
-            "AI timelines and relationships, fully cited",
-            "People linked inline in every chapter"
-          ]
-        },
-        {
-          "status": "live",
-          "timeline": "Shipped",
-          "title": "Multi-Modal Bible",
-          "description": "Three ways through the same chapter, so Scripture fits the moment you're in.",
-          "features": [
-            "Distraction-free reading mode",
-            "Type-the-word mode with speed and accuracy",
-            "Narrated audio: two voices, speed control, offline download"
-          ]
-        },
-        {
-          "status": "current",
-          "timeline": "Q4 2026",
-          "title": "Deeper Reading Panel",
-          "description": "More context alongside the text you're reading, without ever leaving the chapter.",
-          "features": [
-            "Chapter summaries and key themes",
-            "Side-by-side translation compare",
-            "Full-text verse search",
-            {
-              "text": "Reading progress per book",
-              "done": true
-            }
-          ]
-        },
-        {
-          "status": "upcoming",
-          "timeline": "Q1 2027",
-          "title": "Community & Daily Word",
-          "description": "Fellowship features and daily Scripture engagement, so believers grow together and stay consistent.",
-          "features": [
-            "Study circles for group learning",
-            "Theological discussion boards",
-            "Daily Word personalized feed"
-          ]
-        }
-      ]
     },
     "pricing": {
       "badge": "Subscription Plans",
       "title": "Choose Your",
       "titleHighlight": "Path",
-      "description": "Select the plan that best fits your spiritual journey, with the ability to share or gift each subscription.",
+      "description": "Reading, the people in every chapter, and word definitions are free. Premium adds study plans, listening and typing, notes, and discussion. Any subscription can be gifted.",
       "mostPopular": "MOST POPULAR",
       "canBeGifted": "Can be gifted or shared with a loved one",
       "freePlan": {
@@ -1053,7 +1023,8 @@
       "freeFeatures": {
         "explore": "Full access to Bible Explorer",
         "translations": "Hundreds of Bible translations",
-        "noAccount": "No account required"
+        "noAccount": "No account required",
+        "context": "People and word definitions beside every chapter"
       },
       "premiumPlan": {
         "name": "Premium",
@@ -1063,7 +1034,8 @@
         "cta": "Get Started"
       },
       "premiumFeatures": {
-        "gift": "Gift subscriptions to others"
+        "gift": "Gift subscriptions to others",
+        "discussion": "Discussion on any passage"
       },
       "communityProgram": "Community Program",
       "sponsorship": "Sponsorship Program",
@@ -1077,6 +1049,44 @@
     },
     "footer": {
       "allRightsReserved": "All rights reserved."
+    },
+    "start": {
+      "badge": "Your first study",
+      "title": "Start where",
+      "titleHighlight": "you are",
+      "description": "Tell us how well you know the Bible, how deep you want to go, what you want to understand and how much time you have. Your first study is waiting when you arrive.",
+      "stepLabel": "Step {n}",
+      "steps": {
+        "answer": {
+          "title": "Tell us where you are",
+          "description": "Four questions, about a minute. There is no wrong answer."
+        },
+        "proposed": {
+          "title": "Your first study, already proposed",
+          "description": "The study builder reads your answers and recommends a plan, passage by passage, sized to your time."
+        },
+        "shape": {
+          "title": "Shape it together",
+          "description": "Ask for it shorter, deeper, or about something else. The plan changes as you talk, and then you start reading."
+        }
+      },
+      "cta": "Start Your Journey",
+      "sample": {
+        "message": "Welcome, Ana! You want to understand who Jesus is, with a few minutes a day. I'd start with the Gospel of Mark: the shortest account of his life, fast and vivid. How does this sound?",
+        "planName": "Meeting Jesus in Mark",
+        "planMeta": "A first week · 5 readings",
+        "readings": {
+          "r1": "Mark 1:1-20 · The Beginning",
+          "r2": "Mark 2:1-12 · Through the Roof",
+          "r3": "Mark 4:35-41 · Calming the Storm",
+          "r4": "Mark 8:27-38 · Who Do You Say I Am?"
+        },
+        "replies": {
+          "shorter": "Make it shorter",
+          "deeper": "Go deeper",
+          "ready": "This looks good"
+        }
+      }
     }
   },
   "journey": {
@@ -1169,6 +1179,183 @@
     "retry": "Try again",
     "home": "Go home",
     "reference": "Error reference"
+  },
+  "community": {
+    "title": "Community",
+    "addNote": "Add note",
+    "empty": "No community notes yet.",
+    "kind": {
+      "comment": "Comment",
+      "fact": "Fact",
+      "analysis": "Analysis",
+      "correction": "Correction"
+    },
+    "contributionPlaceholder": "Share a comment — cite scripture references where possible…",
+    "post": "Post",
+    "contributionPosted": "Contribution posted",
+    "rateLimited": "Please wait a moment before posting again",
+    "targetNotFound": "Could not find that passage",
+    "postFailed": "Could not post",
+    "reply": "Reply",
+    "replyPlaceholder": "Write a reply…",
+    "replyPosted": "Reply posted",
+    "replyFailed": "Could not post reply",
+    "comment": "Comment",
+    "commentPlaceholder": "Add a comment…",
+    "commentPosted": "Comment posted",
+    "commentFailed": "Could not post comment",
+    "commentHidden": "Comment hidden by community — show",
+    "contributionHidden": "Contribution hidden by community — show",
+    "deleted": "[deleted]",
+    "report": "Report",
+    "reported": "Thanks — we'll review this.",
+    "reportFailed": "Could not report",
+    "deletePostTitle": "Delete this post?",
+    "deleteCommentTitle": "Delete this comment?",
+    "deleteDescription": "This cannot be undone. Replies underneath it will stay visible.",
+    "deleting": "Deleting…",
+    "deletedToast": "Deleted",
+    "deleteFailed": "Could not delete",
+    "upvote": "Upvote",
+    "downvote": "Downvote"
+  },
+  "people": {
+    "aiGenerated": "AI-generated",
+    "overview": "Overview",
+    "timeline": "Life timeline",
+    "relationships": "Relationships",
+    "significance": "Significance",
+    "related": "related",
+    "signInToGenerate": "Sign in to generate an AI overview, timeline, and relationships for this person.",
+    "generating": "Generating insights…",
+    "reported": "Thanks — we'll review this.",
+    "signInToReport": "Please sign in to report content.",
+    "reportInaccuracy": "Report an inaccuracy",
+    "report": "Report",
+    "reportedLabel": "Reported",
+    "navLabel": "People",
+    "indexTitle": "Bible Characters",
+    "indexSubtitle": "Every person named in scripture, ordered by how often they appear.",
+    "searchPlaceholder": "Search by name…",
+    "searchLabel": "Search characters by name",
+    "letterFilterLabel": "Filter by first letter",
+    "noResults": "No characters match that search.",
+    "showing": "Showing {from}–{to} of {total}",
+    "pageOf": "Page {page} of {total}",
+    "mentionCountNote": "The number beside each name is how many verses mention them.",
+    "dataFrom": "Character data from",
+    "alsoCalled": "Also called: {names}",
+    "scriptureReferences": "Scripture references",
+    "noReferences": "No references available yet.",
+    "community": "Community",
+    "yearBC": "{year} BC",
+    "yearAD": "{year} AD",
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    }
+  },
+  "daily": {
+    "streakLabel": "{count, plural, one {day streak} other {day streak}}",
+    "doneToday": "Done today",
+    "keepGoing": "Read today to keep it going",
+    "best": "Best: {count}",
+    "verseOfTheDay": "Verse of the day",
+    "read": "Read ✓",
+    "markAsRead": "Mark as read",
+    "openInReader": "Open in reader",
+    "verseLoading": "Today's verse is loading…"
+  },
+  "welcome": {
+    "back": "Back",
+    "skip": "Skip for now",
+    "continue": "Continue",
+    "saveFailed": "Your answers could not be saved. Please try again.",
+    "intro": {
+      "title": "Welcome, {name}.",
+      "titleNoName": "Welcome.",
+      "body": "Four questions about where you are with the Bible. From your answers, your first study is ready when you arrive, and you can shape it by talking it through.",
+      "begin": "Begin",
+      "time": "About a minute"
+    },
+    "familiarity": {
+      "title": "How well do you know the Bible?",
+      "hint": "There is no wrong answer. It only sets where your first study starts.",
+      "options": {
+        "new": {
+          "label": "It's new to me",
+          "description": "I have barely read it, or never."
+        },
+        "some": {
+          "label": "I've read some",
+          "description": "Passages here and there, a few stories I know."
+        },
+        "regular": {
+          "label": "I read it regularly",
+          "description": "It is part of my week, and I want more from it."
+        },
+        "deep": {
+          "label": "I've studied it deeply",
+          "description": "I know its books, its context, its languages."
+        }
+      }
+    },
+    "depth": {
+      "title": "How deep do you want to go?",
+      "hint": "You can change this on any study, any time.",
+      "options": {
+        "light": {
+          "label": "A passage and a thought",
+          "description": "Read, and take one thing with me."
+        },
+        "steady": {
+          "label": "Understand it",
+          "description": "The passage, who is in it, and its context."
+        },
+        "deep": {
+          "label": "Study it closely",
+          "description": "Original words, connections across Scripture."
+        }
+      }
+    },
+    "interests": {
+      "title": "What do you want to understand?",
+      "hint": "Pick as many as you like, or say it in your own words.",
+      "options": {
+        "jesus": "Who Jesus is",
+        "prayer": "How to pray",
+        "hardSeason": "Getting through a hard season",
+        "bigStory": "The Bible's big story",
+        "wisdom": "Wisdom for daily life",
+        "oneBook": "One book, closely",
+        "people": "The people of the Bible",
+        "faithDoubts": "Questions and doubts"
+      },
+      "noteLabel": "In your own words (optional)",
+      "notePlaceholder": "What is on your mind, or what brought you here?"
+    },
+    "time": {
+      "title": "How much time do you have?",
+      "hint": "Your first study fits it.",
+      "options": {
+        "minutes": {
+          "label": "A few minutes",
+          "description": "A short reading most days."
+        },
+        "quarter": {
+          "label": "About 15 minutes",
+          "description": "Time to read and think it over."
+        },
+        "long": {
+          "label": "Longer sessions",
+          "description": "30 minutes or more, to go slowly."
+        }
+      }
+    },
+    "preparing": {
+      "title": "Preparing your first study",
+      "body": "The study builder is reading your answers and choosing where to begin."
+    }
   },
   "welcomePremium": {
     "toastTitle": "You have 7 days of premium, on us",

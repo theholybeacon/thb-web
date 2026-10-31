@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { getBibleBySlug } from "@/app/bible/publicData";
 import { BookOpen } from "lucide-react";
 import { ListenableIndicator } from "@/components/audio/ListenableIndicator";
@@ -36,6 +37,7 @@ export default async function BibleHomePage({ params }: PageProps) {
   if (!bible) {
     notFound();
   }
+  const t = await getTranslations("bible");
 
   return (
     <div className="flex items-center justify-center h-full p-8">
@@ -56,7 +58,7 @@ export default async function BibleHomePage({ params }: PageProps) {
           </p>
         )}
         <p className="text-sm text-muted-foreground">
-          Select a book from the sidebar to start reading.
+          {t("selectBookToStart")}
         </p>
       </div>
     </div>

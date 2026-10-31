@@ -10,16 +10,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { ArrowRight, Bookmark, CheckCircle2, Clock4, Columns2, FileText, Flame, Headphones, Users, ChevronLeft, ChevronRight, Link2, NotebookPen, User, Globe, BookOpen, Mic, Keyboard, Sparkles, LucideIcon } from "lucide-react";
+import { ArrowRight, Bookmark, Clock4, Flame, Headphones, Languages, MessageSquare, Users, ChevronLeft, ChevronRight, Link2, NotebookPen, User, BookOpen, Mic, Keyboard, Sparkles, LucideIcon } from "lucide-react";
 
 interface PreviewSlide {
   title: string;
   description: string;
   icon: LucideIcon;
-  /** Marks a teaser slide for work that has not shipped yet. */
-  upcoming?: boolean;
 }
 
 interface Feature {
@@ -36,12 +32,10 @@ function FeatureModal({
   feature,
   open,
   onOpenChange,
-  comingNextText
 }: {
   feature: Feature | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  comingNextText: string;
 }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -83,14 +77,8 @@ function FeatureModal({
           {/* Slide content */}
           <div className="relative bg-secondary/30 rounded-xl p-6 min-h-[200px]">
             <div className="flex flex-col items-center text-center space-y-4">
-              {current.upcoming && (
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
-                  <Clock4 className="h-3 w-3" />
-                  <span>{comingNextText}</span>
-                </div>
-              )}
-              <div className={cn("rounded-2xl p-4", current.upcoming ? "bg-secondary" : "bg-primary/10")}>
-                <current.icon className={cn("h-10 w-10", current.upcoming ? "text-muted-foreground" : "text-primary")} />
+              <div className="rounded-2xl p-4 bg-primary/10">
+                <current.icon className="h-10 w-10 text-primary" />
               </div>
               <h4 className="text-lg font-bold">{current.title}</h4>
               <p className="text-muted-foreground text-sm leading-relaxed">
@@ -172,8 +160,7 @@ export function FeaturePreviewSection() {
         {
           title: t("scriptureHD.preview4Title"),
           description: t("scriptureHD.preview4Desc"),
-          icon: Globe,
-          upcoming: true,
+          icon: Languages,
         },
       ],
     },
@@ -199,12 +186,6 @@ export function FeaturePreviewSection() {
           title: t("multiModal.preview3Title"),
           description: t("multiModal.preview3Desc"),
           icon: Keyboard,
-        },
-        {
-          title: t("multiModal.preview4Title"),
-          description: t("multiModal.preview4Desc"),
-          icon: Columns2,
-          upcoming: true,
         },
       ],
     },
@@ -234,8 +215,7 @@ export function FeaturePreviewSection() {
         {
           title: t("studyNotes.preview4Title"),
           description: t("studyNotes.preview4Desc"),
-          icon: FileText,
-          upcoming: true,
+          icon: MessageSquare,
         },
       ],
     },
@@ -278,14 +258,6 @@ export function FeaturePreviewSection() {
               {/* Hover glow effect */}
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-highlight/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-              {/* Live badge */}
-              <div className="absolute top-4 right-4">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 border border-green-500/20 px-3 py-1 text-xs text-green-600 dark:text-green-400">
-                  <CheckCircle2 className="h-3 w-3" />
-                  <span>{t("liveBadge")}</span>
-                </div>
-              </div>
-
               {/* Icon */}
               <div className="relative rounded-2xl bg-primary/10 p-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                 <feature.icon className="h-8 w-8 text-primary" />
@@ -309,17 +281,6 @@ export function FeaturePreviewSection() {
             </div>
           ))}
         </div>
-
-        {/* Pointer to what's still coming */}
-        <div className="mt-10 text-center animate-fade-up opacity-0 animation-delay-600">
-          <Link
-            href="#roadmap"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <span>{t("moreOnRoadmap")}</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
       </div>
 
       {/* Feature Modal */}
@@ -327,7 +288,6 @@ export function FeaturePreviewSection() {
         feature={selectedFeature}
         open={modalOpen}
         onOpenChange={setModalOpen}
-        comingNextText={t("comingNext")}
       />
     </section>
   );

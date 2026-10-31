@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { partialJsonString } from "./ai/partialJson";
-import { buildSystemPrompt, learnerHighlights, OPENING_INSTRUCTION, openingInstruction, parseTurn } from "./ai/prompt";
+import { buildSystemPrompt, isWelcome, learnerHighlights, OPENING_INSTRUCTION, openingInstruction, parseTurn, WELCOME_INSTRUCTION } from "./ai/prompt";
 import { FakeStudyBuilderAI, type StudyBuilderAI } from "./ai/StudyBuilderAI";
 import { draftStepToInsert, normalizeDraft, normalizeStep, parsePassageQuery, planStepSync, stepKey, studyToDraft, toUsfm } from "./model/draft";
 import { studyBuilderTurn } from "./service/studyBuilderTurn";
@@ -24,6 +24,7 @@ const profile = (over: Partial<LearnerProfile> = {}): LearnerProfile => ({
 	comments: [],
 	pastConversations: [{ title: "Peace", outcome: "unfinished", said: ["I can't sleep"], date: "2026-09-10" }],
 	memory: ["Ana reads early in the morning."],
+	start: null,
 	...over,
 });
 
@@ -175,6 +176,24 @@ describe("prompt", () => {
 		expect(buildSystemPrompt(profile(), draft)).toContain("change the plan by hand");
 	});
 
+	it("tells the model where a new reader is starting from, and recommends their first study at once", () => {
+		const start = { familiarity: "new", depth: "light", interests: ["jesus", "prayer"], note: "My mom just passed away", time: "minutes" } as const;
+		const newcomer = profile({ start: { ...start, interests: [...start.interests] }, studies: [], pastConversations: [] });
+		const prompt = buildSystemPrompt(newcomer, null);
+		for (const fact of ["WHAT THEY TOLD US WHEN THEY JOINED", "new to the Bible", "who Jesus is; how to pray", "a few minutes a day", '"My mom just passed away"']) {
+			expect(prompt).toContain(fact);
+		}
+		expect(buildSystemPrompt(profile(), null)).toContain("they skipped the questions");
+
+		expect(isWelcome(newcomer)).toBe(true);
+		// Only their first conversation: someone with a study or a past conversation is greeted as usual.
+		expect(isWelcome({ ...newcomer, studies: profile().studies })).toBe(false);
+		expect(isWelcome({ ...newcomer, start: null })).toBe(false);
+		expect(openingInstruction(null, false, true)).toBe(WELCOME_INSTRUCTION);
+		expect(openingInstruction(normalizeDraft({ name: "Peace", steps: [{ bookAbbreviation: "PSA", chapterNumber: "23" }] }), false, true)).toContain("started this plan by hand");
+		expect(learnerHighlights(newcomer)[0]).toEqual({ kind: "start", count: 1 });
+	});
+
 	it("parses a turn and survives a sloppy one", () => {
 		const turn = parseTurn(JSON.stringify({ reply: " Hi ", quickReplies: ["a", 3, ""], draft: null, remember: ["x"] }));
 		expect(turn).toEqual({ reply: "Hi", quickReplies: ["a"], draft: null, remember: ["x"] });
@@ -190,7 +209,7 @@ describe("prompt", () => {
 });
 
 /** The DAO surface studyBuilderTurn needs, in memory. */
-function memoryDao() {
+function memoryDao(learner: LearnerProfile = profile()) {
 	const conversations = new Map<string, StudyBuilderConversationFull>();
 	const memory: string[] = [];
 	let n = 0;
@@ -207,7 +226,7 @@ function memoryDao() {
 			return c ? structuredClone(c) : null;
 		},
 		async getLearnerProfile() {
-			return profile();
+			return learner;
 		},
 		async addMessage(conversationId: string, role: "user" | "assistant", content: string, payload: StudyBuilderMessagePayload | null = null) {
 			const m = { id: `m${++n}`, role, content, payload, createdAt: "" };
@@ -255,6 +274,24 @@ describe("studyBuilderTurn", () => {
 		expect(shorter.draft?.steps).toHaveLength(3);
 		expect(dao.conversations.get(id)?.messages.map((m) => m.role)).toEqual(["assistant", "user", "assistant", "user", "assistant"]);
 		expect(dao.memory).toHaveLength(2);
+	});
+
+	it("opens a new reader's first conversation with a recommended plan already in it", async () => {
+		const dao = memoryDao(profile({
+			start: { familiarity: "new", depth: "light", interests: ["jesus"], note: "", time: "minutes" },
+			studies: [],
+			pastConversations: [],
+		}));
+		const opening = (await collect(studyBuilderTurn({ ...input, conversationId: null, message: null }, dao, new FakeStudyBuilderAI()))).at(-1) as Extract<StudyBuilderEvent, { type: "done" }>;
+		expect(opening.message.content).toContain("Welcome, Ana!");
+		expect(opening.message.payload?.draftChanged).toBe(true);
+		expect(opening.draft?.name).toBe("Meeting Jesus in Mark");
+		expect(opening.draft?.steps).toHaveLength(5);
+		const id = [...dao.conversations.keys()][0];
+		expect(dao.conversations.get(id)?.draft?.name).toBe("Meeting Jesus in Mark");
+
+		const shorter = (await collect(studyBuilderTurn({ ...input, conversationId: id, message: "Make it shorter" }, dao, new FakeStudyBuilderAI()))).at(-1) as Extract<StudyBuilderEvent, { type: "done" }>;
+		expect(shorter.draft?.steps).toHaveLength(3);
 	});
 
 	it("reports a failed model call instead of saving a broken turn", async () => {

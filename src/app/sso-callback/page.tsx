@@ -3,12 +3,14 @@
 import { useEffect, useRef } from "react";
 import { useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { clerkErrorOf, trackLoginFailure } from "@/app/auth/lib/loginTelemetry";
 
 const SSO_CALLBACK_TIMEOUT_MS = 20_000;
 
 export default function SSOCallbackPage() {
+  const t = useTranslations("auth.login");
   const { handleRedirectCallback } = useClerk();
   const router = useRouter();
   // The OAuth params can only be consumed once; StrictMode double-runs effects.
@@ -62,7 +64,7 @@ export default function SSOCallbackPage() {
     <div className="flex min-h-screen items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground">Completing sign in...</p>
+        <p className="text-muted-foreground">{t("completingSignIn")}</p>
       </div>
     </div>
   );

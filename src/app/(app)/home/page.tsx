@@ -4,6 +4,8 @@ import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { useTranslations } from "next-intl";
 import { AppShell } from "@/components/app";
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { BookOpen, Clock, Sun } from "lucide-react";
 import { DailyHomeWidget } from "@/components/home/DailyHomeWidget";
 
@@ -11,8 +13,16 @@ export default function HomePage() {
   const t = useTranslations("home");
   const tCommon = useTranslations("common");
   const { user, loading } = useLoggedUserContext();
+  const router = useRouter();
+  // A new reader goes through /welcome first. Only an explicit null: a user
+  // cached from before the column existed has no onboardedAt at all.
+  const firstVisit = !loading && user?.onboardedAt === null;
 
-  if (loading) {
+  useEffect(() => {
+    if (firstVisit) router.replace("/welcome");
+  }, [firstVisit, router]);
+
+  if (loading || firstVisit) {
     return (
       <AppShell>
         <div className="flex h-full items-center justify-center py-20">

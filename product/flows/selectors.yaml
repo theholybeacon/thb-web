@@ -9,6 +9,9 @@ mode.read: "button:has(svg.lucide-eye)"
 mode.type: "button:has(svg.lucide-keyboard)"
 mode.listen: "button:has(svg.lucide-headphones)"
 reader.panel: "button:has(svg.lucide-panel-right)"
+# The app's shell, hidden when a demo films with layout: content (site header,
+# chapter rail / sidebar, the reader's breadcrumb and prev/next bars).
+shell.chrome: "header.z-50, aside.w-12, aside.w-64, main header.sticky, footer.sticky"
 reader.characterLink: "main a[href^='/bible/people/']"
 # Templated: {{param}} is filled from the flow's params for each run.
 reader.personLink: "main a[href='/bible/people/{{character}}']"

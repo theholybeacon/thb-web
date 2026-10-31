@@ -10,20 +10,20 @@ import { useOptionalSessionProgress } from "../../context/SessionProgressContext
 import { useOptionalChapterCompletion } from "@/components/reader/progress/ChapterCompletionContext";
 import { parseChapterBlocks, type ChapterBlock, type PoetryLevel } from "@/app/common/verse/model/verseLayout";
 import { foldTypedChar } from "@/app/common/verse/model/typingFold";
+import { applyTypingKeys, keysFromInputEvent, type TypedCharState, type TypingKey } from "@/app/common/verse/model/typingInput";
 import { VERSE_NUMBER_CLASS } from "@/components/reader/ChapterText";
 import { keepVerseAnchorInBand } from "@/components/reader/scrollToVerse";
 
 interface TypeModeProps {
 	verses: Verse[];
+	/** The reader column that scrolls; the cursor is kept in view inside it. */
+	scrollerRef?: React.RefObject<HTMLDivElement | null>;
 	startVerse?: number | null;
 	endVerse?: number | null;
 }
 
-interface CharState {
-	/** The folded keystroke accepted here — not necessarily what is painted. */
-	char: string;
-	state: "pending" | "correct" | "incorrect";
-}
+/** The folded keystroke accepted here — not necessarily what is painted — and its grade. */
+type CharState = TypedCharState;
 
 interface TypeChar {
 	/** Position in the flat charStates array. */
@@ -67,7 +67,7 @@ function typingDisplay(text: string): string {
  *
  * Indices are assigned during the walk rather than mapped afterwards, so each
  * rendered character already knows its slot in the flat `charStates` array that
- * the cursor, stats and progress all read from.
+ * the cursor and progress read from.
  */
 function buildTypeDocument(blocks: ChapterBlock[]): { blocks: TypeBlock[]; expected: string[] } {
 	const expected: string[] = [];
@@ -101,7 +101,7 @@ function buildTypeDocument(blocks: ChapterBlock[]): { blocks: TypeBlock[]; expec
 	return { blocks: typeBlocks, expected };
 }
 
-export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
+export function TypeMode({ verses, scrollerRef, startVerse, endVerse }: TypeModeProps) {
 	const t = useTranslations();
 	const sessionProgress = useOptionalSessionProgress();
 	const chapterCompletion = useOptionalChapterCompletion();
@@ -127,7 +127,7 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [startTime, setStartTime] = useState<number | null>(null);
 	const [isComplete, setIsComplete] = useState(false);
-	const [stats, setStats] = useState({ accuracy: 0, wpm: 0, timeSpentSeconds: 0 });
+	const [timeSpentSeconds, setTimeSpentSeconds] = useState(0);
 
 	// Initialize char states
 	useEffect(() => {
@@ -138,12 +138,16 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 	}, [document_]);
 
 	// The hidden input is kept for touch devices — tapping the passage is what
-	// raises the soft keyboard — but it is not what reads the keys. Listening on
-	// the document (below) means the passage is typable the moment Type mode is on
-	// screen, and stays typable after a click elsewhere steals focus.
+	// raises the soft keyboard — but it is not what reads hardware keys. Listening
+	// on the document (below) means the passage is typable the moment Type mode is
+	// on screen, and stays typable after a click elsewhere steals focus.
+	//
+	// preventScroll: the input sits at the top of the passage, and focusing it
+	// would otherwise yank the reader back up there.
+	const focusInput = useCallback(() => inputRef.current?.focus({ preventScroll: true }), []);
 	useEffect(() => {
-		inputRef.current?.focus();
-	}, []);
+		focusInput();
+	}, [focusInput]);
 
 	// Report mode progress to context
 	useEffect(() => {
@@ -154,8 +158,28 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 	// public reader and inside a study. markComplete is idempotent per chapter.
 	useEffect(() => {
 		if (!isComplete) return;
-		chapterCompletion?.markComplete("type", stats.timeSpentSeconds);
-	}, [isComplete, stats.timeSpentSeconds, chapterCompletion]);
+		chapterCompletion?.markComplete("type", timeSpentSeconds);
+	}, [isComplete, timeSpentSeconds, chapterCompletion]);
+
+	const applyKeys = useCallback(
+		(keys: TypingKey[]) => {
+			if (isComplete || keys.length === 0) return;
+
+			// Start timer on first keypress
+			const startedAt = startTime ?? Date.now();
+			if (startTime === null) setStartTime(startedAt);
+
+			const next = applyTypingKeys(charStates, currentIndex, keys);
+			setCharStates(next.states);
+			setCurrentIndex(next.index);
+
+			if (next.states.length > 0 && next.index >= next.states.length) {
+				setTimeSpentSeconds(Math.round((Date.now() - startedAt) / 1000));
+				setIsComplete(true);
+			}
+		},
+		[charStates, currentIndex, startTime, isComplete]
+	);
 
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
@@ -176,65 +200,41 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 				return;
 			}
 
-			// Start timer on first keypress
-			if (startTime === null) {
-				setStartTime(Date.now());
-			}
-
-			// Handle backspace
-			if (e.key === "Backspace") {
-				if (currentIndex > 0) {
-					setCharStates((prev) => {
-						const newStates = [...prev];
-						newStates[currentIndex - 1].state = "pending";
-						return newStates;
-					});
-					setCurrentIndex((prev) => prev - 1);
-				}
-				e.preventDefault();
-				return;
-			}
-
 			// Enter is accepted wherever a Space is — the line breaks in poetry read
-			// like somewhere you should press it.
-			const typed = e.key === "Enter" ? " " : e.key;
-			if (typed.length !== 1) return;
+			// like somewhere you should press it. Anything else longer than one
+			// character is a named key (Shift, Tab) — or Android's "Unidentified",
+			// whose text arrives as a beforeinput on the hidden input instead.
+			const key = e.key === "Enter" ? " " : e.key;
+			if (key !== "Backspace" && key.length !== 1) return;
 
-			const expectedChar = charStates[currentIndex]?.char;
-			if (!expectedChar) return;
-
-			// Lenient comparison: typing "e" satisfies "é". See typingFold.ts.
-			const isCorrect = foldTypedChar(typed) === expectedChar;
-
-			setCharStates((prev) => {
-				const newStates = [...prev];
-				newStates[currentIndex].state = isCorrect ? "correct" : "incorrect";
-				return newStates;
-			});
-
-			const newIndex = currentIndex + 1;
-			setCurrentIndex(newIndex);
-
-			// Check if complete
-			if (newIndex >= charStates.length) {
-				const endTime = Date.now();
-				const timeSpentSeconds = Math.round((endTime - (startTime || endTime)) / 1000);
-				const correctChars = charStates.filter((c) => c.state === "correct").length + (isCorrect ? 1 : 0);
-				const totalChars = charStates.length;
-				const accuracy = Math.round((correctChars / totalChars) * 100);
-
-				// WPM = (characters / 5) / minutes
-				const minutes = timeSpentSeconds / 60 || 1;
-				const wpm = Math.round(totalChars / 5 / minutes);
-
-				setStats({ accuracy, wpm, timeSpentSeconds });
-				setIsComplete(true);
-			}
-
+			// Handled here, so the hidden input never sees it: no beforeinput follows.
 			e.preventDefault();
+			applyKeys([key]);
 		},
-		[charStates, currentIndex, startTime, isComplete]
+		[applyKeys, isComplete]
 	);
+
+	// On-screen keyboards that do not report keys on keydown (Android's) still
+	// type into the hidden input. Read what they meant, and keep the field empty.
+	useEffect(() => {
+		const input = inputRef.current;
+		if (!input) return;
+		const onBeforeInput = (e: InputEvent) => {
+			const keys = keysFromInputEvent(e.inputType, e.data);
+			if (!keys) return;
+			e.preventDefault();
+			applyKeys(keys);
+		};
+		const onInput = () => {
+			input.value = "";
+		};
+		input.addEventListener("beforeinput", onBeforeInput);
+		input.addEventListener("input", onInput);
+		return () => {
+			input.removeEventListener("beforeinput", onBeforeInput);
+			input.removeEventListener("input", onInput);
+		};
+	}, [applyKeys]);
 
 	useEffect(() => {
 		document.addEventListener("keydown", handleKeyDown);
@@ -246,35 +246,36 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 		setCurrentIndex(0);
 		setStartTime(null);
 		setIsComplete(false);
-		inputRef.current?.focus();
+		focusInput();
 	};
 
 	// Keep the cursor in view. Only when it drifts out of a comfortable band —
 	// re-centring on every keystroke in a dense column is jittery.
-	useEffect(() => {
+	const keepCursorInView = useCallback(() => {
 		const cursor = containerRef.current?.querySelector('[data-cursor="true"]');
-		keepVerseAnchorInBand(containerRef.current, cursor as HTMLElement | null);
-	}, [currentIndex]);
+		keepVerseAnchorInBand(scrollerRef?.current ?? containerRef.current, cursor as HTMLElement | null);
+	}, [scrollerRef]);
 
-	// Calculate current stats while typing
-	const currentAccuracy =
-		currentIndex > 0
-			? Math.round(
-					(charStates.slice(0, currentIndex).filter((c) => c.state === "correct").length / currentIndex) *
-						100
-				)
-			: 100;
+	useEffect(() => {
+		keepCursorInView();
+	}, [currentIndex, keepCursorInView]);
 
-	const currentWpm =
-		startTime && currentIndex > 0
-			? Math.round((currentIndex / 5) / ((Date.now() - startTime) / 60000))
-			: 0;
+	// The reader column shrinks when the on-screen keyboard opens (the shell is
+	// sized to what is visible); bring the line being typed back above it.
+	useEffect(() => {
+		const scroller = scrollerRef?.current;
+		if (!scroller || typeof ResizeObserver === "undefined") return;
+		const observer = new ResizeObserver(() => keepCursorInView());
+		observer.observe(scroller);
+		return () => observer.disconnect();
+	}, [scrollerRef, keepCursorInView]);
 
 	const renderChar = (char: TypeChar, extraClassName?: string) => {
 		const state = charStates[char.index]?.state ?? "pending";
 		return (
 			<span
 				key={char.index}
+				data-state={state}
 				data-cursor={char.index === currentIndex ? "true" : undefined}
 				className={cn(
 					"transition-colors",
@@ -294,28 +295,10 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 	};
 
 	return (
-		<div className="flex flex-col gap-6 h-full">
-			{/* Stats bar */}
-			<div className="flex items-center justify-between px-4 py-2 bg-muted/50 rounded-lg">
-				<div className="flex items-center gap-6 text-sm">
-					<div>
-						<span className="text-muted-foreground">{t("session.accuracy")}: </span>
-						<span className={cn("font-mono font-medium", currentAccuracy < 90 ? "text-destructive" : "text-primary")}>
-							{isComplete ? stats.accuracy : currentAccuracy}%
-						</span>
-					</div>
-					<div>
-						<span className="text-muted-foreground">{t("session.wpm")}: </span>
-						<span className="font-mono font-medium text-primary">{isComplete ? stats.wpm : currentWpm}</span>
-					</div>
-					<div>
-						<span className="text-muted-foreground">{t("session.progress")}: </span>
-						<span className="font-mono font-medium">
-							{currentIndex}/{charStates.length}
-						</span>
-					</div>
-				</div>
-				<Button variant="ghost" size="sm" onClick={handleReset}>
+		<div className="flex flex-col gap-1 sm:gap-2 h-full">
+			{/* Just the text and a way to start over — no scores while you type. */}
+			<div className="flex justify-end">
+				<Button variant="ghost" size="sm" className="h-7 sm:h-9" onClick={handleReset}>
 					<RotateCcw className="h-4 w-4 mr-2" />
 					{isComplete ? t("session.tryAgain") : t("common.reset")}
 				</Button>
@@ -324,11 +307,25 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 			{/* Typing area */}
 			<div
 				ref={containerRef}
-				className="relative p-6 bg-card rounded-lg border flex-1 min-h-0 cursor-text overflow-y-auto"
-				onClick={() => inputRef.current?.focus()}
+				className="relative p-3 sm:p-6 bg-card rounded-lg border flex-1 min-h-0 cursor-text overflow-y-auto"
+				onClick={focusInput}
 			>
-				{/* Hidden input for capturing keystrokes */}
-				<input ref={inputRef} type="text" className="absolute opacity-0 h-0 w-0" autoFocus />
+				{/*
+				 * Hidden input for capturing keystrokes. 16px text, or iOS zooms the
+				 * page in on focus; no autocorrect or capitals, which on a phone
+				 * keyboard would rewrite what the reader typed.
+				 */}
+				<input
+					ref={inputRef}
+					type="text"
+					className="pointer-events-none absolute left-0 top-0 h-0 w-0 text-base opacity-0"
+					autoComplete="off"
+					autoCorrect="off"
+					autoCapitalize="off"
+					spellCheck={false}
+					enterKeyHint="next"
+					aria-label={t("session.modeType")}
+				/>
 
 				{/*
 				 * The same block/line structure and typography as Read and Listen, so
@@ -361,24 +358,6 @@ export function TypeMode({ verses, startVerse, endVerse }: TypeModeProps) {
 					))}
 				</div>
 			</div>
-
-			{/* Completion stats */}
-			{isComplete && (
-				<div className="grid grid-cols-3 gap-4">
-					<div className="text-center p-4 bg-primary/10 rounded-lg">
-						<p className="text-2xl font-bold text-primary">{stats.accuracy}%</p>
-						<p className="text-sm text-muted-foreground">{t("session.accuracy")}</p>
-					</div>
-					<div className="text-center p-4 bg-primary/10 rounded-lg">
-						<p className="text-2xl font-bold text-primary">{stats.wpm}</p>
-						<p className="text-sm text-muted-foreground">{t("session.wpm")}</p>
-					</div>
-					<div className="text-center p-4 bg-primary/10 rounded-lg">
-						<p className="text-2xl font-bold text-primary">{stats.timeSpentSeconds}s</p>
-						<p className="text-sm text-muted-foreground">{t("session.timeSpent")}</p>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }

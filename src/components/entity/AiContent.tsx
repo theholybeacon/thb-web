@@ -1,5 +1,6 @@
 import { Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { FlagButton } from "./FlagButton";
 
 interface AiContentProps {
@@ -16,6 +17,7 @@ interface AiContentProps {
  * a labeled character-page section with a report affordance.
  */
 export function AiContent({ title, entityContentId, section, children }: AiContentProps) {
+	const t = useTranslations("people");
 	if (!title) {
 		return (
 			<div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
@@ -33,7 +35,7 @@ export function AiContent({ title, entityContentId, section, children }: AiConte
 				<div className="flex items-center gap-2 text-xs font-medium text-primary">
 					<Sparkles className="h-3.5 w-3.5 flex-shrink-0" />
 					<span>{title}</span>
-					<span className="text-muted-foreground font-normal">· AI-generated</span>
+					<span className="text-muted-foreground font-normal">· {t("aiGenerated")}</span>
 				</div>
 				{entityContentId && section && <FlagButton entityContentId={entityContentId} section={section} />}
 			</div>

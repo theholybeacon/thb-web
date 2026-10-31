@@ -1,8 +1,9 @@
-import { AnyPgColumn, pgTable, uuid, varchar, boolean, text, timestamp } from 'drizzle-orm/pg-core';
+import { AnyPgColumn, pgTable, uuid, varchar, boolean, text, timestamp, jsonb } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { studyTable } from './study';
 import { relations } from 'drizzle-orm';
 import { bibleTable } from './bible';
+import type { ReaderStart } from '@/app/common/user/model/ReaderStart';
 
 export const userTable = pgTable("user", {
 	id: uuid().defaultRandom().primaryKey(),
@@ -27,6 +28,13 @@ export const userTable = pgTable("user", {
 	// Stripe — a lifetime user has no `subscription` row. See src/lib/premium.ts.
 	lifetimePremium: boolean().notNull().default(false),
 	lifetimePremiumGrantedAt: timestamp(),
+	// The first-visit questions (/welcome): how well they know the Bible, how
+	// deep they want to go, what they want to understand, how much time they
+	// have. The study builder recommends their first study from it. NULL when
+	// they skipped. onboardedAt NULL means they have not been through /welcome
+	// yet; readers from before it shipped were marked as through it.
+	readerStart: jsonb().$type<ReaderStart>(),
+	onboardedAt: timestamp(),
 	// The welcome week: premium until this moment, granted once per reader on
 	// the first sign-in after it shipped (welcomePremiumClaimSS). NULL means not
 	// granted yet; a past date means it was used up. See src/lib/premium.ts.

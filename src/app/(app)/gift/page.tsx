@@ -70,7 +70,7 @@ export default function GiftPage() {
 		return (
 			<AppShell>
 				<div className="flex h-full items-center justify-center py-20">
-					<div className="animate-pulse">Loading...</div>
+					<div className="animate-pulse">{tPremium("loading")}</div>
 				</div>
 			</AppShell>
 		);

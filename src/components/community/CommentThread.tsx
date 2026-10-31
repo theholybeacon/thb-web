@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
 import { track } from "@/lib/analytics";
@@ -38,6 +39,8 @@ function CommentItem({
 	comment: CommentNode;
 	depth: number;
 }) {
+	const t = useTranslations("community");
+	const tCommon = useTranslations("common");
 	const { requirePremium, onChanged } = useCommunity();
 	const [replying, setReplying] = useState(false);
 	const [text, setText] = useState("");
@@ -53,17 +56,17 @@ function CommentItem({
 			track("comment_posted", { isReply: true });
 			setText("");
 			setReplying(false);
-			toast.success("Reply posted");
+			toast.success(t("replyPosted"));
 			onChanged();
 		} else {
-			toast.error("Could not post reply");
+			toast.error(t("replyFailed"));
 		}
 	};
 
 	if (!show) {
 		return (
 			<button className="text-xs text-muted-foreground hover:underline py-1" onClick={() => setShow(true)}>
-				Comment hidden by community — show
+				{t("commentHidden")}
 			</button>
 		);
 	}
@@ -73,7 +76,7 @@ function CommentItem({
 	if (comment.deleted) {
 		return (
 			<div className="py-2">
-				<p className="text-sm italic text-muted-foreground">[deleted]</p>
+				<p className="text-sm italic text-muted-foreground">{t("deleted")}</p>
 				{comment.replies.length > 0 && (
 					<CommentThread contributionId={contributionId} comments={comment.replies} depth={depth + 1} />
 				)}
@@ -102,7 +105,7 @@ function CommentItem({
 								if (requirePremium()) setReplying((v) => !v);
 							}}
 						>
-							Reply
+							{t("reply")}
 						</button>
 						{comment.isMine && <DeleteAction targetType="comment" id={comment.id} />}
 					</div>
@@ -113,14 +116,14 @@ function CommentItem({
 								onChange={(e) => setText(e.target.value)}
 								rows={2}
 								className="w-full rounded border bg-background p-2 text-sm"
-								placeholder="Write a reply…"
+								placeholder={t("replyPlaceholder")}
 							/>
 							<div className="flex gap-2">
 								<Button size="sm" onClick={submit} disabled={busy}>
-									Reply
+									{t("reply")}
 								</Button>
 								<Button size="sm" variant="ghost" onClick={() => setReplying(false)}>
-									Cancel
+									{tCommon("cancel")}
 								</Button>
 							</div>
 						</div>

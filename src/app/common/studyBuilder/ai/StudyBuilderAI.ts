@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { canonBook } from "../../canon/model/canon";
-import { OPENING_PREFIX } from "./prompt";
+import { OPENING_PREFIX, WELCOME_INSTRUCTION } from "./prompt";
 import type { LearnerProfile, StudyBuilderDraft } from "../model/StudyBuilder";
 
 export type StudyBuilderChatMessage = { role: "user" | "assistant"; content: string };
@@ -50,7 +50,29 @@ export class FakeStudyBuilderAI implements StudyBuilderAI {
 		const note = profile.notes[0];
 
 		let turn: object;
-		if (said.length === 0 && draft) {
+		if (said.length === 0 && !draft && history[0]?.content === WELCOME_INSTRUCTION && profile.start) {
+			// Their first study, from their answers on /welcome: a short walk through Mark for someone who wants to know Jesus.
+			const newcomer = profile.start.familiarity === "new";
+			turn = {
+				reply: `Welcome, ${first}! You said you want to understand who Jesus is${newcomer ? " and that the Bible is new to you" : ""}, with ${profile.start.time === "minutes" ? "a few minutes a day" : "some time each day"}. So I'd start with the Gospel of Mark: the shortest account of Jesus' life, fast and vivid. Here are five readings to begin. How does that sound?`,
+				quickReplies: ["Make it shorter", "Go deeper", "This looks good"],
+				draft: {
+					name: "Meeting Jesus in Mark",
+					description: `A first week with Jesus, through the Gospel of Mark, for ${newcomer ? "someone new to the Bible" : "a reader who wants to know him better"}.`,
+					topic: "Who Jesus is",
+					length: 3,
+					depth: 3,
+					steps: [
+						{ bookAbbreviation: "MRK", chapterNumber: "1", verseNumber: "1-20", title: "The Beginning", explanation: "Mark opens with John the Baptist and Jesus calling his first followers. Notice how quickly they leave everything." },
+						{ bookAbbreviation: "MRK", chapterNumber: "2", verseNumber: "1-12", title: "Through the Roof", explanation: "Friends lower a paralysed man through a roof. Watch what Jesus says before he heals him." },
+						{ bookAbbreviation: "MRK", chapterNumber: "4", verseNumber: "35-41", title: "Calming the Storm", explanation: "The disciples ask: who is this, that even the wind obeys him? Keep that question with you." },
+						{ bookAbbreviation: "MRK", chapterNumber: "8", verseNumber: "27-38", title: "Who Do You Say I Am?", explanation: "Jesus asks the question at the heart of this study, and then says what following him means." },
+						{ bookAbbreviation: "MRK", chapterNumber: "16", verseNumber: "1-8", title: "The Empty Tomb", explanation: "Mark ends at the tomb, with fear and wonder. Notice what the young man tells the women." },
+					],
+				},
+				remember: [],
+			};
+		} else if (said.length === 0 && draft) {
 			turn = {
 				reply: `Welcome back, ${first}! "${draft.name}" has ${draft.steps.length} readings right now. What would you like to change?`,
 				quickReplies: ["Add a psalm at the end", "Make it shorter"],
@@ -86,6 +108,13 @@ export class FakeStudyBuilderAI implements StudyBuilderAI {
 					],
 				},
 				remember: [`${first} is going through a season of anxiety.`],
+			};
+		} else if (last.includes("looks good")) {
+			turn = {
+				reply: "Wonderful. When you're ready, create the study and start the first reading.",
+				quickReplies: ["Make it shorter"],
+				draft: null,
+				remember: [],
 			};
 		} else if (last.includes("short")) {
 			turn = {

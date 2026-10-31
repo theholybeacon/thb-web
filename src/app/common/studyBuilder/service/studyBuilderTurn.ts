@@ -1,5 +1,5 @@
 import { partialJsonString } from "../ai/partialJson";
-import { buildSystemPrompt, learnerHighlights, openingInstruction, parseTurn } from "../ai/prompt";
+import { buildSystemPrompt, isWelcome, learnerHighlights, openingInstruction, parseTurn } from "../ai/prompt";
 import type { StudyBuilderAI, StudyBuilderChatMessage } from "../ai/StudyBuilderAI";
 import type { StudyBuilderPostgreSQLDao } from "../dao/StudyBuilderPostgreSQLDao";
 import { normalizeDraft } from "../model/draft";
@@ -68,7 +68,7 @@ export async function* studyBuilderTurn(input: StudyBuilderTurnInput, dao: Dao, 
 		.map((m) => ({ role: m.role, content: m.content }));
 	if (message) history.push({ role: "user", content: message });
 	// The model always needs a user turn to answer; the opening one is an instruction.
-	const prompt = history.length ? history : [{ role: "user" as const, content: openingInstruction(draft, Boolean(conversation.studyId)) }];
+	const prompt = history.length ? history : [{ role: "user" as const, content: openingInstruction(draft, Boolean(conversation.studyId), isWelcome(profile)) }];
 
 	let raw = "";
 	let sent = 0;

@@ -1,4 +1,5 @@
 import { User, UserInsert } from "../model/User";
+import type { ReaderStart } from "../model/ReaderStart";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { logger } from "@/app/utils/logger";
@@ -150,6 +151,12 @@ export class UserPostgreSQLDao {
     async setEmailReminders(id: string, enabled: boolean): Promise<void> {
         log.trace("setEmailReminders");
         await db.update(userTable).set({ emailRemindersEnabled: enabled }).where(eq(userTable.id, id));
+    }
+
+    /** Marks the reader as through /welcome, with their answers (null when they skipped). */
+    async setReaderStart(id: string, readerStart: ReaderStart | null): Promise<void> {
+        log.trace("setReaderStart");
+        await db.update(userTable).set({ readerStart, onboardedAt: new Date() }).where(eq(userTable.id, id));
     }
 
     async delete(id: string): Promise<void> {

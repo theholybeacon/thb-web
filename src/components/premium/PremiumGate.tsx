@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { track } from "@/lib/analytics";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { UpgradeModal } from "./UpgradeModal";
@@ -11,6 +12,7 @@ interface PremiumGateProps {
 }
 
 export function PremiumGate({ children, fallback }: PremiumGateProps) {
+	const t = useTranslations("premium");
 	const { isPremium, loading, user } = useLoggedUserContext();
 
 	useEffect(() => {
@@ -22,7 +24,7 @@ export function PremiumGate({ children, fallback }: PremiumGateProps) {
 	if (loading) {
 		return (
 			<div className="flex items-center justify-center min-h-[200px]">
-				<div className="animate-pulse text-muted-foreground">Loading...</div>
+				<div className="animate-pulse text-muted-foreground">{t("loading")}</div>
 			</div>
 		);
 	}
@@ -30,7 +32,7 @@ export function PremiumGate({ children, fallback }: PremiumGateProps) {
 	if (!user) {
 		return (
 			<div className="flex items-center justify-center min-h-[200px]">
-				<div className="text-muted-foreground">Please sign in to access this content.</div>
+				<div className="text-muted-foreground">{t("signInRequired")}</div>
 			</div>
 		);
 	}

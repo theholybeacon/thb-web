@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { EntityContent } from "@/app/common/entity/model/EntityContent";
 import type { CommunityData } from "@/app/common/community/model/Community";
 import { AiContent } from "./AiContent";
@@ -24,6 +25,7 @@ export function EntityContentSections({
 	isPremium: boolean;
 	entityId: string;
 }) {
+	const t = useTranslations("people");
 	if (!content || content.generationStatus !== "ready") return null;
 
 	return (
@@ -31,7 +33,7 @@ export function EntityContentSections({
 			{/* Overview */}
 			<div>
 				{content.overview && (
-					<AiContent title="Overview" entityContentId={content.id} section="overview">
+					<AiContent title={t("overview")} entityContentId={content.id} section="overview">
 						<p className="text-sm leading-relaxed text-foreground">
 							{content.overview}
 							<CitationLinks refs={content.overviewRefs} linkMap={linkMap} />
@@ -50,7 +52,7 @@ export function EntityContentSections({
 			{/* Life timeline */}
 			<div>
 				{content.timeline.length > 0 && (
-					<AiContent title="Life timeline" entityContentId={content.id} section="timeline">
+					<AiContent title={t("timeline")} entityContentId={content.id} section="timeline">
 						<ol className="space-y-3">
 							{content.timeline.map((e, i) => (
 								<li key={i} className="border-l-2 border-primary/20 pl-3">
@@ -76,11 +78,11 @@ export function EntityContentSections({
 			{/* Relationships */}
 			<div>
 				{content.relationships.length > 0 && (
-					<AiContent title="Relationships" entityContentId={content.id} section="relationships">
+					<AiContent title={t("relationships")} entityContentId={content.id} section="relationships">
 						<ul className="space-y-1.5">
 							{content.relationships.map((r, i) => (
 								<li key={i} className="text-sm">
-									<span className="text-muted-foreground capitalize">{r.relation || "related"}: </span>
+									<span className="text-muted-foreground capitalize">{r.relation || t("related")}: </span>
 									{r.entitySlug ? (
 										<Link href={`/bible/people/${r.entitySlug}`} className="text-primary hover:underline">
 											{r.name}
@@ -106,7 +108,7 @@ export function EntityContentSections({
 			{/* Significance */}
 			<div>
 				{content.significance && (
-					<AiContent title="Significance" entityContentId={content.id} section="significance">
+					<AiContent title={t("significance")} entityContentId={content.id} section="significance">
 						<p className="text-sm leading-relaxed text-foreground">
 							{content.significance}
 							<CitationLinks refs={content.significanceRefs} linkMap={linkMap} />

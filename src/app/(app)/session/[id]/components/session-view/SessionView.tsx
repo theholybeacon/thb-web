@@ -474,21 +474,23 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
   );
 
   return (
-    <AppShell>
+    // Immersive: the shell is pinned to the visible screen and the page never
+    // scrolls — on a phone the text gets everything the chrome doesn't need.
+    <AppShell immersive>
       <PremiumGate>
-        <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+        <div className="relative flex min-h-0 flex-1 overflow-hidden">
         {/* Mobile sidebar overlay backdrop */}
         {showStepsSidebar && (
           <div
-            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            className="absolute inset-0 z-40 bg-black/50 md:hidden"
             onClick={() => setShowStepsSidebar(false)}
           />
         )}
 
-        {/* Mobile sidebar */}
+        {/* Mobile sidebar: a drawer over the screen, not a column beside the text */}
         <aside
           className={cn(
-            "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-72 bg-card border-r flex flex-col transition-transform duration-300 md:hidden",
+            "absolute inset-y-0 left-0 z-40 w-72 max-w-[85vw] bg-card border-r flex flex-col shadow-xl transition-transform duration-300 md:hidden",
             showStepsSidebar ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -506,32 +508,33 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-background">
-          {/* Step header */}
-          <header className="p-3 md:p-6 pb-3 md:pb-4 border-b bg-card">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-center justify-between mb-2">
+        <main className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background">
+          {/* Step header. One slim line on phones: the steps button and the title. */}
+          <header className="thb-keyboard-hide shrink-0 border-b bg-card px-2 py-1 md:p-6 md:pb-4">
+            <div className="max-w-4xl mx-auto flex items-center gap-1 md:block">
+              <div className="flex shrink-0 items-center justify-between md:mb-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   {/* Always visible on mobile, conditional on desktop */}
                   <Button
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      "h-8 w-8 mr-2",
+                      "h-8 w-8 md:mr-2",
                       showStepsSidebar ? "md:hidden" : ""
                     )}
                     onClick={() => setShowStepsSidebar(true)}
+                    aria-label={t("session.stepsButton")}
                   >
                     <List className="h-4 w-4" />
                   </Button>
-                  <StepKindIcon kind={currentStep?.kind ?? "scripture"} className="h-4 w-4" />
-                  <span>
+                  <StepKindIcon kind={currentStep?.kind ?? "scripture"} className="hidden h-4 w-4 md:block" />
+                  <span className="hidden md:inline">
                     {t("session.stepNumber", { number: currentStepIndex + 1 })} {t("session.of")} {totalSteps}
                   </span>
                   {isMultiChapterStep && (
                     <>
-                      <span className="mx-1">•</span>
-                      <span className="text-primary font-medium">
+                      <span className="mx-1 hidden md:inline">•</span>
+                      <span className="hidden text-primary font-medium md:inline">
                         {t("session.chapterProgress", { current: currentChapterInStep, total: chapterRange.total })}
                       </span>
                     </>
@@ -546,7 +549,9 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                   )}
                 </div>
               </div>
-              <h1 className="text-xl md:text-2xl font-bold">{currentStep?.title || t("session.untitledStep")}</h1>
+              <h1 className="min-w-0 flex-1 truncate text-sm font-semibold md:whitespace-normal md:text-2xl md:font-bold">
+                {currentStep?.title || t("session.untitledStep")}
+              </h1>
             </div>
           </header>
 
@@ -592,8 +597,9 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
           </div>
 
           {/* Navigation footer */}
-          <footer className="p-3 md:p-4 border-t bg-card pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-            <div className="max-w-4xl mx-auto flex items-center justify-between">
+          {/* Slim on phones, and out of the way while the keyboard is up (Type mode). */}
+          <footer className="thb-keyboard-hide shrink-0 px-2 pt-1.5 md:p-4 border-t bg-card pb-[max(0.375rem,env(safe-area-inset-bottom))] md:pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="max-w-4xl mx-auto flex items-center justify-between max-md:[&_button]:h-9">
               {/* Left side: Previous button (step or chapter) */}
               <div className="flex items-center gap-2">
                 {isMultiChapterStep && !isFirstChapterInStep ? (
@@ -623,7 +629,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                   {currentStepIndex + 1} / {totalSteps}
                 </span>
                 {isMultiChapterStep && (
-                  <span className="text-xs text-primary hidden sm:inline">
+                  <span className="text-xs text-primary">
                     ({currentChapterInStep}/{chapterRange.total})
                   </span>
                 )}
@@ -638,7 +644,7 @@ function SessionViewInner({ initialSession, steps }: { initialSession: SessionFu
                 >
                   <CheckCircle2 className="mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">{t("session.finishStudy")}</span>
-                  <span className="sm:hidden">Finish</span>
+                  <span className="sm:hidden">{t("session.finishShort")}</span>
                 </Button>
               ) : isMultiChapterStep && !isLastChapterInStep ? (
                 <Button

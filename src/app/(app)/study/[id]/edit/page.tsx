@@ -12,7 +12,7 @@ import { StudyBuilder } from "@/components/study/builder/StudyBuilder";
 export default function EditStudyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   return (
-    <AppShell>
+    <AppShell immersive>
       <PremiumGate>
         <Suspense>
           <StudyBuilder studyId={id} />

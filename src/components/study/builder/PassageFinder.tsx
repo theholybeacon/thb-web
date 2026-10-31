@@ -74,7 +74,7 @@ export function PassageFinder({ names, onAdd, disabled }: Props) {
 		: null;
 
 	return (
-		<div className="flex h-full min-h-[420px] flex-col overflow-hidden rounded-2xl border bg-muted/20" data-testid="builder-finder">
+		<div className="flex h-full flex-col overflow-hidden rounded-2xl lg:min-h-[420px] border bg-muted/20" data-testid="builder-finder">
 			<div className="border-b bg-card p-3">
 				<div className="flex items-center gap-2 rounded-xl border bg-background px-3 focus-within:ring-2 focus-within:ring-primary/40">
 					<Search className="h-4 w-4 shrink-0 text-muted-foreground" />

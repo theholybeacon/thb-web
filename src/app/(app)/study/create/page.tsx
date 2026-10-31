@@ -12,7 +12,7 @@ import { StudyBuilder } from "@/components/study/builder/StudyBuilder";
  */
 export default function CreateStudyPage() {
   return (
-    <AppShell>
+    <AppShell immersive>
       <PremiumGate>
         <Suspense>
           <StudyBuilder />

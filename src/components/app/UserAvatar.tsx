@@ -64,7 +64,7 @@ export function UserAvatar({ size = "md", showDropdown = true }: UserAvatarProps
 
   const avatarContent = (
     <Avatar className={`${sizeClasses[size]} cursor-pointer ring-2 ring-primary/30 hover:ring-primary/60 transition-all`}>
-      <AvatarImage src={getProfilePicture() || undefined} alt={dbUser?.name || "User"} />
+      <AvatarImage src={getProfilePicture() || undefined} alt={dbUser?.name || t("user")} />
       <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
         {getInitials()}
       </AvatarFallback>
@@ -99,7 +99,7 @@ export function UserAvatar({ size = "md", showDropdown = true }: UserAvatarProps
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{dbUser?.name || clerkUser?.firstName || "User"}</p>
+            <p className="text-sm font-medium leading-none">{dbUser?.name || clerkUser?.firstName || t("user")}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {dbUser?.email || clerkUser?.primaryEmailAddress?.emailAddress}
             </p>

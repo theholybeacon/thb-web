@@ -4,12 +4,48 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { BookOpen, Sparkles, Compass } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 export function HeroSection() {
   const t = useTranslations("landing.hero");
+  const root = useRef<HTMLElement>(null);
+
+  // The entrance: badge, then the heading line by line, then the rest; the
+  // beacon lights up alongside and leans toward the pointer. Every piece
+  // starts at opacity 0 (opacity-0) so nothing flashes before it runs.
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      tl.fromTo("[data-hero='badge']", { y: -14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 })
+        .fromTo("[data-hero='line']", { y: 48, opacity: 0, filter: "blur(10px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 1, stagger: 0.14 }, "-=0.3")
+        .fromTo("[data-hero='rise']", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, stagger: 0.1 }, "-=0.6")
+        .fromTo("[data-hero='beacon']", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.4, ease: "expo.out" }, 0.15)
+        .fromTo("[data-hero='chip']", { opacity: 0 }, { opacity: 1, duration: 0.6, stagger: 0.15 }, "-=0.8");
+
+      const beacon = root.current?.querySelector<HTMLElement>("[data-hero='beacon']");
+      if (!beacon) return;
+      const x = gsap.quickTo(beacon, "x", { duration: 1.2, ease: "power3.out" });
+      const y = gsap.quickTo(beacon, "y", { duration: 1.2, ease: "power3.out" });
+      const lean = (e: PointerEvent) => {
+        x((e.clientX / window.innerWidth - 0.5) * 24);
+        y((e.clientY / window.innerHeight - 0.5) * 24);
+      };
+      window.addEventListener("pointermove", lean);
+      return () => window.removeEventListener("pointermove", lean);
+    });
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      gsap.set("[data-hero]", { opacity: 1 });
+    });
+    return () => mm.revert();
+  }, { scope: root });
 
   return (
-    <section className="relative w-full py-16 md:py-28 lg:py-36 xl:py-48 overflow-hidden">
+    <section ref={root} className="relative w-full py-16 md:py-28 lg:py-36 xl:py-48 overflow-hidden">
       {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
 
@@ -24,25 +60,25 @@ export function HeroSection() {
           <div className="flex flex-col justify-center space-y-6">
             <div className="space-y-4">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm text-primary border border-primary/20 animate-fade-down opacity-0">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm text-primary border border-primary/20 opacity-0" data-hero="badge">
                 <Sparkles className="h-4 w-4" />
                 <span className="font-medium">{t("badge")}</span>
               </div>
 
               {/* Heading */}
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/[1.1] animate-fade-up opacity-0 animation-delay-100">
-                {t("title")}{" "}
-                <span className="gradient-text">{t("titleHighlight")}</span>
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/[1.1]">
+                <span className="inline-block opacity-0" data-hero="line">{t("title")}</span>{" "}
+                <span className="inline-block gradient-text opacity-0" data-hero="line">{t("titleHighlight")}</span>
               </h1>
 
               {/* Description */}
-              <p className="max-w-[600px] text-muted-foreground text-lg md:text-xl animate-fade-up opacity-0 animation-delay-200">
+              <p className="max-w-[600px] text-muted-foreground text-lg md:text-xl opacity-0" data-hero="rise">
                 {t("description")}
               </p>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col gap-3 min-[400px]:flex-row animate-fade-up opacity-0 animation-delay-300">
+            <div className="flex flex-col gap-3 min-[400px]:flex-row opacity-0" data-hero="rise">
               <Link href="/auth/sign-up">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 glow-sm hover:glow transition-all duration-300 group">
                   <span>{t("cta")}</span>
@@ -57,7 +93,7 @@ export function HeroSection() {
             </div>
 
             {/* Stats */}
-            <div className="flex flex-wrap gap-8 pt-4 animate-fade-up opacity-0 animation-delay-400">
+            <div className="flex flex-wrap gap-8 pt-4 opacity-0" data-hero="rise">
               <div className="space-y-1">
                 <p className="text-2xl font-bold gradient-text">400+</p>
                 <p className="text-sm text-muted-foreground">{t("translations")}</p>
@@ -74,7 +110,7 @@ export function HeroSection() {
           </div>
 
           {/* Right decorative element */}
-          <div className="relative flex items-center justify-center animate-scale-in opacity-0 animation-delay-200">
+          <div className="relative flex items-center justify-center opacity-0" data-hero="beacon">
             {/* Main beacon/book visual */}
             <div className="relative">
               {/* Outer glow ring */}
@@ -102,13 +138,13 @@ export function HeroSection() {
               </div>
 
               {/* Floating feature badges */}
-              <div className="absolute -top-4 -right-4 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-200">
-                <p className="text-sm font-medium">{t("characterProfiles")}</p>
+              <div className="absolute -top-4 -right-4 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-200 opacity-0" data-hero="chip">
+                <p className="text-sm font-medium">{t("peopleInPassage")}</p>
               </div>
-              <div className="absolute -bottom-4 -left-4 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-400">
-                <p className="text-sm font-medium">{t("audioNarration")}</p>
+              <div className="absolute -bottom-4 -left-4 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-400 opacity-0" data-hero="chip">
+                <p className="text-sm font-medium">{t("originalLanguage")}</p>
               </div>
-              <div className="absolute top-1/2 -right-8 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-600">
+              <div className="absolute top-1/2 -right-8 glass px-4 py-2 rounded-lg shadow-lg animate-float animation-delay-600 opacity-0" data-hero="chip">
                 <p className="text-sm font-medium">{t("verseNotes")}</p>
               </div>
             </div>
