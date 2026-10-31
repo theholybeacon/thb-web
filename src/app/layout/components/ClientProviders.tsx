@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { LoggedUserProvider } from "@/app/state/LoggedUserContext";
+import { WelcomePremiumNotice } from "@/components/app/WelcomePremiumNotice";
 import {
     QueryClient,
     QueryClientProvider,
@@ -21,6 +22,7 @@ export default function ClientProvider({
         <LoggedUserProvider>
             <QueryClientProvider client={queryClient}>
                 {children}
+                <WelcomePremiumNotice />
             </QueryClientProvider>
         </LoggedUserProvider>
     );

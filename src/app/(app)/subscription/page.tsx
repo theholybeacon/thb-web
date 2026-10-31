@@ -19,13 +19,21 @@ import { MembershipRequest } from "@/app/common/membershipRequest/model/Membersh
 import { formatPrice } from "@/lib/prices";
 import { usePrices } from "@/lib/usePrices";
 import { toast } from "@/lib/toast";
+import { isPremiumStatus, isWelcomePremiumActive } from "@/lib/premium";
 
 export default function SubscriptionPage() {
 	const t = useTranslations("subscription");
 	const tPremium = useTranslations("premium");
 	const tSponsorship = useTranslations("sponsorship");
-	const { isPremium, loading, user } = useLoggedUserContext();
+	const { isPremium, loading, user, subscriptionStatus } = useLoggedUserContext();
 	const isLifetime = user?.lifetimePremium === true;
+	// Premium only through the welcome week: nothing to manage in Stripe yet, so
+	// the page offers the plans (with when the week ends) instead of billing.
+	const welcomeWeekEndsAt =
+		isPremium && !isLifetime && !isPremiumStatus(subscriptionStatus) && isWelcomePremiumActive(user?.welcomePremiumEndsAt)
+			? new Date(user!.welcomePremiumEndsAt!)
+			: null;
+	const tWelcome = useTranslations("welcomePremium");
 	const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 	const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
 	const [billingInterval, setBillingInterval] = useState<"month" | "year">("year");
@@ -184,7 +192,7 @@ export default function SubscriptionPage() {
 						<h1 className="text-3xl font-bold">{t("title")}</h1>
 					</div>
 
-					{isPremium ? (
+					{isPremium && !welcomeWeekEndsAt ? (
 						<div className="space-y-6">
 							<div className="rounded-lg border bg-card p-6">
 								<div className="flex items-center gap-3 mb-4">
@@ -315,6 +323,12 @@ export default function SubscriptionPage() {
 						</div>
 					) : (
 						<div className="space-y-6">
+							{welcomeWeekEndsAt && (
+								<div data-testid="welcome-premium-note" className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-4">
+									<Clock className="h-5 w-5 shrink-0 text-primary" />
+									<p>{tWelcome("subscriptionNote", { date: formatDate(welcomeWeekEndsAt) })}</p>
+								</div>
+							)}
 							{/* My Sponsor Section for non-premium sponsored users */}
 							{!sponsorshipLoading && sponsorshipInfo && sponsorshipInfo.sponsors.length > 0 && (
 								<div className="rounded-lg border bg-card p-6">

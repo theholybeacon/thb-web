@@ -1169,5 +1169,14 @@
     "retry": "Try again",
     "home": "Go home",
     "reference": "Error reference"
+  },
+  "welcomePremium": {
+    "toastTitle": "You have 7 days of premium, on us",
+    "toastNew": "Tell the study builder what you're going through, and it will plan the readings for you.",
+    "toastReturning": "Every premium feature is open until {date}. Start with the study builder: tell it what you're going through and it plans the readings.",
+    "tryBuilder": "Build a study",
+    "bannerDays": "{count, plural, one {This is the last day of your free premium week.} other {Your free premium week: # days left.}}",
+    "bannerKeep": "Keep premium",
+    "subscriptionNote": "Your free premium week ends on {date}. Subscribe to keep every premium feature after that."
   }
 }
