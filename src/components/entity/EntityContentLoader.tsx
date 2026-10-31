@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { entityContentEnsureSS } from "@/app/common/entity/service/server/entityContentEnsureSS";
@@ -20,6 +21,7 @@ export function EntityContentLoader({
 	entityId: string;
 	initialStatus: string;
 }) {
+	const t = useTranslations("people");
 	const { isSignedIn, isLoaded } = useAuth();
 	const router = useRouter();
 	const [state, setState] = useState<"idle" | "loading" | "signin" | "done">("idle");
@@ -66,7 +68,7 @@ export function EntityContentLoader({
 	if (state === "signin") {
 		return (
 			<p className="text-sm text-muted-foreground mb-8">
-				Sign in to generate an AI overview, timeline, and relationships for this person.
+				{t("signInToGenerate")}
 			</p>
 		);
 	}
@@ -74,7 +76,7 @@ export function EntityContentLoader({
 	return (
 		<div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
 			<Loader2 className="h-4 w-4 animate-spin" />
-			Generating insights…
+			{t("generating")}
 		</div>
 	);
 }

@@ -1,12 +1,14 @@
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Brain, CalendarDays, GraduationCap, MessageCircle, MessagesSquare, NotebookPen, X, HelpCircle } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, Brain, CalendarDays, Compass, GraduationCap, MessageCircle, MessagesSquare, NotebookPen, X, HelpCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { canonBook } from "@/app/common/canon/model/canon";
 import { studyBuilderMemoryForgetSS, studyBuilderMemoryListSS } from "@/app/common/studyBuilder/service/server/studyBuilderSS";
 import type { LearnerHighlight, StudyBuilderMemoryFact } from "@/app/common/studyBuilder/model/StudyBuilder";
 
 const ICONS: Record<LearnerHighlight["kind"], typeof BookOpen> = {
+	start: Compass,
 	reading: BookOpen,
 	activity: CalendarDays,
 	studies: GraduationCap,
@@ -45,6 +47,21 @@ export function KnowledgeStrip({ highlights, remembered }: { highlights: Learner
 			{highlights.length === 0 && <span className="text-xs text-muted-foreground">{t("knowsNothingYet")}</span>}
 			{highlights.filter((h) => h.kind !== "memory").map((h, i) => {
 				const Icon = ICONS[h.kind];
+				// Their answers from /welcome: open them again to change them.
+				if (h.kind === "start") {
+					return (
+						<Link
+							key={h.kind}
+							href="/welcome?again=1"
+							className="inline-flex items-center gap-1 rounded-full border bg-card px-2.5 py-1 text-xs transition-colors hover:border-primary/50 animate-in fade-in zoom-in-95 fill-mode-both"
+							style={{ animationDelay: `${i * 80}ms` }}
+							data-testid="builder-start-chip"
+						>
+							<Icon className="h-3 w-3 text-primary" />
+							{t("highlights.start")}
+						</Link>
+					);
+				}
 				return (
 					<span
 						key={h.kind}

@@ -85,7 +85,7 @@ export default function SubscriptionPage() {
 
 	const formatDate = (date: Date | null) => {
 		if (!date) return "";
-		return new Intl.DateTimeFormat(undefined, {
+		return new Intl.DateTimeFormat(locale, {
 			year: "numeric",
 			month: "long",
 			day: "numeric",
@@ -169,7 +169,7 @@ export default function SubscriptionPage() {
 		return (
 			<AppShell>
 				<div className="flex h-full items-center justify-center py-20">
-					<div className="animate-pulse">Loading...</div>
+					<div className="animate-pulse">{t("loading")}</div>
 				</div>
 			</AppShell>
 		);

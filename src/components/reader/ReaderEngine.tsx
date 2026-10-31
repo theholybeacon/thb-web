@@ -362,7 +362,8 @@ export function ReaderEngine({
 					 * narrow reading column — without it the leading controls are laid out
 					 * past the row's left edge and disappear under the books sidebar.
 					 */}
-					<div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-end gap-2 px-4 pt-4 md:px-6 md:pt-6">
+					{/* Tight on phones: every row spent on controls is a row of text less. */}
+					<div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-end gap-1 px-2 pt-1 sm:gap-2 sm:px-4 sm:pt-4 md:px-6 md:pt-6">
 						<ChapterCompleteButton />
 
 						{hasChapterAnchor && (
@@ -455,14 +456,14 @@ export function ReaderEngine({
 					<StepExplanationBanner explanation={explanation} />
 
 					{/* Reader column — owns its own scrolling and centring */}
-					<div ref={scrollerRef} className="min-h-0 flex-1 overflow-y-auto">
+					<div ref={scrollerRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-testid="reader-scroller">
 						{/*
 						 * Every mode renders inside here, so one custom property sizes all
 						 * three — including Type mode, which builds its own per-character
 						 * tree but still opens it with `.bible-text`.
 						 */}
 						<div
-							className="mx-auto w-full max-w-4xl px-4 py-4 md:px-6 md:py-6"
+							className="mx-auto w-full max-w-4xl px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6"
 							style={{ "--reader-font-scale": fontScale.scale } as CSSProperties}
 						>
 							{isLoading ? (
@@ -488,7 +489,7 @@ export function ReaderEngine({
 									)}
 
 									{mode === "type" && (
-										<TypeMode verses={verses} startVerse={startVerse} endVerse={endVerse} />
+										<TypeMode verses={verses} scrollerRef={scrollerRef} startVerse={startVerse} endVerse={endVerse} />
 									)}
 
 									{mode === "listen" && (

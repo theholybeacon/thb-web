@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
@@ -12,6 +13,7 @@ import { track } from "@/lib/analytics";
  * trial ends. Renders nothing for non-trialing users.
  */
 export function TrialBanner() {
+  const t = useTranslations("subscription");
   const { subscriptionStatus } = useLoggedUserContext();
   const [loading, setLoading] = useState(false);
 
@@ -37,10 +39,10 @@ export function TrialBanner() {
     <div className="flex flex-wrap items-center justify-center gap-3 border-b bg-primary/10 px-4 py-2 text-sm">
       <span className="flex items-center gap-2 text-foreground">
         <CreditCard className="h-4 w-4 shrink-0 text-primary" />
-        You&apos;re on a free trial. Add a payment method to keep premium access when it ends.
+        {t("trialBanner")}
       </span>
       <Button size="sm" variant="default" onClick={handleAddPayment} disabled={loading}>
-        {loading ? "Opening…" : "Add payment method"}
+        {loading ? t("opening") : t("addPaymentMethod")}
       </Button>
     </div>
   );

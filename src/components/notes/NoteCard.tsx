@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ExternalLink, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Note } from "@/app/common/note/model/Note";
 import { buildNoteHref } from "@/app/common/note/noteScope";
@@ -25,15 +25,16 @@ interface NoteCardProps {
   className?: string;
 }
 
-function formatUpdatedAt(value: Date | string | null): string {
+function formatUpdatedAt(value: Date | string | null, locale: string): string {
   if (!value) return "";
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return date.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" });
 }
 
 export function NoteCard({ note, onEdit, onDelete, showOpenInBible = false, className }: NoteCardProps) {
   const t = useTranslations("notes");
+  const locale = useLocale();
   const tCommon = useTranslations("common");
   const href = showOpenInBible ? buildNoteHref(note) : null;
 
@@ -88,7 +89,7 @@ export function NoteCard({ note, onEdit, onDelete, showOpenInBible = false, clas
       </p>
 
       <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-        <span>{t("updatedAt", { date: formatUpdatedAt(note.updatedAt) })}</span>
+        <span>{t("updatedAt", { date: formatUpdatedAt(note.updatedAt, locale) })}</span>
         {href && (
           <Link href={href} className="inline-flex items-center gap-1 hover:text-primary">
             {t("openInBible")}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Flag } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { track } from "@/lib/analytics";
@@ -8,6 +9,7 @@ import { entityContentFlagSS } from "@/app/common/entity/service/server/entityCo
 
 /** Lets a signed-in user report a generated section as inaccurate. */
 export function FlagButton({ entityContentId, section }: { entityContentId: string; section: string }) {
+	const t = useTranslations("people");
 	const [busy, setBusy] = useState(false);
 	const [done, setDone] = useState(false);
 
@@ -19,9 +21,9 @@ export function FlagButton({ entityContentId, section }: { entityContentId: stri
 			if (res.ok) {
 				setDone(true);
 				track("person_content_flagged", { section });
-				toast.success("Thanks — we'll review this.");
+				toast.success(t("reported"));
 			} else {
-				toast.error("Please sign in to report content.");
+				toast.error(t("signInToReport"));
 			}
 		} finally {
 			setBusy(false);
@@ -33,11 +35,11 @@ export function FlagButton({ entityContentId, section }: { entityContentId: stri
 			type="button"
 			onClick={onClick}
 			disabled={busy || done}
-			title="Report an inaccuracy"
+			title={t("reportInaccuracy")}
 			className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary disabled:opacity-50"
 		>
 			<Flag className="h-3 w-3" />
-			{done ? "Reported" : "Report"}
+			{done ? t("reportedLabel") : t("report")}
 		</button>
 	);
 }

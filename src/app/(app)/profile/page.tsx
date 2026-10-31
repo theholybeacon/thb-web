@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useUser } from "@clerk/nextjs";
 import { useLoggedUserContext } from "@/app/state/LoggedUserContext";
 import { userUpdateProfileSS } from "@/app/common/user/service/server/userUpdateProfileSS";
@@ -26,44 +26,23 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { track } from "@/lib/analytics";
 
-// Common countries with ISO codes
-const COUNTRIES = [
-	{ code: "US", name: "United States" },
-	{ code: "MX", name: "Mexico" },
-	{ code: "ES", name: "Spain" },
-	{ code: "AR", name: "Argentina" },
-	{ code: "CO", name: "Colombia" },
-	{ code: "PE", name: "Peru" },
-	{ code: "VE", name: "Venezuela" },
-	{ code: "CL", name: "Chile" },
-	{ code: "EC", name: "Ecuador" },
-	{ code: "GT", name: "Guatemala" },
-	{ code: "CU", name: "Cuba" },
-	{ code: "BO", name: "Bolivia" },
-	{ code: "DO", name: "Dominican Republic" },
-	{ code: "HN", name: "Honduras" },
-	{ code: "PY", name: "Paraguay" },
-	{ code: "SV", name: "El Salvador" },
-	{ code: "NI", name: "Nicaragua" },
-	{ code: "CR", name: "Costa Rica" },
-	{ code: "PA", name: "Panama" },
-	{ code: "UY", name: "Uruguay" },
-	{ code: "PR", name: "Puerto Rico" },
-	{ code: "BR", name: "Brazil" },
-	{ code: "CA", name: "Canada" },
-	{ code: "GB", name: "United Kingdom" },
-	{ code: "DE", name: "Germany" },
-	{ code: "FR", name: "France" },
-	{ code: "IT", name: "Italy" },
-	{ code: "PT", name: "Portugal" },
-	{ code: "PH", name: "Philippines" },
-	{ code: "IN", name: "India" },
-	{ code: "AU", name: "Australia" },
-	{ code: "NZ", name: "New Zealand" },
-].sort((a, b) => a.name.localeCompare(b.name));
+// Common countries (ISO codes); names come from Intl in the reader's language.
+const COUNTRY_CODES = [
+	"US", "MX", "ES", "AR", "CO", "PE", "VE", "CL", "EC", "GT", "CU", "BO", "DO", "HN", "PY", "SV",
+	"NI", "CR", "PA", "UY", "PR", "BR", "CA", "GB", "DE", "FR", "IT", "PT", "PH", "IN", "AU", "NZ",
+];
+
+function countriesFor(locale: string) {
+	const names = new Intl.DisplayNames([locale], { type: "region" });
+	return COUNTRY_CODES.map((code) => ({ code, name: names.of(code) ?? code })).sort((a, b) =>
+		a.name.localeCompare(b.name, locale),
+	);
+}
 
 export default function ProfilePage() {
 	const t = useTranslations();
+	const locale = useLocale();
+	const countries = useMemo(() => countriesFor(locale), [locale]);
 	const { user, loading, reload } = useLoggedUserContext();
 	const { user: clerkUser } = useUser();
 	const queryClient = useQueryClient();
@@ -300,7 +279,7 @@ export default function ProfilePage() {
 									<SelectValue placeholder={t("profile.selectCountry")} />
 								</SelectTrigger>
 								<SelectContent>
-									{COUNTRIES.map((c) => (
+									{countries.map((c) => (
 										<SelectItem key={c.code} value={c.code}>
 											{c.name}
 										</SelectItem>

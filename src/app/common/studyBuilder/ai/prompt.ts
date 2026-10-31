@@ -1,6 +1,7 @@
 import { CANON } from "../../canon/model/canon";
 import { normalizeDraft } from "../model/draft";
 import type { LearnerHighlight, LearnerProfile, StudyBuilderDraft, StudyBuilderTurn } from "../model/StudyBuilder";
+import { describeReaderStart } from "../../user/model/ReaderStart";
 
 /**
  * Everything the builder model is told, and how its answer is read back. Pure,
@@ -22,6 +23,9 @@ export function renderLearnerProfile(p: LearnerProfile): string {
 	return [
 		`Name: ${p.name}`,
 		`Member since: ${p.memberSince ?? "unknown"}. Active on ${p.activeDaysLast30} of the last 30 days.`,
+		"",
+		"WHAT THEY TOLD US WHEN THEY JOINED (their starting point; later conversations and memory override it):",
+		p.start ? describeReaderStart(p.start).map((l) => `- ${l}`).join("\n") : "- nothing, they skipped the questions",
 		"",
 		"WHAT THE BUILDER REMEMBERS FROM EARLIER CONVERSATIONS:",
 		list(p.memory, (m) => m),
@@ -90,18 +94,31 @@ export const OPENING_INSTRUCTION =
 	`${OPENING_PREFIX}just opened the study builder. Greet them by first name and open the conversation: show you know them by mentioning one or two specific things from their profile, then ask what they would like to study or what is going on in their life right now. No plan yet.)`;
 
 /**
+ * A reader's very first conversation, straight from /welcome: the builder
+ * already has their answers, so it recommends a first study at once instead of
+ * asking what they want.
+ */
+export const WELCOME_INSTRUCTION =
+	`${OPENING_PREFIX}just joined and answered a few questions about where they are with the Bible (WHAT THEY TOLD US WHEN THEY JOINED, above). This is their first study. Greet them by first name and welcome them in one sentence. Recommend a first study that fits their answers: their familiarity, how deep they want to go, the time they have, and above all what they want to understand. Say in a sentence or two why you chose it, in plain words, without jargon if they are new to the Bible. Put the complete plan in draft now, sized to their time (length and depth from their answers). End by asking how it sounds or what they would change. Offer quickReplies that adjust it: shorter, deeper, a different focus, or that they are ready to start.)`;
+
+/** Their first conversation ever, with answers from /welcome to start from. */
+export function isWelcome(profile: Pick<LearnerProfile, "start" | "studies" | "pastConversations">): boolean {
+	return Boolean(profile.start) && profile.studies.length === 0 && profile.pastConversations.length === 0;
+}
+
+/**
  * The first turn has no reader message: the builder opens the conversation
  * itself. What it says depends on what is already there: nothing, a plan they
  * started by hand, or a study they came back to change.
  */
-export function openingInstruction(draft: StudyBuilderDraft | null, editingStudy: boolean): string {
+export function openingInstruction(draft: StudyBuilderDraft | null, editingStudy: boolean, welcome = false): string {
 	if (editingStudy && draft) {
 		return `${OPENING_PREFIX}came back to change their study "${draft.name}", the plan above. Greet them by first name, say in a sentence what the plan is now, and ask what they would like to change. Do not change the plan yet.)`;
 	}
 	if (draft) {
 		return `${OPENING_PREFIX}started this plan by hand and is asking for your help with it. Greet them by first name, react briefly and specifically to what they have so far, connect it to something you know about them, and ask how you can help shape it. Do not change the plan yet.)`;
 	}
-	return OPENING_INSTRUCTION;
+	return welcome ? WELCOME_INSTRUCTION : OPENING_INSTRUCTION;
 }
 
 /** The model's JSON, made safe. Throws only when there is nothing usable at all. */
@@ -130,6 +147,7 @@ export function parseTurn(raw: string): StudyBuilderTurn {
 /** The "what I know about you" chips: only the sources that actually have something in them. */
 export function learnerHighlights(p: LearnerProfile): LearnerHighlight[] {
 	const out: LearnerHighlight[] = [];
+	if (p.start) out.push({ kind: "start", count: 1 });
 	if (p.reading.totalChapters) out.push({ kind: "reading", count: p.reading.totalChapters, detail: p.reading.books[0]?.usfm });
 	if (p.activeDaysLast30) out.push({ kind: "activity", count: p.activeDaysLast30 });
 	if (p.studies.length) out.push({ kind: "studies", count: p.studies.length });

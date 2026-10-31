@@ -8,6 +8,7 @@ description: >
 access: public
 viewports: [mobile, desktop]
 locales: [en, es]
+layout: content
 params:
   character:
     kind: character

@@ -10,18 +10,18 @@ import type { CommunityFeedItem } from "@/app/common/community/model/CommunityFe
 import { buildFeedLink } from "./feedLink";
 
 /** "3d", "5h", "just now" — compact enough to sit in a card header. */
-function relativeAge(date: Date | string): string {
+function relativeAge(date: Date | string, t: ReturnType<typeof useTranslations<"comments">>): string {
 	const then = typeof date === "string" ? new Date(date) : date;
 	const mins = Math.floor((Date.now() - then.getTime()) / 60000);
-	if (mins < 1) return "now";
-	if (mins < 60) return `${mins}m`;
+	if (mins < 1) return t("age.now");
+	if (mins < 60) return t("age.minutes", { count: mins });
 	const hours = Math.floor(mins / 60);
-	if (hours < 24) return `${hours}h`;
+	if (hours < 24) return t("age.hours", { count: hours });
 	const days = Math.floor(hours / 24);
-	if (days < 30) return `${days}d`;
+	if (days < 30) return t("age.days", { count: days });
 	const months = Math.floor(days / 30);
-	if (months < 12) return `${months}mo`;
-	return `${Math.floor(months / 12)}y`;
+	if (months < 12) return t("age.months", { count: months });
+	return t("age.years", { count: Math.floor(months / 12) });
 }
 
 /**
@@ -69,7 +69,7 @@ export function FeedItemCard({
 				)}
 				{bibleName && <span className="shrink-0 rounded bg-muted px-1.5 py-0.5">{bibleName}</span>}
 				<time className="ml-auto shrink-0" dateTime={new Date(item.createdAt).toISOString()}>
-					{relativeAge(item.createdAt)}
+					{relativeAge(item.createdAt, t)}
 				</time>
 			</div>
 

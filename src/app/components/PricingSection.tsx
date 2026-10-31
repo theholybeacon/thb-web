@@ -24,6 +24,7 @@ export function PricingSection() {
   const freeFeatures = [
     t("freeFeatures.explore"),
     t("freeFeatures.translations"),
+    t("freeFeatures.context"),
     t("freeFeatures.noAccount"),
   ];
 
@@ -33,6 +34,7 @@ export function PricingSection() {
     tPremium("features.narration"),
     tPremium("features.characters"),
     tPremium("features.notes"),
+    t("premiumFeatures.discussion"),
     t("premiumFeatures.gift"),
   ];
 

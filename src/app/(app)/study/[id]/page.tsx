@@ -234,6 +234,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
                 onClick={() => createSessionMutation.mutate()}
                 disabled={createSessionMutation.isPending || !study.steps?.length}
                 className="bg-primary hover:bg-primary/90"
+                aria-label={t("startSession")}
               >
                 <Play className="mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">{t("startSession")}</span>
@@ -305,7 +306,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium">
-                        Step {index + 1}: {step.title}
+                        {t("stepTitle", { number: index + 1, title: step.title })}
                       </p>
                       {reference ? (
                         <div className="flex items-center gap-1.5 mt-1 text-sm text-primary">
@@ -329,7 +330,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
               })}
               {(!study.steps || study.steps.length === 0) && (
                 <p className="text-muted-foreground text-center py-4">
-                  No steps yet. Click &quot;Regenerate Steps&quot; to create them.
+                  {t("noSteps", { action: t("regenerate") })}
                 </p>
               )}
             </div>
@@ -337,7 +338,7 @@ export default function StudyDetailPage({ params }: { params: Promise<{ id: stri
 
           {/* Danger Zone */}
           <div className="rounded-lg border border-destructive/50 bg-card p-6">
-            <h2 className="text-xl font-semibold text-destructive mb-4">Danger Zone</h2>
+            <h2 className="text-xl font-semibold text-destructive mb-4">{t("dangerZone")}</h2>
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">{t("deleteStudy")}</p>

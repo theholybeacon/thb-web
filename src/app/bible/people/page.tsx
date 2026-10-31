@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Users, Search } from "lucide-react";
 import { getEntityIndex } from "@/app/bible/publicData";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,8 @@ function hrefWith(params: { letter?: string; q?: string; page?: number }): strin
 export default async function PeopleIndexPage({ searchParams }: PageProps) {
 	const { letter, q, page: pageParam } = await searchParams;
 	const page = Number.parseInt(pageParam ?? "1", 10) || 1;
+	const t = await getTranslations("people");
+	const tCommon = await getTranslations("common");
 
 	const { rows, total, letters, pageSize } = await getEntityIndex({ letter, query: q, page });
 
@@ -51,9 +54,9 @@ export default async function PeopleIndexPage({ searchParams }: PageProps) {
 					<Users className="h-7 w-7 text-primary" />
 				</div>
 				<div>
-					<h1 className="text-3xl font-heading font-bold">Bible Characters</h1>
+					<h1 className="text-3xl font-heading font-bold">{t("indexTitle")}</h1>
 					<p className="text-sm text-muted-foreground mt-1">
-						Every person named in scripture, ordered by how often they appear.
+						{t("indexSubtitle")}
 					</p>
 				</div>
 			</div>
@@ -64,15 +67,15 @@ export default async function PeopleIndexPage({ searchParams }: PageProps) {
 				<Input
 					name="q"
 					defaultValue={q ?? ""}
-					placeholder="Search by name…"
+					placeholder={t("searchPlaceholder")}
 					className="pl-9"
-					aria-label="Search characters by name"
+					aria-label={t("searchLabel")}
 				/>
 				{letter && <input type="hidden" name="letter" value={letter} />}
 			</form>
 
 			{/* A-Z filter */}
-			<nav className="flex flex-wrap gap-1 mb-6" aria-label="Filter by first letter">
+			<nav className="flex flex-wrap gap-1 mb-6" aria-label={t("letterFilterLabel")}>
 				<Link
 					href={hrefWith({ q })}
 					className={cn(
@@ -80,7 +83,7 @@ export default async function PeopleIndexPage({ searchParams }: PageProps) {
 						!letter && "bg-primary/10 font-semibold text-primary",
 					)}
 				>
-					All
+					{tCommon("all")}
 				</Link>
 				{letters.map((l) => (
 					<Link
@@ -98,12 +101,12 @@ export default async function PeopleIndexPage({ searchParams }: PageProps) {
 
 			{rows.length === 0 ? (
 				<p className="text-muted-foreground py-12 text-center">
-					No characters match that search.
+					{t("noResults")}
 				</p>
 			) : (
 				<>
 					<p className="text-sm text-muted-foreground mb-3">
-						Showing {from}–{to} of {total}
+						{t("showing", { from, to, total })}
 					</p>
 
 					<ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1">
@@ -136,15 +139,15 @@ export default async function PeopleIndexPage({ searchParams }: PageProps) {
 						<div className="mt-8 flex items-center justify-between">
 							<Button variant="outline" size="sm" asChild disabled={page <= 1}>
 								<Link href={hrefWith({ letter, q, page: page - 1 })} aria-disabled={page <= 1}>
-									Previous
+									{tCommon("previous")}
 								</Link>
 							</Button>
 							<span className="text-sm text-muted-foreground">
-								Page {page} of {totalPages}
+								{t("pageOf", { page, total: totalPages })}
 							</span>
 							<Button variant="outline" size="sm" asChild disabled={page >= totalPages}>
 								<Link href={hrefWith({ letter, q, page: page + 1 })} aria-disabled={page >= totalPages}>
-									Next
+									{tCommon("next")}
 								</Link>
 							</Button>
 						</div>
@@ -153,7 +156,7 @@ export default async function PeopleIndexPage({ searchParams }: PageProps) {
 			)}
 
 			<footer className="mt-10 pt-4 border-t text-xs text-muted-foreground">
-				The number beside each name is how many verses mention them. Character data from{" "}
+				{t("mentionCountNote")} {t("dataFrom")}{" "}
 				<a
 					href="https://github.com/robertrouse/theographic-bible-metadata"
 					target="_blank"

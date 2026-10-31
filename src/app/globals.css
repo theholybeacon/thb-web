@@ -262,6 +262,22 @@
   }
 }
 
+/*
+ * Immersive screens (the reading engine, the study builder): the page itself
+ * never scrolls or rubber-bands, only the screen's own panes do. Set by
+ * useImmersiveViewport (src/components/app).
+ */
+html.thb-immersive,
+html.thb-immersive body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Chrome that steps aside while the on-screen keyboard is up, to leave the text. */
+html[data-keyboard="open"] .thb-keyboard-hide {
+  display: none;
+}
+
 /* Animation keyframes */
 @keyframes fade-in {
   from {

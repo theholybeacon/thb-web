@@ -250,7 +250,7 @@ export default function StudyPage() {
                     >
                       <Play className="mr-2 h-4 w-4" />
                       <span className="hidden sm:inline">{t("startSession")}</span>
-                      <span className="sm:hidden">Start</span>
+                      <span className="sm:hidden">{t("startShort")}</span>
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

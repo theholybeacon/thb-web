@@ -26,9 +26,6 @@ export function Header() {
                     <Link href="#study-plans" className="text-sm font-medium hover:text-primary">
                         {t("nav.studyPlans")}
                     </Link>
-                    <Link href="#roadmap" className="text-sm font-medium hover:text-primary">
-                        {t("nav.roadmap")}
-                    </Link>
                     <Link href="#pricing" className="text-sm font-medium hover:text-primary">
                         {t("nav.pricing")}
                     </Link>

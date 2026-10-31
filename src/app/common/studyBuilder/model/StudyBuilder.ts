@@ -1,4 +1,5 @@
 import type { StudyStepType } from "../../studyStep/model/StudyStepType";
+import type { ReaderStart } from "../../user/model/ReaderStart";
 
 /**
  * One reading in the plan being assembled. References use the same string
@@ -103,11 +104,13 @@ export type LearnerProfile = {
 		date: string;
 	}[];
 	memory: string[];
+	/** What they told us on their first visit (/welcome); null when they skipped it or joined before it. */
+	start: ReaderStart | null;
 };
 
 /** A line in the "what I know about you" strip above the chat. */
 export type LearnerHighlight = {
-	kind: "reading" | "studies" | "notes" | "posts" | "comments" | "conversations" | "memory" | "activity";
+	kind: "start" | "reading" | "studies" | "notes" | "posts" | "comments" | "conversations" | "memory" | "activity";
 	count: number;
 	/** For reading: the USFM code of the book they have read most. */
 	detail?: string;

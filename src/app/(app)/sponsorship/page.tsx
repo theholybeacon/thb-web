@@ -121,7 +121,7 @@ export default function SponsorshipPage() {
 		return (
 			<AppShell>
 				<div className="flex h-full items-center justify-center py-20">
-					<div className="animate-pulse">Loading...</div>
+					<div className="animate-pulse">{tCommon("loading")}</div>
 				</div>
 			</AppShell>
 		);

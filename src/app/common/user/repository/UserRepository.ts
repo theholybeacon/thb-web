@@ -1,4 +1,5 @@
 import { UserPostgreSQLDao } from "../dao/UserPostgreSQLDao";
+import type { ReaderStart } from "../model/ReaderStart";
 import { User, UserInsert } from "../model/User";
 
 export class UserRepository {
@@ -46,6 +47,10 @@ export class UserRepository {
 
     async setLifetimePremium(id: string, enabled: boolean): Promise<void> {
         return await this.dao.setLifetimePremium(id, enabled);
+    }
+
+    async setReaderStart(id: string, readerStart: ReaderStart | null): Promise<void> {
+        return await this.dao.setReaderStart(id, readerStart);
     }
 
     async delete(id: string): Promise<void> {

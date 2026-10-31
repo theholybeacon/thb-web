@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Flame, BookOpen, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import { track } from "@/lib/analytics";
 
 /** Streak counter + verse-of-the-day, the daily reason to open the app. */
 export function DailyHomeWidget() {
+	const t = useTranslations("daily");
 	const { user } = useLoggedUserContext();
 	const today = localDateString();
 	const queryClient = useQueryClient();
@@ -68,18 +70,18 @@ export function DailyHomeWidget() {
 				</div>
 				<div>
 					<p className="text-2xl font-bold leading-none">{current}</p>
-					<p className="text-xs text-muted-foreground mt-1">day streak</p>
+					<p className="text-xs text-muted-foreground mt-1">{t("streakLabel", { count: current })}</p>
 					<p className="text-xs mt-1">
 						{todayDone ? (
 							<span className="text-green-600 inline-flex items-center gap-1">
-								<Check className="h-3 w-3" /> Done today
+								<Check className="h-3 w-3" /> {t("doneToday")}
 							</span>
 						) : (
-							<span className="text-muted-foreground">Read today to keep it going</span>
+							<span className="text-muted-foreground">{t("keepGoing")}</span>
 						)}
 					</p>
 					{streak?.longest ? (
-						<p className="text-[11px] text-muted-foreground mt-1">Best: {streak.longest}</p>
+						<p className="text-[11px] text-muted-foreground mt-1">{t("best", { count: streak.longest })}</p>
 					) : null}
 				</div>
 			</div>
@@ -87,7 +89,7 @@ export function DailyHomeWidget() {
 			{/* Verse of the day */}
 			<div className="rounded-lg border bg-card p-5 sm:col-span-2">
 				<div className="flex items-center gap-2 text-xs font-medium text-primary mb-2">
-					<BookOpen className="h-4 w-4" /> Verse of the day
+					<BookOpen className="h-4 w-4" /> {t("verseOfTheDay")}
 				</div>
 				{verse ? (
 					<>
@@ -113,19 +115,19 @@ export function DailyHomeWidget() {
 								disabled={marking || todayDone}
 								variant={todayDone ? "outline" : "default"}
 							>
-								{todayDone ? "Read ✓" : "Mark as read"}
+								{todayDone ? t("read") : t("markAsRead")}
 							</Button>
 							{readerHref && (
 								<Link href={readerHref}>
 									<Button size="sm" variant="ghost">
-										Open in reader
+										{t("openInReader")}
 									</Button>
 								</Link>
 							)}
 						</div>
 					</>
 				) : (
-					<p className="text-sm text-muted-foreground">Today&apos;s verse is loading…</p>
+					<p className="text-sm text-muted-foreground">{t("verseLoading")}</p>
 				)}
 			</div>
 		</div>

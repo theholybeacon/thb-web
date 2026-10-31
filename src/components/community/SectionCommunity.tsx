@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { MessageSquarePlus, Users } from "lucide-react";
 import { UpgradeModal } from "@/components/premium/UpgradeModal";
 import type { RefLinkMap } from "@/components/entity/CitationLinks";
@@ -30,6 +31,7 @@ export function SectionCommunity({
 	isPremium: boolean;
 	defaultOpen?: boolean;
 }) {
+	const t = useTranslations("community");
 	const router = useRouter();
 	const [open, setOpen] = useState(defaultOpen);
 	const [adding, setAdding] = useState(false);
@@ -51,7 +53,7 @@ export function SectionCommunity({
 						className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1"
 						onClick={() => setOpen((v) => !v)}
 					>
-						<Users className="h-3.5 w-3.5" /> Community{count > 0 ? ` (${count})` : ""}
+						<Users className="h-3.5 w-3.5" /> {t("title")}{count > 0 ? ` (${count})` : ""}
 					</button>
 					<button
 						className="text-xs text-primary hover:underline inline-flex items-center gap-1"
@@ -62,7 +64,7 @@ export function SectionCommunity({
 							}
 						}}
 					>
-						<MessageSquarePlus className="h-3.5 w-3.5" /> Add note
+						<MessageSquarePlus className="h-3.5 w-3.5" /> {t("addNote")}
 					</button>
 				</div>
 
@@ -74,7 +76,7 @@ export function SectionCommunity({
 								onDone={() => setAdding(false)}
 							/>
 						)}
-						{count === 0 && !adding && <p className="text-xs text-muted-foreground py-1">No community notes yet.</p>}
+						{count === 0 && !adding && <p className="text-xs text-muted-foreground py-1">{t("empty")}</p>}
 						{contributions.map((c) => (
 							<ContributionItem key={c.id} contribution={c} linkMap={linkMap} />
 						))}

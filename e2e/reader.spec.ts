@@ -14,7 +14,7 @@ test("Reader opens a chapter", { annotation: covers("src/app/(app)/session/?id?/
 });
 
 test(
-	"Typing a whole chapter ends on the result tiles",
+	"Typing a whole chapter is just the text",
 	{
 		annotation: covers(
 			"src/app/(app)/session/?id?/components/modes/TypeMode.tsx",
@@ -49,9 +49,13 @@ test(
 		);
 
 		await step(
-			"Progress starts at zero",
-			`The progress counter shows 0/${text.length}: the app expects exactly as many keystrokes as there are slots on screen.`,
-			() => expect(page.getByText(`0/${text.length}`, { exact: true })).toBeVisible(),
+			"Nothing but the text",
+			"Type mode shows the chapter and a reset button: no accuracy, words per minute or progress counter.",
+			async () => {
+				await expect(page.getByText("WPM")).toHaveCount(0);
+				await expect(page.getByText("Accuracy")).toHaveCount(0);
+				await expect(page.getByText(new RegExp(`^\\d+/${text.length}$`))).toHaveCount(0);
+			},
 		);
 
 		await step("Focus the typing area", "Click the text; keystrokes go to the chapter from here on.", () => area.click(), {
@@ -60,27 +64,25 @@ test(
 
 		await step(
 			"Type the chapter",
-			`Type all ${text.length} characters, line breaks as spaces, with no mistakes. Each key waits for the progress counter to move on, so the typing keeps pace with the app the way a person's does.`,
+			`Type all ${text.length} characters, line breaks as spaces, with no mistakes. Each key waits for its character to turn correct, so the typing keeps pace with the app the way a person's does.`,
 			async () => {
 				// The key handler is re-attached after every render, so pace the keys
-				// by the counter rather than firing them back to back faster than any
-				// person types.
-				const progress = page.getByText(new RegExp(`^\\d+/${text.length}$`));
+				// by the graded character rather than firing them back to back faster
+				// than any person types.
 				for (const [i, ch] of [...text].entries()) {
 					await page.keyboard.press(ch === " " ? "Space" : ch);
-					await expect(progress).toHaveText(`${i + 1}/${text.length}`);
+					await expect(chars.nth(i)).toHaveAttribute("data-state", "correct");
 				}
 			},
 		);
 
 		await show(
-			"The result tiles",
-			"Typing the last character completes the chapter: three tiles show accuracy (100%), words per minute and time spent.",
+			"The chapter, typed",
+			"Every character is typed and graded correct, and the page ends on the text itself: no result tiles, no score.",
 			async () => {
-				const tiles = page.locator(".grid.grid-cols-3");
-				await expect(tiles).toBeVisible();
-				await expect(tiles).toContainText("100%");
-				await expect(tiles).toContainText("WPM");
+				await expect(area.locator('[data-state="correct"]')).toHaveCount(text.length);
+				await expect(page.getByText("WPM")).toHaveCount(0);
+				await expect(page.getByRole("button", { name: "Try Again" })).toBeVisible();
 			},
 		);
 	},

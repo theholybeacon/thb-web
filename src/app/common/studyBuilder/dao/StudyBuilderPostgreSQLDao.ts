@@ -1,4 +1,5 @@
 import { db } from "@/db";
+import { parseReaderStart } from "../../user/model/ReaderStart";
 import { and, asc, count, desc, eq, gte, inArray, max, ne, sql } from "drizzle-orm";
 import { studyBuilderConversationTable, studyBuilderMemoryTable, studyBuilderMessageTable } from "@/db/schema/studyBuilder";
 import { userTable } from "@/db/schema/user";
@@ -226,7 +227,7 @@ export class StudyBuilderPostgreSQLDao {
 			conversations,
 			memory,
 		] = await Promise.all([
-			db.select({ name: userTable.name, createdAt: userTable.createdAt }).from(userTable).where(eq(userTable.id, userId)),
+			db.select({ name: userTable.name, createdAt: userTable.createdAt, readerStart: userTable.readerStart }).from(userTable).where(eq(userTable.id, userId)),
 			db.select({ chapters: count() }).from(chapterCompletionTable).where(eq(chapterCompletionTable.userId, userId)),
 			db.select({
 				usfm: chapterCompletionTable.bookAbbreviation,
@@ -310,6 +311,7 @@ export class StudyBuilderPostgreSQLDao {
 		return {
 			name: user?.name ?? "friend",
 			locale,
+			start: parseReaderStart(user?.readerStart),
 			memberSince: day(user?.createdAt) || null,
 			activeDaysLast30: activity?.days ?? 0,
 			reading: {

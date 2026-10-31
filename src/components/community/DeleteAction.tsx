@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { track } from "@/lib/analytics";
@@ -24,11 +25,11 @@ import { useCommunity } from "./CommunityContext";
  * wired once; the caller decides whether to render it at all (`isMine`).
  */
 export function DeleteAction({ targetType, id }: { targetType: VoteTargetType; id: string }) {
+	const t = useTranslations("community");
+	const tCommon = useTranslations("common");
 	const { onChanged } = useCommunity();
 	const [confirming, setConfirming] = useState(false);
 	const [deleting, setDeleting] = useState(false);
-
-	const noun = targetType === "contribution" ? "post" : "comment";
 
 	const remove = async () => {
 		setDeleting(true);
@@ -37,10 +38,10 @@ export function DeleteAction({ targetType, id }: { targetType: VoteTargetType; i
 		if (res.ok) {
 			track("community_deleted", { targetType });
 			setConfirming(false);
-			toast.success("Deleted");
+			toast.success(t("deletedToast"));
 			onChanged();
 		} else {
-			toast.error("Could not delete");
+			toast.error(t("deleteFailed"));
 		}
 	};
 
@@ -50,18 +51,18 @@ export function DeleteAction({ targetType, id }: { targetType: VoteTargetType; i
 				className="text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1"
 				onClick={() => setConfirming(true)}
 			>
-				<Trash2 className="h-3 w-3" /> Delete
+				<Trash2 className="h-3 w-3" /> {tCommon("delete")}
 			</button>
 			<AlertDialog open={confirming} onOpenChange={(o) => !o && setConfirming(false)}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete this {noun}?</AlertDialogTitle>
+						<AlertDialogTitle>{targetType === "contribution" ? t("deletePostTitle") : t("deleteCommentTitle")}</AlertDialogTitle>
 						<AlertDialogDescription>
-							This cannot be undone. Replies underneath it will stay visible.
+							{t("deleteDescription")}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
 						<AlertDialogAction
 							className="bg-destructive hover:bg-destructive/90"
 							disabled={deleting}
@@ -71,7 +72,7 @@ export function DeleteAction({ targetType, id }: { targetType: VoteTargetType; i
 								void remove();
 							}}
 						>
-							{deleting ? "Deleting…" : "Delete"}
+							{deleting ? t("deleting") : tCommon("delete")}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

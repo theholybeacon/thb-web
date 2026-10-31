@@ -17,31 +17,22 @@ import { cn } from "@/lib/utils";
 
 // Sample books for the interactive preview
 const sampleBooks = [
-  { name: "Genesis", abbr: "GEN", chapters: 50 },
-  { name: "Exodus", abbr: "EXO", chapters: 40 },
-  { name: "Leviticus", abbr: "LEV", chapters: 27 },
-  { name: "Numbers", abbr: "NUM", chapters: 36 },
-  { name: "Deuteronomy", abbr: "DEU", chapters: 34 },
-];
+  { abbr: "GEN", chapters: 50 },
+  { abbr: "EXO", chapters: 40 },
+  { abbr: "LEV", chapters: 27 },
+  { abbr: "NUM", chapters: 36 },
+  { abbr: "DEU", chapters: 34 },
+] as const;
 
-// Sample verse for the preview
-const sampleVerse = {
-  book: "Genesis",
-  chapter: 1,
-  verses: [
-    { num: 1, text: "In the beginning God created the heaven and the earth." },
-    { num: 2, text: "And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters." },
-    { num: 3, text: "And God said, Let there be light: and there was light." },
-    { num: 4, text: "And God saw the light, that it was good: and God divided the light from the darkness." },
-  ],
-};
+// Sample verses for the preview (Genesis 1:1–4; texts in landing.explore.sample)
+const sampleVerseNums = [1, 2, 3, 4] as const;
 
 // Sample Bible translations
 const sampleBibles = [
-  { name: "King James Version", abbr: "KJV", lang: "English" },
-  { name: "New International Version", abbr: "NIV", lang: "English" },
-  { name: "Reina-Valera 1960", abbr: "RVR60", lang: "Spanish" },
-];
+  { name: "King James Version", abbr: "KJV", lang: "english" },
+  { name: "New International Version", abbr: "NIV", lang: "english" },
+  { name: "Reina-Valera 1960", abbr: "RVR60", lang: "spanish" },
+] as const;
 
 type PreviewState = "selector" | "reader";
 
@@ -95,8 +86,8 @@ export function ExploreSection() {
                 },
                 {
                   icon: BookOpen,
-                  title: t("cleanReading"),
-                  description: t("cleanReadingDesc"),
+                  title: t("contextPanel"),
+                  description: t("contextPanelDesc"),
                 },
                 {
                   icon: Search,
@@ -191,7 +182,7 @@ export function ExploreSection() {
                               {bible.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {bible.abbr} • {bible.lang}
+                              {bible.abbr} • {tCommon(bible.lang)}
                             </p>
                           </div>
                           <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -228,7 +219,7 @@ export function ExploreSection() {
                               : "hover:bg-muted"
                           )}
                         >
-                          <span>{book.name}</span>
+                          <span>{t(`sample.books.${book.abbr}`)}</span>
                           <span className="text-muted-foreground">{book.chapters}</span>
                         </div>
                       ))}
@@ -237,15 +228,15 @@ export function ExploreSection() {
                     {/* Content */}
                     <div className="flex-1 p-6 overflow-y-auto">
                       <h3 className="text-xl font-serif font-semibold text-center mb-4 pb-3 border-b">
-                        {sampleVerse.book} {sampleVerse.chapter}
+                        {t("sample.books.GEN")} 1
                       </h3>
                       <div className="space-y-3">
-                        {sampleVerse.verses.map((verse) => (
-                          <p key={verse.num} className="text-sm leading-relaxed">
+                        {sampleVerseNums.map((num) => (
+                          <p key={num} className="text-sm leading-relaxed">
                             <sup className="text-xs font-semibold text-primary mr-1">
-                              {verse.num}
+                              {num}
                             </sup>
-                            {verse.text}
+                            {t(`sample.verses.${num}`)}
                           </p>
                         ))}
                         <p className="text-sm text-muted-foreground">...</p>

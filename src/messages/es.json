@@ -50,7 +50,8 @@
       "somethingWentWrong": "Algo salió mal al iniciar sesión. Inténtalo de nuevo.",
       "googleFailed": "El inicio de sesión con Google no terminó. Inténtalo de nuevo.",
       "clerkUnavailable": "El inicio de sesión no está cargando. Revisa tu conexión o desactiva los bloqueadores de anuncios para este sitio y recarga.",
-      "reload": "Recargar la página"
+      "reload": "Recargar la página",
+      "completingSignIn": "Completando el inicio de sesión..."
     },
     "signUp": {
       "title": "Crea tu cuenta",
@@ -166,7 +167,9 @@
     "darkMode": "Modo Oscuro",
     "untitledStudy": "Estudio sin título",
     "all": "Todos",
-    "subscription": "Suscripción"
+    "subscription": "Suscripción",
+    "close": "Cerrar",
+    "user": "Usuario"
   },
   "toast": {
     "success": "Éxito",
@@ -233,18 +236,20 @@
     "unavailableBody": "No pudimos cargar el texto de nuestro proveedor de escrituras. Inténtalo de nuevo en unos minutos.",
     "recommendedTitle": "Traducciones recomendadas",
     "recommendedSubtitle": "Una traducción confiable por idioma — todas con audio, diccionario y apoyo del idioma original.",
-    "readNow": "Leer ahora"
+    "readNow": "Leer ahora",
+    "selectBookToStart": "Selecciona un libro en la barra lateral para empezar a leer.",
+    "loadingChapter": "Cargando capítulo..."
   },
   "home": {
     "welcome": "Bienvenido de nuevo, {name}",
     "welcomeDefault": "Bienvenido de nuevo, Amigo",
-    "subtitle": "Continúa tu camino espiritual",
+    "subtitle": "Retoma la Palabra donde la dejaste.",
     "myStudies": "Mis Estudios",
-    "myStudiesDesc": "Ver y administrar tus programas de estudio bíblico",
+    "myStudiesDesc": "Tus planes de estudio e historias, y en qué punto va cada uno.",
     "activeSessions": "Sesiones Activas",
-    "activeSessionsDesc": "Continúa donde lo dejaste",
+    "activeSessionsDesc": "Vuelve al pasaje en el que estabas.",
     "newStudy": "Nuevo Estudio",
-    "newStudyDesc": "Comienza un nuevo camino de estudio bíblico"
+    "newStudyDesc": "Describe lo que quieres entender y recibe un plan, pasaje por pasaje."
   },
   "study": {
     "title": "Mis Estudios",
@@ -311,7 +316,11 @@
       "image": "{count, plural, one {# imagen} other {# imágenes}}",
       "video": "{count, plural, one {# video} other {# videos}}",
       "link": "{count, plural, one {# enlace} other {# enlaces}}"
-    }
+    },
+    "startShort": "Empezar",
+    "stepTitle": "Paso {number}: {title}",
+    "noSteps": "Aún no hay pasos. Haz clic en \"{action}\" para crearlos.",
+    "dangerZone": "Zona de peligro"
   },
   "createStudy": {
     "title": "Crear Estudio",
@@ -367,13 +376,17 @@
       "posts": "{count, plural, one {# pregunta o publicación} other {# preguntas y publicaciones}}",
       "comments": "{count, plural, one {# comentario} other {# comentarios}}",
       "conversations": "{count, plural, one {# conversación anterior} other {# conversaciones anteriores}}",
-      "memory": "{count} cosas recordadas"
+      "memory": "{count} cosas recordadas",
+      "start": "Tu punto de partida"
     },
     "memoryButton": "{count, plural, =0 {Memoria} one {Recuerda # cosa} other {Recuerda # cosas}}",
     "memoryTitle": "Lo que recuerda el asistente",
     "memoryHint": "Aprendido de tus conversaciones. Lo usa cada vez que creas un estudio.",
     "memoryEmpty": "Nada aún. Aprende mientras conversan.",
     "forget": "Olvidar esto",
+    "showPlan": "Ver plan",
+    "planPending": "Aún no hay plan",
+    "closePlan": "Cerrar",
     "planLabel": "Tu plan",
     "planEmptyTitle": "Tu plan tomará forma aquí",
     "planEmptyHint": "Mientras hablamos, propondré lecturas y las ajustaremos juntos.",
@@ -448,7 +461,8 @@
       "stepTitle": "Título",
       "stepExplanation": "Qué buscar en esta lectura",
       "done": "Listo"
-    }
+    },
+    "chatError": "El creador de estudios no está disponible ahora mismo. Inténtalo de nuevo."
   },
   "session": {
     "complete": {
@@ -496,6 +510,7 @@
     "skipStep": "Saltar Paso",
     "nextChapter": "Siguiente Capítulo",
     "chapterProgress": "Capítulo {current} de {total}",
+    "stepsButton": "Pasos",
     "aiInsight": "Perspectiva IA",
     "steps": {
       "unavailable": "Este paso no se puede mostrar.",
@@ -515,7 +530,8 @@
         "book": "Libro",
         "website": "Sitio web"
       }
-    }
+    },
+    "finishShort": "Terminar"
   },
   "audio": {
     "introduction": "Introducción",
@@ -614,7 +630,15 @@
     "emptyAll": "Todavía nadie ha publicado.",
     "emptyHint": "Abre cualquier capítulo en el explorador y empieza una conversación.",
     "onCharacter": "Sobre {name}",
-    "viewAllComments": "Ver los {count} comentarios"
+    "viewAllComments": "Ver los {count} comentarios",
+    "age": {
+      "now": "ahora",
+      "minutes": "{count} min",
+      "hours": "{count} h",
+      "days": "{count} d",
+      "months": "{count} mes",
+      "years": "{count} a"
+    }
   },
   "reader": {
     "chapter": "Capítulo {number}",
@@ -735,7 +759,8 @@
     "needHelp": "¿Necesitas ayuda para pagar premium?",
     "pricesUnavailable": "Los precios no estan disponibles en este momento.",
     "retry": "Reintentar",
-    "checkoutFailed": "No pudimos iniciar el pago. Intentalo de nuevo."
+    "checkoutFailed": "No pudimos iniciar el pago. Intentalo de nuevo.",
+    "signInRequired": "Inicia sesión para acceder a este contenido."
   },
   "subscription": {
     "title": "Suscripción",
@@ -766,7 +791,10 @@
     "peopleIveSponsored": "Personas que He Patrocinado",
     "noSponsorshipsYet": "Aún no has patrocinado a nadie.",
     "sponsorSomeoneDescription": "Comparte el regalo de premium con alguien que necesita ayuda para acceder a The Holy Beacon.",
-    "sponsoredCount": "{count} personas patrocinadas"
+    "sponsoredCount": "{count} personas patrocinadas",
+    "trialBanner": "Estás en una prueba gratuita. Añade un método de pago para conservar el acceso premium cuando termine.",
+    "opening": "Abriendo…",
+    "addPaymentMethod": "Añadir método de pago"
   },
   "gift": {
     "title": "Regalar Premium",
@@ -845,7 +873,6 @@
     "nav": {
       "features": "Características",
       "studyPlans": "Planes de Estudio",
-      "roadmap": "Hoja de Ruta",
       "pricing": "Precios",
       "explore": "Explorar"
     },
@@ -858,11 +885,9 @@
       "badge": "Gratis · Sin cuenta",
       "title": "Explora la",
       "titleHighlight": "Biblia",
-      "description": "Lee las Escrituras en cientos de traducciones con nuestro explorador bíblico gratuito y bellamente diseñado. No necesitas cuenta.",
+      "description": "Lee las Escrituras gratis en más de 400 traducciones, sin cuenta. Cada capítulo mantiene su contexto junto al texto: quién aparece y qué significa cada palabra.",
       "multipleTranslations": "Cientos de Traducciones",
       "multipleTranslationsDesc": "Lee en muchos idiomas y versiones — King James, World English, Berean Standard, American Standard, Reina-Valera y cientos más.",
-      "cleanReading": "Experiencia de Lectura Limpia",
-      "cleanReadingDesc": "Una interfaz sin distracciones creada para una lectura concentrada de las Escrituras, en tema claro u oscuro.",
       "easyNavigation": "Navegación Sencilla",
       "easyNavigationDesc": "Salta a cualquier libro o capítulo al instante, y sigue avanzando con anterior/siguiente que te lleva de un libro a otro.",
       "seoOptimized": "Hecho para Compartir",
@@ -875,28 +900,45 @@
       "translations": "Traducciones",
       "books": "Libros",
       "free": "Gratis",
-      "forever": "Para Siempre"
+      "forever": "Para Siempre",
+      "sample": {
+        "books": {
+          "GEN": "Génesis",
+          "EXO": "Éxodo",
+          "LEV": "Levítico",
+          "NUM": "Números",
+          "DEU": "Deuteronomio"
+        },
+        "verses": {
+          "1": "En el principio crió Dios los cielos y la tierra.",
+          "2": "Y la tierra estaba desordenada y vacía, y las tinieblas estaban sobre la haz del abismo, y el Espíritu de Dios se movía sobre la haz de las aguas.",
+          "3": "Y dijo Dios: Sea la luz: y fué la luz.",
+          "4": "Y vió Dios que la luz era buena: y apartó Dios la luz de las tinieblas."
+        }
+      },
+      "contextPanel": "Contexto Junto al Texto",
+      "contextPanelDesc": "Abre el panel del capítulo para ver a todas las personas nombradas en el pasaje, y resalta cualquier palabra para ver su definición y la palabra hebrea o griega detrás de ella."
     },
     "hero": {
       "badge": "Lee · Escucha · Escribe",
       "title": "Estudia la Biblia,",
       "titleHighlight": "a fondo",
-      "description": "La mayoría de las apps bíblicas te dan un versículo y siguen adelante. The Holy Beacon te ofrece planes de estudio con IA, tres formas de recorrer cada capítulo — leerlo, escucharlo narrado o escribirlo — además de perfiles de las personas detrás del texto y notas que quedan unidas al versículo.",
+      "description": "Cada capítulo se abre con su contexto al lado: las personas del pasaje, el hebreo y el griego detrás de cada palabra, y tus notas en el versículo. Léelo, escúchalo o escríbelo palabra por palabra, y sigue un plan de estudio hecho a partir de lo que quieres entender.",
       "cta": "Comienza Tu Viaje",
       "exploreFree": "Explora la Biblia gratis",
       "translations": "Traducciones",
       "characters": "Personajes bíblicos",
       "waysToStudy": "Formas de estudiar",
       "yourGuide": "Tu guía hacia las Escrituras",
-      "characterProfiles": "Perfiles de personajes",
-      "audioNarration": "Narración en audio",
-      "verseNotes": "Notas por versículo"
+      "verseNotes": "Notas en el versículo",
+      "peopleInPassage": "Personas del pasaje",
+      "originalLanguage": "Palabras en hebreo y griego"
     },
     "studyPlans": {
-      "badge": "Disponible Ahora",
+      "badge": "Planes de estudio",
       "title": "Aprende Con",
       "titleHighlight": "Propósito",
-      "description": "El corazón de The Holy Beacon es su generador de planes de estudio con IA. Describe lo que quieres aprender y recibe un plan estructurado — pasaje por pasaje, sesión por sesión — con tu progreso registrado sobre la marcha.",
+      "description": "Describe lo que quieres entender y recibe un plan estructurado, pasaje por pasaje y sesión por sesión, con tu progreso guardado mientras avanzas. O empieza uno de los planes e historias ya preparados.",
       "customDuration": "Duración Personalizable",
       "customDurationDesc": "Desde devocionales diarios breves hasta estudios profundos de varias semanas, adapta tu plan a tu horario.",
       "adjustableDepth": "Profundidad Ajustable",
@@ -918,14 +960,11 @@
       "exampleLevel": "Intermedio"
     },
     "features": {
-      "badge": "Disponible Ahora",
-      "title": "Todo lo que",
-      "titleHighlight": "obtienes",
-      "description": "No es una app de un versículo al día. Cada capítulo viene con las personas que aparecen en él, audio narrado, tus propias notas y la estructura de estudio para recorrerlo.",
+      "badge": "En cada capítulo",
+      "title": "Profundiza en",
+      "titleHighlight": "cada pasaje",
+      "description": "Las personas del texto, las palabras detrás de él, tres formas de recorrerlo y un lugar para guardar y compartir lo que encuentras.",
       "learnMore": "Saber Más",
-      "liveBadge": "En vivo",
-      "comingNext": "Próximamente",
-      "moreOnRoadmap": "Mira lo que llega en los próximos dos trimestres",
       "scriptureHD": {
         "title": "Escritura en HD",
         "description": "Perfiles de personajes, líneas de tiempo citadas y las personas detrás de cada capítulo.",
@@ -937,8 +976,8 @@
         "preview2Desc": "Observa el recorrido de una persona a lo largo de las Escrituras y cómo se conecta con quienes la rodean. Cada afirmación está citada a una mención real — nada inventado.",
         "preview3Title": "Personas en Este Capítulo",
         "preview3Desc": "Los nombres se resaltan dentro del texto mientras lees. Toca uno para abrir su perfil sin perder tu lugar en el capítulo.",
-        "preview4Title": "Referencias cruzadas y contexto",
-        "preview4Desc": "Estamos construyendo conexiones inteligentes entre versículos y capas de contexto histórico y cultural para que puedas seguir un tema por toda la Biblia."
+        "preview4Title": "Palabras en su Idioma Original",
+        "preview4Desc": "Resalta cualquier palabra para leer su definición y la palabra hebrea o griega detrás de ella, del léxico de Strong. Las Biblias en español se definen en español."
       },
       "multiModal": {
         "title": "Biblia Multimodal",
@@ -950,97 +989,28 @@
         "preview2Title": "Audio Narrado",
         "preview2Desc": "Escucha cualquier capítulo con dos voces, velocidad ajustable y resaltado versículo a versículo que te sigue. Descárgalo para escucharlo sin conexión de camino al trabajo.",
         "preview3Title": "Modo Escribir la Palabra",
-        "preview3Desc": "Escribe las Escrituras palabra por palabra con velocidad y precisión en vivo. Más lento que leer, y de eso se trata precisamente.",
-        "preview4Title": "Traducciones lado a lado",
-        "preview4Desc": "Compara dos traducciones del mismo pasaje en una sola vista — en desarrollo para el próximo lanzamiento."
+        "preview3Desc": "Escribe las Escrituras palabra por palabra con velocidad y precisión en vivo. Más lento que leer, y de eso se trata precisamente."
       },
       "studyNotes": {
-        "title": "Estudio y Notas",
-        "description": "Planes de estudio con IA y notas que quedan unidas al versículo.",
+        "title": "Estudio, Notas y Conversación",
+        "description": "Planes de estudio, notas que quedan en el versículo y conversación sobre el pasaje.",
         "modalTitle": "Estudio y Notas",
-        "modalDescription": "Estructura para tu estudio, y un lugar para guardar lo que descubres.",
+        "modalDescription": "Estructura para tu estudio, un lugar para guardar lo que encuentras y otros con quienes conversarlo.",
         "preview1Title": "Generador de Planes con IA",
         "preview1Desc": "Describe lo que quieres aprender y ajusta la duración y la profundidad. Recibes un plan pasaje por pasaje que puedes recorrer sesión por sesión, y regenerar cuando quieras.",
         "preview2Title": "Notas en Cada Nivel",
         "preview2Desc": "Adjunta una nota a un solo versículo, a un capítulo, a un libro entero o a una traducción. Búscalas todas y vuelve directo al pasaje.",
         "preview3Title": "Versículo del Día y Rachas",
         "preview3Desc": "Un versículo nuevo cada día y una racha que cuenta los días en que apareciste, con un recordatorio diario opcional por correo.",
-        "preview4Title": "Resúmenes de capítulo",
-        "preview4Desc": "Resúmenes con IA y temas clave para cualquier capítulo, llegando al panel de lectura el próximo trimestre."
+        "preview4Title": "Conversa sobre el Pasaje",
+        "preview4Desc": "Inicia una conversación sobre un versículo, un capítulo, un libro o una traducción, y lee lo que otros han encontrado ahí, con respuestas y votos."
       }
-    },
-    "roadmap": {
-      "badge": "Dónde estamos",
-      "title": "Hoja de Ruta",
-      "titleHighlight": "de Funciones",
-      "description": "Tres fases ya están disponibles. Esto es lo que llega en los próximos dos trimestres.",
-      "phases": [
-        {
-          "status": "live",
-          "timeline": "Disponible",
-          "title": "Planes de Estudio con IA",
-          "description": "Describe lo que quieres aprender y recibe un plan estructurado, pasaje por pasaje, construido a tu horario y profundidad.",
-          "features": [
-            "Duración y profundidad personalizables",
-            "Generación de estudios temáticos",
-            "Progreso registrado entre sesiones"
-          ]
-        },
-        {
-          "status": "live",
-          "timeline": "Disponible",
-          "title": "Escritura en HD",
-          "description": "Las personas detrás del texto — perfiles, líneas de tiempo y relaciones, cada afirmación citada a un versículo real.",
-          "features": [
-            "Perfiles de personajes A–Z con alias y fechas",
-            "Líneas de tiempo y relaciones con IA, totalmente citadas",
-            "Personas enlazadas dentro de cada capítulo"
-          ]
-        },
-        {
-          "status": "live",
-          "timeline": "Disponible",
-          "title": "Biblia Multimodal",
-          "description": "Tres formas de recorrer el mismo capítulo, para que las Escrituras se adapten al momento en que estás.",
-          "features": [
-            "Modo de lectura sin distracciones",
-            "Modo escribir la palabra con velocidad y precisión",
-            "Audio narrado: dos voces, control de velocidad, descarga sin conexión"
-          ]
-        },
-        {
-          "status": "current",
-          "timeline": "T4 2026",
-          "title": "Panel de Lectura Ampliado",
-          "description": "Más contexto junto al texto que estás leyendo, sin salir nunca del capítulo.",
-          "features": [
-            "Resúmenes de capítulo y temas clave",
-            "Comparación de traducciones lado a lado",
-            "Búsqueda de texto completo por versículo",
-            {
-              "text": "Progreso de lectura por libro",
-              "done": true
-            }
-          ]
-        },
-        {
-          "status": "upcoming",
-          "timeline": "T1 2027",
-          "title": "Comunidad y Palabra Diaria",
-          "description": "Funciones de comunión y contacto diario con las Escrituras, para que los creyentes crezcan juntos y sean constantes.",
-          "features": [
-            "Círculos de estudio para aprendizaje grupal",
-            "Foros de discusión teológica",
-            "Feed personalizado de Palabra Diaria"
-          ]
-        }
-      ]
     },
     "pricing": {
       "badge": "Planes de Suscripción",
       "title": "Elige Tu",
       "titleHighlight": "Camino",
-      "description": "Selecciona el plan que mejor se adapte a tu viaje espiritual, con la posibilidad de compartir o regalar cada suscripción.",
+      "description": "La lectura, las personas de cada capítulo y las definiciones de palabras son gratis. Premium suma planes de estudio, escuchar y escribir, notas y conversación. Cualquier suscripción se puede regalar.",
       "mostPopular": "MÁS POPULAR",
       "canBeGifted": "Se puede regalar o compartir con un ser querido",
       "freePlan": {
@@ -1053,7 +1023,8 @@
       "freeFeatures": {
         "explore": "Acceso completo al Explorador Bíblico",
         "translations": "Cientos de traducciones bíblicas",
-        "noAccount": "No se requiere cuenta"
+        "noAccount": "No se requiere cuenta",
+        "context": "Personas y definiciones de palabras junto a cada capítulo"
       },
       "premiumPlan": {
         "name": "Premium",
@@ -1063,7 +1034,8 @@
         "cta": "Comenzar"
       },
       "premiumFeatures": {
-        "gift": "Regala suscripciones a otros"
+        "gift": "Regala suscripciones a otros",
+        "discussion": "Conversación sobre cualquier pasaje"
       },
       "communityProgram": "Programa Comunitario",
       "sponsorship": "Programa de Patrocinio",
@@ -1077,6 +1049,44 @@
     },
     "footer": {
       "allRightsReserved": "Todos los derechos reservados."
+    },
+    "start": {
+      "badge": "Tu primer estudio",
+      "title": "Empieza donde",
+      "titleHighlight": "estás",
+      "description": "Cuéntanos qué tan bien conoces la Biblia, qué tan profundo quieres ir, qué quieres entender y cuánto tiempo tienes. Tu primer estudio te espera al llegar.",
+      "stepLabel": "Paso {n}",
+      "steps": {
+        "answer": {
+          "title": "Cuéntanos dónde estás",
+          "description": "Cuatro preguntas, un minuto más o menos. No hay respuesta incorrecta."
+        },
+        "proposed": {
+          "title": "Tu primer estudio, ya propuesto",
+          "description": "El creador de estudios lee tus respuestas y te recomienda un plan, pasaje por pasaje, a la medida de tu tiempo."
+        },
+        "shape": {
+          "title": "Dale forma conversando",
+          "description": "Pídelo más corto, más profundo o sobre otra cosa. El plan cambia mientras conversan, y luego empiezas a leer."
+        }
+      },
+      "cta": "Comienza Tu Viaje",
+      "sample": {
+        "message": "¡Bienvenida, Ana! Quieres entender quién es Jesús, con unos minutos al día. Empezaría por el Evangelio de Marcos: el relato más corto de su vida, ágil y vivo. ¿Qué te parece?",
+        "planName": "Conociendo a Jesús en Marcos",
+        "planMeta": "Una primera semana · 5 lecturas",
+        "readings": {
+          "r1": "Marcos 1:1-20 · El comienzo",
+          "r2": "Marcos 2:1-12 · Por el techo",
+          "r3": "Marcos 4:35-41 · Calma la tormenta",
+          "r4": "Marcos 8:27-38 · ¿Quién dicen que soy?"
+        },
+        "replies": {
+          "shorter": "Hazlo más corto",
+          "deeper": "Más profundo",
+          "ready": "Me parece bien"
+        }
+      }
     }
   },
   "journey": {
@@ -1169,5 +1179,182 @@
     "retry": "Intentar de nuevo",
     "home": "Ir al inicio",
     "reference": "Referencia del error"
+  },
+  "community": {
+    "title": "Comunidad",
+    "addNote": "Añadir nota",
+    "empty": "Aún no hay notas de la comunidad.",
+    "kind": {
+      "comment": "Comentario",
+      "fact": "Dato",
+      "analysis": "Análisis",
+      "correction": "Corrección"
+    },
+    "contributionPlaceholder": "Comparte un comentario; cita referencias bíblicas cuando puedas…",
+    "post": "Publicar",
+    "contributionPosted": "Aporte publicado",
+    "rateLimited": "Espera un momento antes de volver a publicar",
+    "targetNotFound": "No se encontró ese pasaje",
+    "postFailed": "No se pudo publicar",
+    "reply": "Responder",
+    "replyPlaceholder": "Escribe una respuesta…",
+    "replyPosted": "Respuesta publicada",
+    "replyFailed": "No se pudo publicar la respuesta",
+    "comment": "Comentar",
+    "commentPlaceholder": "Añade un comentario…",
+    "commentPosted": "Comentario publicado",
+    "commentFailed": "No se pudo publicar el comentario",
+    "commentHidden": "Comentario ocultado por la comunidad — mostrar",
+    "contributionHidden": "Aporte ocultado por la comunidad — mostrar",
+    "deleted": "[eliminado]",
+    "report": "Reportar",
+    "reported": "Gracias, lo revisaremos.",
+    "reportFailed": "No se pudo reportar",
+    "deletePostTitle": "¿Eliminar esta publicación?",
+    "deleteCommentTitle": "¿Eliminar este comentario?",
+    "deleteDescription": "Esta acción no se puede deshacer. Las respuestas debajo seguirán visibles.",
+    "deleting": "Eliminando…",
+    "deletedToast": "Eliminado",
+    "deleteFailed": "No se pudo eliminar",
+    "upvote": "Votar a favor",
+    "downvote": "Votar en contra"
+  },
+  "people": {
+    "aiGenerated": "Generado por IA",
+    "overview": "Resumen",
+    "timeline": "Cronología de su vida",
+    "relationships": "Relaciones",
+    "significance": "Importancia",
+    "related": "relacionado",
+    "signInToGenerate": "Inicia sesión para generar con IA un resumen, una cronología y las relaciones de esta persona.",
+    "generating": "Generando información…",
+    "reported": "Gracias, lo revisaremos.",
+    "signInToReport": "Inicia sesión para reportar contenido.",
+    "reportInaccuracy": "Reportar un error",
+    "report": "Reportar",
+    "reportedLabel": "Reportado",
+    "navLabel": "Personajes",
+    "indexTitle": "Personajes bíblicos",
+    "indexSubtitle": "Cada persona nombrada en las Escrituras, ordenada según cuántas veces aparece.",
+    "searchPlaceholder": "Buscar por nombre…",
+    "searchLabel": "Buscar personajes por nombre",
+    "letterFilterLabel": "Filtrar por letra inicial",
+    "noResults": "Ningún personaje coincide con esa búsqueda.",
+    "showing": "Mostrando {from}–{to} de {total}",
+    "pageOf": "Página {page} de {total}",
+    "mentionCountNote": "El número junto a cada nombre indica cuántos versículos lo mencionan.",
+    "dataFrom": "Datos de personajes de",
+    "alsoCalled": "También llamado: {names}",
+    "scriptureReferences": "Referencias bíblicas",
+    "noReferences": "Aún no hay referencias disponibles.",
+    "community": "Comunidad",
+    "yearBC": "{year} a. C.",
+    "yearAD": "{year} d. C.",
+    "gender": {
+      "male": "Hombre",
+      "female": "Mujer"
+    }
+  },
+  "daily": {
+    "streakLabel": "{count, plural, one {día seguido} other {días seguidos}}",
+    "doneToday": "Hecho hoy",
+    "keepGoing": "Lee hoy para mantener la racha",
+    "best": "Mejor: {count}",
+    "verseOfTheDay": "Versículo del día",
+    "read": "Leído ✓",
+    "markAsRead": "Marcar como leído",
+    "openInReader": "Abrir en el lector",
+    "verseLoading": "Cargando el versículo de hoy…"
+  },
+  "welcome": {
+    "back": "Atrás",
+    "skip": "Omitir por ahora",
+    "continue": "Continuar",
+    "saveFailed": "No se pudieron guardar tus respuestas. Inténtalo de nuevo.",
+    "intro": {
+      "title": "Bienvenido, {name}.",
+      "titleNoName": "Bienvenido.",
+      "body": "Cuatro preguntas sobre dónde estás con la Biblia. Con tus respuestas, tu primer estudio te espera al llegar, y puedes darle forma conversándolo.",
+      "begin": "Comenzar",
+      "time": "Un minuto, más o menos"
+    },
+    "familiarity": {
+      "title": "¿Qué tan bien conoces la Biblia?",
+      "hint": "No hay respuesta incorrecta. Solo define dónde empieza tu primer estudio.",
+      "options": {
+        "new": {
+          "label": "Es nueva para mí",
+          "description": "Casi no la he leído, o nunca."
+        },
+        "some": {
+          "label": "He leído algo",
+          "description": "Pasajes sueltos, algunas historias que conozco."
+        },
+        "regular": {
+          "label": "La leo con frecuencia",
+          "description": "Es parte de mi semana y quiero más de ella."
+        },
+        "deep": {
+          "label": "La he estudiado a fondo",
+          "description": "Conozco sus libros, su contexto, sus idiomas."
+        }
+      }
+    },
+    "depth": {
+      "title": "¿Qué tan profundo quieres ir?",
+      "hint": "Puedes cambiarlo en cualquier estudio, cuando quieras.",
+      "options": {
+        "light": {
+          "label": "Un pasaje y una idea",
+          "description": "Leer y llevarme una cosa."
+        },
+        "steady": {
+          "label": "Entenderlo",
+          "description": "El pasaje, quién aparece y su contexto."
+        },
+        "deep": {
+          "label": "Estudiarlo de cerca",
+          "description": "Palabras originales, conexiones en toda la Escritura."
+        }
+      }
+    },
+    "interests": {
+      "title": "¿Qué quieres entender?",
+      "hint": "Elige todas las que quieras, o dilo con tus palabras.",
+      "options": {
+        "jesus": "Quién es Jesús",
+        "prayer": "Cómo orar",
+        "hardSeason": "Atravesar un momento difícil",
+        "bigStory": "La gran historia de la Biblia",
+        "wisdom": "Sabiduría para el día a día",
+        "oneBook": "Un libro, de cerca",
+        "people": "Las personas de la Biblia",
+        "faithDoubts": "Preguntas y dudas"
+      },
+      "noteLabel": "Con tus palabras (opcional)",
+      "notePlaceholder": "¿Qué tienes en mente, o qué te trajo aquí?"
+    },
+    "time": {
+      "title": "¿Cuánto tiempo tienes?",
+      "hint": "Tu primer estudio se ajusta a él.",
+      "options": {
+        "minutes": {
+          "label": "Unos minutos",
+          "description": "Una lectura corta casi todos los días."
+        },
+        "quarter": {
+          "label": "Unos 15 minutos",
+          "description": "Tiempo para leer y pensarlo."
+        },
+        "long": {
+          "label": "Sesiones largas",
+          "description": "30 minutos o más, para ir despacio."
+        }
+      }
+    },
+    "preparing": {
+      "title": "Preparando tu primer estudio",
+      "body": "El creador de estudios está leyendo tus respuestas y eligiendo por dónde empezar."
+    }
   }
 }

@@ -9,6 +9,7 @@ description: >
 access: public
 viewports: [mobile, desktop]
 locales: [en, es]
+layout: content
 params:
   chapter:
     kind: chapter
@@ -33,6 +34,7 @@ steps:
   - mark: typing
   - type: { target: type.area, text: dom, wpm: 165, typos: 0.02, stopWhen: type.complete, finishKey: " " }
   - waitFor: type.complete
+  - scrollTo: type.complete
   - mark: { name: result, focus: type.complete }
   - wait: 1600
   - mark: end

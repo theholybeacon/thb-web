@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/analytics";
@@ -20,6 +21,7 @@ export function VoteButtons({
 	initialScore: number;
 	initialUserVote: number;
 }) {
+	const t = useTranslations("community");
 	const { requirePremium } = useCommunity();
 	const [score, setScore] = useState(initialScore);
 	const [vote, setVote] = useState(initialUserVote);
@@ -55,7 +57,7 @@ export function VoteButtons({
 		<div className="flex flex-col items-center shrink-0 select-none">
 			<button
 				type="button"
-				aria-label="Upvote"
+				aria-label={t("upvote")}
 				onClick={() => cast(1)}
 				className={cn("hover:text-primary", vote === 1 ? "text-primary" : "text-muted-foreground")}
 			>
@@ -64,7 +66,7 @@ export function VoteButtons({
 			<span className="text-xs font-medium tabular-nums">{score}</span>
 			<button
 				type="button"
-				aria-label="Downvote"
+				aria-label={t("downvote")}
 				onClick={() => cast(-1)}
 				className={cn("hover:text-primary", vote === -1 ? "text-primary" : "text-muted-foreground")}
 			>

@@ -27,6 +27,9 @@ export type AnalyticsEvents = {
   password_reset_completed: Record<string, never>;
   password_reset_failed: { stage: "send_code" | "verify_code" | "set_password"; reason: string };
   logged_out: Record<string, never>;
+  /** The first-visit questions (/welcome). `again`: changing earlier answers. */
+  onboarding_completed: { familiarity: string; depth: string; time: string; interests: number; note: boolean; again: boolean };
+  onboarding_skipped: { at: string };
 
   // Profile and settings
   profile_updated: { changedName: boolean; changedUsername: boolean; changedCountry: boolean };

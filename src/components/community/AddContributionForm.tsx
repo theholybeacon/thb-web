@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
 import { track } from "@/lib/analytics";
@@ -13,17 +14,12 @@ import { useCommunity } from "./CommunityContext";
  * unclassified one renders with no badge at all. The other three stay available
  * for people writing something that really is a fact or a correction.
  */
-const KINDS: { id: ContributionKind; label: string }[] = [
-	{ id: "comment", label: "Comment" },
-	{ id: "fact", label: "Fact" },
-	{ id: "analysis", label: "Analysis" },
-	{ id: "correction", label: "Correction" },
-];
+const KINDS: ContributionKind[] = ["comment", "fact", "analysis", "correction"];
 
 export function AddContributionForm({
 	target,
 	onDone,
-	kinds = KINDS.map((k) => k.id),
+	kinds = KINDS,
 	placeholder,
 }: {
 	target: ContributionTarget;
@@ -37,12 +33,14 @@ export function AddContributionForm({
 	kinds?: ContributionKind[];
 	placeholder?: string;
 }) {
+	const t = useTranslations("community");
+	const tCommon = useTranslations("common");
 	const { requirePremium, onChanged } = useCommunity();
 	const [kind, setKind] = useState<ContributionKind>(kinds[0] ?? "comment");
 	const [body, setBody] = useState("");
 	const [busy, setBusy] = useState(false);
 
-	const visibleKinds = KINDS.filter((k) => kinds.includes(k.id));
+	const visibleKinds = KINDS.filter((k) => kinds.includes(k));
 
 	const submit = async () => {
 		if (!requirePremium() || !body.trim() || busy) return;
@@ -52,17 +50,17 @@ export function AddContributionForm({
 		if (res.ok) {
 			track("contribution_posted", { kind, on: target.kind });
 			setBody("");
-			toast.success("Contribution posted");
+			toast.success(t("contributionPosted"));
 			onDone?.();
 			onChanged();
 		} else if (res.error === "rate") {
-			toast.error("Please wait a moment before posting again");
+			toast.error(t("rateLimited"));
 		} else if (res.error === "premium") {
 			requirePremium();
 		} else if (res.error === "target") {
-			toast.error("Could not find that passage");
+			toast.error(t("targetNotFound"));
 		} else {
-			toast.error("Could not post");
+			toast.error(t("postFailed"));
 		}
 	};
 
@@ -72,14 +70,14 @@ export function AddContributionForm({
 				<div className="flex gap-1">
 					{visibleKinds.map((k) => (
 						<button
-							key={k.id}
+							key={k}
 							type="button"
-							onClick={() => setKind(k.id)}
+							onClick={() => setKind(k)}
 							className={`text-xs rounded-full px-2.5 py-1 border ${
-								kind === k.id ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground"
+								kind === k ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground"
 							}`}
 						>
-							{k.label}
+							{t(`kind.${k}`)}
 						</button>
 					))}
 				</div>
@@ -88,18 +86,16 @@ export function AddContributionForm({
 				value={body}
 				onChange={(e) => setBody(e.target.value)}
 				rows={3}
-				placeholder={
-					placeholder ?? "Share a comment — cite scripture references where possible…"
-				}
+				placeholder={placeholder ?? t("contributionPlaceholder")}
 				className="w-full rounded border bg-background p-2 text-sm"
 			/>
 			<div className="flex gap-2">
 				<Button size="sm" onClick={submit} disabled={busy}>
-					Post
+					{t("post")}
 				</Button>
 				{onDone && (
 					<Button size="sm" variant="ghost" onClick={onDone}>
-						Cancel
+						{tCommon("cancel")}
 					</Button>
 				)}
 			</div>
