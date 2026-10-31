@@ -32,6 +32,14 @@ export class UserRepository {
         return await this.dao.updateProfile(id, data);
     }
 
+    async claimWelcomePremium(id: string, endsAt: Date): Promise<User | null> {
+        return await this.dao.claimWelcomePremium(id, endsAt);
+    }
+
+    async hasStudyOrSession(id: string): Promise<boolean> {
+        return await this.dao.hasStudyOrSession(id);
+    }
+
     async setTimezone(id: string, timezone: string): Promise<void> {
         return await this.dao.setTimezone(id, timezone);
     }

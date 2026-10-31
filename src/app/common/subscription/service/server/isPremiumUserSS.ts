@@ -17,7 +17,7 @@ export async function isPremiumUserSS(): Promise<boolean> {
 		const user = await userGetByAuthIdSS(authId);
 		if (!user) return false;
 		const subscription = await subscriptionGetByUserIdSS(user.id);
-		return isPremiumUser({ status: subscription?.status, lifetimePremium: user.lifetimePremium });
+		return isPremiumUser({ status: subscription?.status, lifetimePremium: user.lifetimePremium, welcomePremiumEndsAt: user.welcomePremiumEndsAt });
 	} catch {
 		return false;
 	}

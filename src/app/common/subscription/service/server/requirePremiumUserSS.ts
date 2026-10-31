@@ -34,7 +34,7 @@ export async function requirePremiumUserSS(): Promise<User> {
   }
 
   const subscription = await subscriptionGetByUserIdSS(user.id);
-  if (!isPremiumUser({ status: subscription?.status, lifetimePremium: user.lifetimePremium })) {
+  if (!isPremiumUser({ status: subscription?.status, lifetimePremium: user.lifetimePremium, welcomePremiumEndsAt: user.welcomePremiumEndsAt })) {
     throw new Error("PREMIUM_REQUIRED");
   }
 

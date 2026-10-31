@@ -1,7 +1,7 @@
 'use client';
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useRef } from 'react';
 import { useUser, useAuth } from '@clerk/nextjs';
-import { LoggedUserContextType, LoggedUserState } from './LoggedUserContextType';
+import { LoggedUserContextType, LoggedUserState, WelcomeGrant } from './LoggedUserContextType';
 import { userGetByAuthIdSS } from '../common/user/service/server/userGetByAuthIdSS';
 import { userGetByEmailSS } from '../common/user/service/server/userGetByEmailSS';
 import { userCreateSS } from '../common/user/service/server/userCreateSS';
@@ -10,17 +10,25 @@ import { usernameCheckSS } from '../common/user/service/server/usernameCheckSS';
 import { normalizeUsername } from '@/lib/username';
 import { User } from '../common/user/model/User';
 import { subscriptionGetByUserIdSS } from '../common/subscription/service/server/subscriptionGetByUserIdSS';
-import { isPremiumUser } from '@/lib/premium';
+import { isPremiumUser, isWelcomePremiumActive } from '@/lib/premium';
+import { welcomePremiumClaimSS } from '../common/subscription/service/server/welcomePremiumClaimSS';
 import { captureTimezone } from '@/lib/activityClient';
 import posthog from 'posthog-js';
 import { track } from '@/lib/analytics';
 import { consumeGoogleLoginPending, trackLoginSuccess } from '@/app/auth/lib/loginTelemetry';
+
+/**
+ * The welcome week's notice until WelcomePremiumNotice has shown it: kept
+ * across page loads, since signing in can end on a hard navigation.
+ */
+export const WELCOME_GRANT_KEY = 'welcomeGrant';
 
 const LoggedUserContext = createContext<LoggedUserContextType>({
   user: null,
   loading: false,
   isPremium: false,
   subscriptionStatus: null,
+  welcomeGrant: null,
   setState: () => { },
   reload: () => { },
 });
@@ -37,6 +45,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
     loading: true,
     isPremium: false,
     subscriptionStatus: null,
+    welcomeGrant: null,
   });
   const syncInProgress = useRef(false);
 
@@ -46,7 +55,7 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
       try {
         const { user: dbUser } = await fetchOrCreateUser(clerkUser.id, clerkUser);
         const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser);
-        setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
+        setState(prev => ({ ...prev, user: dbUser, loading: false, isPremium, subscriptionStatus }));
         localStorage.setItem('user', JSON.stringify(dbUser));
         localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
       } catch (error) {
@@ -64,16 +73,21 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
       try {
         const parsedUser = JSON.parse(cachedUser);
         const parsedSubscription = cachedSubscription ? JSON.parse(cachedSubscription) : { isPremium: false, subscriptionStatus: null };
-        setState({
+        const cachedGrant = localStorage.getItem(WELCOME_GRANT_KEY);
+        setState(prev => ({
+          ...prev,
+          // Not told yet: the sign-in that granted it hard-navigated before the notice ran.
+          welcomeGrant: prev.welcomeGrant ?? (cachedGrant ? JSON.parse(cachedGrant) : null),
           user: parsedUser,
           loading: !isClerkLoaded,
           isPremium: parsedSubscription.isPremium || false,
           subscriptionStatus: parsedSubscription.subscriptionStatus || null,
-        });
+        }));
       } catch (error) {
         console.error("Error parsing cached user:", error);
         localStorage.removeItem('user');
         localStorage.removeItem('subscription');
+        localStorage.removeItem(WELCOME_GRANT_KEY);
       }
     }
   }, [isClerkLoaded]);
@@ -87,9 +101,11 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
         syncInProgress.current = true;
         setState(prev => ({ ...prev, loading: true }));
         try {
-          const { user: dbUser, created } = await fetchOrCreateUser(clerkUser.id, clerkUser);
+          const { user: foundUser, created } = await fetchOrCreateUser(clerkUser.id, clerkUser);
+          const { user: dbUser, welcomeGrant: newGrant } = await claimWelcomePremium(foundUser);
           const { isPremium, subscriptionStatus } = await fetchSubscriptionStatus(dbUser);
-          setState({ user: dbUser, loading: false, isPremium, subscriptionStatus });
+          if (newGrant) localStorage.setItem(WELCOME_GRANT_KEY, JSON.stringify(newGrant));
+          setState(prev => ({ user: dbUser, loading: false, isPremium, subscriptionStatus, welcomeGrant: newGrant ?? prev.welcomeGrant }));
           localStorage.setItem('user', JSON.stringify(dbUser));
           localStorage.setItem('subscription', JSON.stringify({ isPremium, subscriptionStatus }));
           posthog.identify(dbUser.id, { email: dbUser.email, name: dbUser.name });
@@ -105,14 +121,15 @@ export const LoggedUserProvider: React.FC<LoggedUserProviderProps> = ({ children
           void captureTimezone();
         } catch (error) {
           console.error("Error syncing user:", error);
-          setState({ user: null, loading: false, isPremium: false, subscriptionStatus: null });
+          setState({ user: null, loading: false, isPremium: false, subscriptionStatus: null, welcomeGrant: null });
         } finally {
           syncInProgress.current = false;
         }
       } else {
-        setState({ user: null, loading: false, isPremium: false, subscriptionStatus: null });
+        setState({ user: null, loading: false, isPremium: false, subscriptionStatus: null, welcomeGrant: null });
         localStorage.removeItem('user');
         localStorage.removeItem('subscription');
+        localStorage.removeItem(WELCOME_GRANT_KEY);
         posthog.reset();
       }
     };
@@ -146,14 +163,37 @@ async function fetchSubscriptionStatus(
     const subscription = await subscriptionGetByUserIdSS(user.id);
     const status = subscription?.status ?? null;
     return {
-      isPremium: isPremiumUser({ status, lifetimePremium: user.lifetimePremium }),
+      isPremium: isPremiumUser({ status, lifetimePremium: user.lifetimePremium, welcomePremiumEndsAt: user.welcomePremiumEndsAt }),
       subscriptionStatus: status,
     };
   } catch (error) {
     console.error("Error fetching subscription:", error);
-    // A lookup failure must not strip access from a lifetime user — that signal
-    // is on the user row we already have, not on the subscription we failed to read.
-    return { isPremium: user.lifetimePremium === true, subscriptionStatus: null };
+    // A lookup failure must not strip access from a lifetime or welcome-week
+    // user — that signal is on the user row we already have, not on the
+    // subscription we failed to read.
+    return {
+      isPremium: user.lifetimePremium === true || isWelcomePremiumActive(user.welcomePremiumEndsAt),
+      subscriptionStatus: null,
+    };
+  }
+}
+
+/**
+ * Starts the welcome week on the sign-in that is eligible for it (the server
+ * decides; see welcomePremiumClaimSS). Skipped without a request once the row
+ * shows the week was already granted or the reader is lifetime. A failure
+ * never blocks signing in: the next sign-in tries again.
+ */
+async function claimWelcomePremium(user: User): Promise<{ user: User; welcomeGrant: WelcomeGrant | null }> {
+  if (user.welcomePremiumEndsAt != null || user.lifetimePremium) return { user, welcomeGrant: null };
+  try {
+    const claim = await welcomePremiumClaimSS();
+    if (!claim.granted) return { user, welcomeGrant: null };
+    track('welcome_premium_started', { firstSteps: claim.firstSteps });
+    return { user: claim.user, welcomeGrant: { firstSteps: claim.firstSteps } };
+  } catch (error) {
+    console.error("Error claiming the welcome premium week:", error);
+    return { user, welcomeGrant: null };
   }
 }
 

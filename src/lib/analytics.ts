@@ -22,6 +22,8 @@ export type AnalyticsEvents = {
   signup_code_verified: Record<string, never>;
   signup_failed: { method: SignupMethod; stage: SignupStage; reason: string };
   signed_up: { method?: SignupMethod };
+  /** The welcome week (seven days of premium) started on this sign-in. `firstSteps`: no study or session yet. */
+  welcome_premium_started: { firstSteps: boolean };
   username_chosen: { source: "sign_up" | "complete_profile" };
   password_reset_requested: Record<string, never>;
   password_reset_completed: Record<string, never>;

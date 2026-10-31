@@ -27,6 +27,10 @@ export const userTable = pgTable("user", {
 	// Stripe — a lifetime user has no `subscription` row. See src/lib/premium.ts.
 	lifetimePremium: boolean().notNull().default(false),
 	lifetimePremiumGrantedAt: timestamp(),
+	// The welcome week: premium until this moment, granted once per reader on
+	// the first sign-in after it shipped (welcomePremiumClaimSS). NULL means not
+	// granted yet; a past date means it was used up. See src/lib/premium.ts.
+	welcomePremiumEndsAt: timestamp(),
 	// Opens the /admin panel. Set by hand in the database and nowhere else: no
 	// DAO, service or script in this codebase writes it, and none may.
 	isAdmin: boolean().notNull().default(false),

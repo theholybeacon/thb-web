@@ -1,8 +1,10 @@
 import { User, UserInsert } from "../model/User";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { logger } from "@/app/utils/logger";
 import { userTable } from "@/db/schema/user";
+import { studyTable } from "@/db/schema/study";
+import { sessionTable } from "@/db/schema/session";
 
 
 
@@ -105,6 +107,31 @@ export class UserPostgreSQLDao {
             lifetimePremium: enabled,
             lifetimePremiumGrantedAt: enabled ? new Date() : null,
         }).where(eq(userTable.id, id));
+    }
+
+    /**
+     * Starts the welcome week, once. The `IS NULL` guard makes it a claim rather
+     * than a write: two tabs signing in at once cannot both grant it, and a week
+     * that already ran out is never granted again. Returns the updated row, or
+     * null when there was nothing to claim.
+     */
+    async claimWelcomePremium(id: string, endsAt: Date): Promise<User | null> {
+        log.trace("claimWelcomePremium");
+        const result = await db.update(userTable)
+            .set({ welcomePremiumEndsAt: endsAt })
+            .where(and(eq(userTable.id, id), isNull(userTable.welcomePremiumEndsAt), eq(userTable.lifetimePremium, false)))
+            .returning();
+        return result[0] ?? null;
+    }
+
+    /** Whether the reader has started anything yet: a study of their own or a session. */
+    async hasStudyOrSession(id: string): Promise<boolean> {
+        log.trace("hasStudyOrSession");
+        const [study, session] = await Promise.all([
+            db.select({ id: studyTable.id }).from(studyTable).where(eq(studyTable.ownerId, id)).limit(1),
+            db.select({ id: sessionTable.id }).from(sessionTable).where(eq(sessionTable.userId, id)).limit(1),
+        ]);
+        return study.length > 0 || session.length > 0;
     }
 
     /**

@@ -15,6 +15,7 @@ export default defineConfig({
 			"src/app/api/content/**/*.test.ts",
 			"src/lib/username.test.ts",
 			"src/lib/prices.test.ts",
+			"src/lib/premium.test.ts",
 			"src/lib/warmPriority.test.ts",
 			"src/lib/recommendedBible.test.ts",
 			"src/lib/nameMatch.test.ts",
