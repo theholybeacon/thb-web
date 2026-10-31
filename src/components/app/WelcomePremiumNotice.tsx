@@ -19,6 +19,8 @@ const BUILDER_PATH = "/study/create";
  *
  * Waits until the reader is in the app: a new account is created, and its
  * week granted, while still on the sign-up page or the public landing page.
+ * A new reader goes through the /welcome questions first (see home/page.tsx),
+ * which end in the builder themselves, so it also waits until they are past them.
  */
 export function WelcomePremiumNotice() {
 	const t = useTranslations("welcomePremium");
@@ -31,7 +33,8 @@ export function WelcomePremiumNotice() {
 
 	useEffect(() => {
 		if (!welcomeGrant || !user || shown.current) return;
-		if (!isAppPage(pathname)) return;
+		// Explicit null, as on /home: not through /welcome yet.
+		if (user.onboardedAt === null || !isAppPage(pathname)) return;
 		shown.current = true;
 
 		const toBuilder = welcomeGrant.firstSteps && pathname === "/home";
@@ -53,7 +56,7 @@ export function WelcomePremiumNotice() {
 	return null;
 }
 
-/** Not the auth pages, nor the public landing page that sign-in starts from. */
+/** Not the auth pages, the public landing page that sign-in starts from, nor the /welcome questions. */
 function isAppPage(pathname: string): boolean {
-	return pathname !== "/" && !pathname.startsWith("/auth") && !pathname.startsWith("/sso-callback");
+	return pathname !== "/" && pathname !== "/welcome" && !pathname.startsWith("/auth") && !pathname.startsWith("/sso-callback");
 }

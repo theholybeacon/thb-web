@@ -17,7 +17,7 @@ const WELCOME_COVERS = [
 
 test(
 	"A new reader's first visit opens the AI study builder",
-	{ annotation: covers(...WELCOME_COVERS, "src/app/(app)/study/create/**", "src/components/study/builder/**") },
+	{ annotation: covers(...WELCOME_COVERS, "src/app/(app)/welcome/**", "src/app/(app)/study/create/**", "src/components/study/builder/**") },
 	async ({ page, baseURL }) => {
 		test.setTimeout(150_000);
 		await step("Use the scripted builder AI", "The study builder answers from a script in this test instead of a paid model.", () =>
@@ -25,17 +25,30 @@ test(
 		);
 		await signInAsFreeReader(page, "welcome-new", "Naomi Newcomer", "new");
 
+		const notice = page.locator("[data-sonner-toast]").filter({ hasText: "You have 7 days of premium, on us" });
+		const skip = page.getByRole("button", { name: "Skip for now" });
 		await step(
-			"Taken straight to the study builder",
-			"Naomi has no study and no session yet, so instead of the home page the app opens the AI study builder: the conversation that plans a study around what she is going through.",
+			"The welcome questions come first",
+			"A new reader goes through the /welcome questions before anything else, and the notice about the week waits until she is past them. (The questions themselves are welcome.spec.ts.)",
 			async () => {
+				await page.waitForURL("**/welcome", { timeout: 90_000 });
+				await expect(skip).toBeVisible();
+				await expect(notice).toHaveCount(0);
+			},
+			{ target: skip },
+		);
+
+		await step(
+			"Skip them, and land in the study builder",
+			'Naomi presses "Skip for now". She has no study and no session yet, so instead of the home page the app opens the AI study builder: the conversation that plans a study around what she is going through.',
+			async () => {
+				await skip.click();
 				await page.waitForURL("**/study/create", { timeout: 60_000 });
 				// The first visit in a fresh dev server compiles the page and its server actions.
 				await expect(page.getByTestId("builder-chat")).toBeVisible({ timeout: 90_000 });
 			},
 		);
 
-		const notice = page.locator("[data-sonner-toast]").filter({ hasText: "You have 7 days of premium, on us" });
 		await step(
 			"Told about the free week",
 			'A notice tells her the builder is premium and hers for 7 days: "You have 7 days of premium, on us", and to tell the builder what she is going through.',

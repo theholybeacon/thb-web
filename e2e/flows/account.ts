@@ -76,7 +76,8 @@ export const signInAsPremiumReader = flow(
  *  - "new": a first sign-in. The Clerk account exists but the app has no row
  *    for it yet, so the app creates one, as it does for anyone who just signed up.
  *  - "returning": a reader who already used the app, free, before the welcome
- *    week existed, with one study of their own.
+ *    week existed, with one study of their own (and, like every reader from
+ *    before /welcome, marked as through it).
  * Either way the reader has never had the welcome week. The flow ends on
  * /home, where every sign-in lands.
  */
@@ -97,7 +98,7 @@ export const signInAsFreeReader = flow(
 				await deleteReaderRow(db, email);
 				if (kind === "returning") {
 					const { rows } = await db.query<{ id: string }>(
-						`INSERT INTO "user" ("name", "username", "email", "authId", "isEmailVerified") VALUES ($1, $2, $3, $4, true) RETURNING "id"`,
+						`INSERT INTO "user" ("name", "username", "email", "authId", "isEmailVerified", "onboardedAt") VALUES ($1, $2, $3, $4, true, now()) RETURNING "id"`,
 						[name, username, email, authId],
 					);
 					await db.query(
