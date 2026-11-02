@@ -6,7 +6,8 @@ import { SessionRepository } from "@/app/common/session/repository/SessionReposi
 import { requirePremiumUserSS } from "../../../subscription/service/server/requirePremiumUserSS";
 import { stepChapterCount } from "@/app/common/studyStep/model/reference";
 import { isStudyKind } from "../../model/StudyKind";
-import { StepKind } from "@/app/common/studyStep/model/StepContent";
+import { StepKind, imageContentSchema } from "@/app/common/studyStep/model/StepContent";
+import { canonBook } from "@/app/common/canon/model/canon";
 
 /**
  * The catalog of ready-made plans and stories, with the reader's own progress
@@ -41,12 +42,15 @@ export async function globalStudyListSS(): Promise<GlobalStudyCard[]> {
 				const kind = step.kind as StepKind;
 				stepKinds[kind] = (stepKinds[kind] ?? 0) + 1;
 			}
+			const image = study.steps.map((step) => imageContentSchema.safeParse(step.content)).find((parsed) => parsed.success)?.data;
+			const firstPassage = study.steps.find((step) => step.kind === "scripture" && step.bookAbbreviation);
+			const kind = isStudyKind(study.kind) ? study.kind : "plan";
 			const creator = (study as { creator?: { name: string } | null }).creator;
 
 			return {
 				id: study.id,
 				slug: study.slug!,
-				kind: isStudyKind(study.kind) ? study.kind : "plan",
+				kind,
 				language: study.language,
 				creatorName: creator?.name ?? null,
 				name: study.name,
@@ -56,6 +60,8 @@ export async function globalStudyListSS(): Promise<GlobalStudyCard[]> {
 				chapterCount: study.steps.reduce((total, step) => total + stepChapterCount(step), 0),
 				bookCount: new Set(study.steps.filter((step) => step.kind === "scripture")
 					.map((step) => step.bookAbbreviation).filter(Boolean)).size,
+				coverImage: image ? { url: image.url, alt: image.alt } : null,
+				testament: kind === "story" ? (canonBook(firstPassage?.bookAbbreviation ?? "")?.testament ?? null) : null,
 				adopted: copy ? { studyId: copy.id, sessionId: session?.id ?? null } : null,
 			};
 		}),

@@ -155,7 +155,7 @@ export default function StudyPage() {
     <AppShell>
       <PremiumGate>
         <div className="p-6 lg:p-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="flex items-center justify-between mb-8">
               <h1 className="text-3xl font-bold">{t("pageTitle")}</h1>
             <Button onClick={onCreateHandler} className="bg-primary hover:bg-primary/90">

@@ -291,7 +291,21 @@
       "filter_plan": "Planes ({count})",
       "filter_story": "Historias ({count})",
       "startStory": "Empezar historia",
-      "chooseBibleLanguage": "Este estudio está escrito en {language}, así que se lee en una traducción en {language}."
+      "chooseBibleLanguage": "Este estudio está escrito en {language}, así que se lee en una traducción en {language}.",
+      "searchPlaceholder": "Buscar planes e historias",
+      "languageLabel": "Idioma",
+      "language_all": "Todos los idiomas",
+      "testamentLabel": "Testamento",
+      "testament_all": "Toda la Biblia",
+      "testament_OT": "Antiguo Testamento",
+      "testament_NT": "Nuevo Testamento",
+      "inProgress": "En curso ({count})",
+      "started": "Empezado",
+      "plansHeading": "Planes de lectura",
+      "stories_OT": "Historias del Antiguo Testamento",
+      "stories_NT": "Historias del Nuevo Testamento",
+      "noMatches": "Nada en el catálogo coincide con estos filtros.",
+      "clearFilters": "Quitar filtros"
     },
     "kind": {
       "plan": "Plan",

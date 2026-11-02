@@ -56,6 +56,10 @@ export type GlobalStudyCard = {
     chapterCount: number;
     /** Distinct books it touches. */
     bookCount: number;
+    /** The study's first picture, shown on its card; null when it has none. */
+    coverImage: { url: string; alt: string } | null;
+    /** Where a story happens, from its first passage. Null for a plan, which spans both. */
+    testament: "OT" | "NT" | null;
     /** Set once the reader has taken this plan; `sessionId` is where to resume. */
     adopted: { studyId: string; sessionId: string | null } | null;
 };

@@ -291,7 +291,21 @@
       "filter_plan": "Plans ({count})",
       "filter_story": "Stories ({count})",
       "startStory": "Start story",
-      "chooseBibleLanguage": "This study is written in {language}, so it is read in a {language} translation."
+      "chooseBibleLanguage": "This study is written in {language}, so it is read in a {language} translation.",
+      "searchPlaceholder": "Search plans and stories",
+      "languageLabel": "Language",
+      "language_all": "All languages",
+      "testamentLabel": "Testament",
+      "testament_all": "Whole Bible",
+      "testament_OT": "Old Testament",
+      "testament_NT": "New Testament",
+      "inProgress": "In progress ({count})",
+      "started": "Started",
+      "plansHeading": "Reading plans",
+      "stories_OT": "Old Testament stories",
+      "stories_NT": "New Testament stories",
+      "noMatches": "Nothing in the catalog matches these filters.",
+      "clearFilters": "Clear filters"
     },
     "kind": {
       "plan": "Plan",

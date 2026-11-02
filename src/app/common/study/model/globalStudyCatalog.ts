@@ -2,6 +2,7 @@ import { GlobalStudyDef } from "./globalStudy";
 import { CHRONOLOGICAL_PLAN } from "./plans/chronological";
 import { COVER_TO_COVER_PLAN } from "./plans/coverToCover";
 import { STORIES } from "./stories";
+import { STORIES_ES } from "./stories/es";
 
 /**
  * Every plan and story offered in the global catalog, in display order.
@@ -15,6 +16,8 @@ export const GLOBAL_STUDIES: GlobalStudyDef[] = [
 	COVER_TO_COVER_PLAN,
 	// Stories are listed in ./stories/index.ts.
 	...STORIES,
+	// The same stories in Spanish (./stories/es), read with a Spanish Bible.
+	...STORIES_ES,
 ];
 
 export function globalStudyDef(slug: string): GlobalStudyDef | undefined {
